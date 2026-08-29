@@ -1,6 +1,5 @@
 /*
   Custom preflight — Tailwind corePlugins.preflight is false so Ant Design reset stays in charge.
-  Source: ScheFlow-Portal src/theme/base.css (reset + Ant Design tweaks; no product animations).
 */
 
 *,

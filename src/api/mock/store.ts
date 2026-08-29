@@ -7,7 +7,7 @@ import usersSeed from './seed/users.json';
 import type { MockRoleRecord, MockUserRecord } from './types';
 
 /**
- * In-memory mock store. Seed credentials (login UI is EPIC-002):
+ * In-memory mock store. Demo credentials:
  * admin / admin123, viewer / viewer123.
  */
 
