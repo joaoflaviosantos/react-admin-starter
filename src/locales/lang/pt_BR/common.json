@@ -1,0 +1,52 @@
+{
+  "common": {
+    "systemName": "React Ant Design Admin",
+    "swichTheme": "Alternar tema",
+    "changeLanguage": "Alterar idioma",
+    "uiAdjusts": "Configurações",
+    "confirmText": "Confirmar",
+    "defaultText": "Padrão",
+    "stretch": "Esticar",
+    "stretchTip": "Disponível apenas em resoluções grandes > 1600px (xl)",
+    "breadcrumb": "Breadcrumb",
+    "layout": "Layout",
+    "vertical": "Vertical",
+    "horizontal": "Horizontal",
+    "mini": "Mini",
+    "darkMode": "Modo escuro",
+    "lightMode": "Modo claro",
+    "color": "Cor"
+  },
+  "sys": {
+    "login": {
+      "signInFormTitle": "Entrar",
+      "loginButton": "Entrar",
+      "logout": "Sair",
+      "username": "Usuário",
+      "password": "Senha",
+      "usernameRequired": "Usuário é obrigatório.",
+      "passwordRequired": "Senha é obrigatória.",
+      "demoHint": "Contas demo para desenvolvimento local.",
+      "demoCredentials": "Credenciais demo",
+      "usernamePlaceholder": "admin ou viewer",
+      "passwordPlaceholder": "Senha"
+    },
+    "menu": {
+      "workbench": "Workbench",
+      "overview": "Visão geral"
+    },
+    "error": {
+      "404Title": "Página não encontrada",
+      "404Desc": "Desculpe, não encontramos a página que você procura.",
+      "backHome": "Voltar ao início",
+      "backLogin": "Voltar ao login"
+    }
+  },
+  "workbench": {
+    "overview": {
+      "welcome": "Bem-vindo de volta",
+      "subtitle": "Esta é uma página de visão geral simples do boilerplate admin.",
+      "comingSoon": "Mais módulos aparecerão aqui em versões futuras."
+    }
+  }
+}

@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom/client';
 
 import App from '@/App';
 
+import '@/locales/i18n';
 import './theme/index.css';
+import 'simplebar-react/dist/simplebar.min.css';
 
 const rootElement = document.getElementById('root');
 

@@ -12,7 +12,7 @@ import { getItem, removeItem, setItem } from '@/utils/storage';
 import { TokenRead } from '#/auth';
 import { StorageEnum } from '#/enum';
 
-const HOMEPAGE = import.meta.env.VITE_APP_HOMEPAGE ?? '/';
+const HOMEPAGE = import.meta.env.VITE_APP_HOMEPAGE ?? '/workbench/overview';
 
 type UserStore = {
   userToken: Partial<TokenRead>;
