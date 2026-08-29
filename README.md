@@ -1,4 +1,4 @@
-<h1 align="center">react-admin-starter</h1>
+<h1 align="center">React Admin Starter</h1>
 
 <p align="center" markdown=1>
   <i>A mock-first React admin starter with shadcn/ui, Tailwind CSS, React Hook Form, Zod, TanStack Table, and Vite — no backend required for the happy path.</i>
