@@ -106,9 +106,7 @@ function mergeStyles(
   return { ...base, ...override };
 }
 
-function DescriptionsItem(_props: DescriptionsItemProps) {
-  return null;
-}
+const DescriptionsItem: React.FC<DescriptionsItemProps> = () => null;
 
 DescriptionsItem.displayName = 'DescriptionsItem';
 
