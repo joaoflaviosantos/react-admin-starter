@@ -1,0 +1,108 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  --c-bg: transparent;
+  --c-scrollbar: #bfbfbf;
+  --c-scrollbar-hover: #a5a4a4;
+
+  --ant-color-bg-layout: #e4e4e7;
+  --ant-color-bg-container: #f4f4f5;
+  --ant-color-bg-elevated: #f4f4f5;
+  --ant-color-bg-mask: rgba(0, 0, 0, 0.67);
+  --ant-color-bg-modal-header: #e4e4e7;
+  --ant-color-bg-modal-content: #f4f4f5;
+  --ant-color-bg-modal-footer: #e4e4e7;
+  --ant-color-bg-menu-selected: #efefef;
+  --ant-color-bg-menu-active: #efefef;
+  --ant-color-bg-table-header: #e8ecef;
+  --ant-color-border-secondary: #d4d4d8;
+  --ant-color-border-table: #d4d4d8;
+  --ant-color-border-table-split: #bcbcbc;
+  --ant-color-border-card: #d4d4d8;
+  --ant-color-border-tabs: rgba(0, 120, 212, 0.6);
+  --ant-color-text-menu: #757577;
+  --ant-color-shadow-button: 0px 2px 3px rgba(0, 0, 0, 0.15);
+
+  --ant-color-primary-default: #0078d4;
+  --ant-color-primary-green: #00a76f;
+  --ant-color-primary-cyan: #078dee;
+  --ant-color-pink: #fd018e;
+  --ant-color-primary-purple: #943cf2;
+  --ant-color-primary-blue: #2065d1;
+  --ant-color-primary-orange: #fda92d;
+  --ant-color-primary-red: #ff2651;
+
+  --ant-color-success: #22c55e;
+  --ant-color-warning: #fac858;
+  --ant-color-error: #ff5630;
+  --ant-color-info: #00b8d9;
+}
+
+html {
+  background-color: var(--c-bg);
+  overflow: auto;
+}
+
+body.dark {
+  --c-bg: transparent;
+  --c-scrollbar: #1b1e2a;
+  --c-scrollbar-hover: #11131c;
+
+  --ant-color-bg-layout: #000000;
+  --ant-color-bg-container: #18181b;
+  --ant-color-bg-elevated: #18181b;
+  --ant-color-bg-mask: rgba(0, 0, 0, 0.67);
+  --ant-color-bg-modal-header: #18181b;
+  --ant-color-bg-modal-content: #27272a;
+  --ant-color-bg-modal-footer: #18181b;
+  --ant-color-bg-menu-selected: #27272a;
+  --ant-color-bg-menu-active: #353849;
+  --ant-color-bg-table-header: #27272a;
+  --ant-color-border-secondary: #50525b;
+  --ant-color-border-table: #323235;
+  --ant-color-border-table-split: #50525b;
+  --ant-color-border-card: #323235;
+  --ant-color-border-tabs: rgba(0, 120, 212, 0.4);
+  --ant-color-text-menu: #cecece;
+  --ant-color-shadow-button: 0px 2px 3px rgba(0, 0, 0, 0.1);
+
+  --ant-color-primary-default: #0078d4;
+  --ant-color-primary-green: #00a76f;
+  --ant-color-primary-cyan: #078dee;
+  --ant-color-pink: #fd018e;
+  --ant-color-primary-purple: #943cf2;
+  --ant-color-primary-blue: #2065d1;
+  --ant-color-primary-orange: #fda92d;
+  --ant-color-primary-red: #ff2651;
+
+  --ant-color-success: #22c55e;
+  --ant-color-warning: #fac858;
+  --ant-color-error: #ff5630;
+  --ant-color-info: #00b8d9;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  cursor: pointer !important;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 5px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: var(--c-bg);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--c-scrollbar);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-scrollbar-hover);
+}

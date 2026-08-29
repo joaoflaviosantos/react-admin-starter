@@ -1,0 +1,8 @@
+/* Custom reset (Tailwind preflight is disabled so Ant Design can own element defaults) */
+@import './base.css';
+
+/* Tailwind layers + Ant Design CSS variables */
+@import './global.css';
+
+/* Font referenced by ConfigProvider tokens */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@100..900&display=swap');
