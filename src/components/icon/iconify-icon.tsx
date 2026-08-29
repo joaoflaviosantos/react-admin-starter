@@ -1,5 +1,6 @@
 import { Icon } from '@iconify/react';
-import styled from 'styled-components';
+
+import { cn } from '@/lib/utils';
 
 import type { IconProps } from '@iconify/react';
 
@@ -9,16 +10,8 @@ interface Props extends IconProps {
 
 export default function Iconify({ icon, size = '1em', className = '', ...other }: Props) {
   return (
-    <StyledIconify className="anticon">
-      <Icon icon={icon} width={size} height={size} className={`m-auto ${className}`} {...other} />
-    </StyledIconify>
+    <span className={cn('inline-flex items-center justify-center align-middle', className)}>
+      <Icon icon={icon} width={size} height={size} className="m-auto inline-block" {...other} />
+    </span>
   );
 }
-
-const StyledIconify = styled.div`
-  display: inline-flex;
-  vertical-align: middle;
-  svg {
-    display: inline-block;
-  }
-`;

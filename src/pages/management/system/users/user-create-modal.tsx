@@ -1,10 +1,27 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Form, Input, Modal, Select } from 'antd';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import roleService from '@/api/services/system/roleService';
 import userService from '@/api/services/system/userService';
+import { AdminForm } from '@/components/admin/form';
+import { FormFieldInput, FormFieldSelect } from '@/components/admin/form/form-field';
+import { DividerScheFlow } from '@/components/divider';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { appToast } from '@/lib/toast';
+import { modalContentWidthLgClass } from '@/lib/overlay-surface';
+import { cn } from '@/lib/utils';
+import { createUserCreateSchema, type UserCreateFormValues } from './schema';
 
 import type { UserCreate } from '#/system/user';
 
@@ -24,9 +41,13 @@ export function UserCreateModal({
   onCancel,
 }: UserCreateModalProps) {
   const { t } = useTranslation();
-  const { message } = App.useApp();
-  const [form] = Form.useForm<UserCreate & { confirmPassword?: string }>();
   const queryClient = useQueryClient();
+  const schema = useMemo(() => createUserCreateSchema(t), [t]);
+
+  const form = useForm<UserCreateFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: formValue,
+  });
 
   const { data: roles, isFetching: rolesLoading } = useQuery({
     queryKey: ['management-system-roles-for-user-creation'],
@@ -40,25 +61,24 @@ export function UserCreateModal({
 
   useEffect(() => {
     if (show) {
-      form.setFieldsValue(formValue);
+      form.reset(formValue);
     }
   }, [form, formValue, show]);
 
   const mutation = useMutation({
     mutationFn: userService.createUser,
     onSuccess: () => {
-      form.resetFields();
+      form.reset();
       onReset();
-      message.success(t('management.users.messages.createSuccess'));
+      appToast.success(t('management.users.messages.createSuccess'));
       void queryClient.invalidateQueries({ queryKey: ['management-system-users'] });
     },
     onError: () => {
-      message.error(t('management.users.messages.createError'));
+      appToast.error(t('management.users.messages.createError'));
     },
   });
 
-  const handleOk = async () => {
-    const values = await form.validateFields();
+  const handleSubmit = (values: UserCreateFormValues) => {
     mutation.mutate({
       email: values.email,
       name: values.name,
@@ -67,53 +87,64 @@ export function UserCreateModal({
     });
   };
 
+  const roleOptions = useMemo(
+    () =>
+      (roles?.data ?? []).map((role) => ({
+        label: role.label,
+        value: role.id,
+      })),
+    [roles?.data],
+  );
+
   return (
-    <Modal
-      title={title}
-      open={show}
-      onOk={() => void handleOk()}
-      confirmLoading={mutation.isPending}
-      okText={t('common.saveText')}
-      onCancel={onCancel}
-      maskClosable={false}
-      centered
-      destroyOnClose
-    >
-      <Form form={form} layout="vertical" initialValues={formValue}>
-        <Form.Item
-          label={t('management.users.forms.basicData.email')}
-          name="email"
-          rules={[
-            { required: true, message: t('common.requiredField') },
-            { type: 'email', message: t('common.invalidEmail') },
-          ]}
-        >
-          <Input disabled={mutation.isPending} />
-        </Form.Item>
-        <Form.Item
-          label={t('management.users.forms.basicData.name')}
-          name="name"
-          rules={[{ required: true, message: t('common.requiredField') }]}
-        >
-          <Input disabled={mutation.isPending} />
-        </Form.Item>
-        <Form.Item
-          label={t('management.users.forms.securityData.role')}
-          name="role_id"
-          rules={[{ required: true, message: t('common.requiredField') }]}
-        >
-          <Select
-            disabled={rolesLoading || mutation.isPending}
-            options={roles?.data?.map((role) => ({ label: role.label, value: role.id }))}
-          />
-        </Form.Item>
-        <Form.Item label={t('management.users.forms.securityData.password')} name="password">
-          <Input.Password
-            disabled={mutation.isPending}
-            placeholder={t('management.users.forms.securityData.passwordOptional')}
-          />
-        </Form.Item>
-      </Form>
-    </Modal>
+    <Dialog open={show} onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent className={cn(modalContentWidthLgClass)}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <AdminForm form={form} onSubmit={handleSubmit} className="flex flex-col">
+          <DialogBody className="space-y-4">
+            <DividerScheFlow>{t('management.users.forms.basicData.index')}</DividerScheFlow>
+            <FormFieldInput
+              control={form.control}
+              name="email"
+              label={t('management.users.forms.basicData.email')}
+              disabled={mutation.isPending}
+            />
+            <FormFieldInput
+              control={form.control}
+              name="name"
+              label={t('management.users.forms.basicData.name')}
+              disabled={mutation.isPending}
+            />
+            <DividerScheFlow>{t('management.users.forms.securityData.index')}</DividerScheFlow>
+            <FormFieldSelect
+              control={form.control}
+              name="role_id"
+              label={t('management.users.forms.securityData.role')}
+              placeholder={t('common.requiredField')}
+              options={roleOptions}
+              disabled={rolesLoading || mutation.isPending}
+            />
+            <FormFieldInput
+              control={form.control}
+              name="password"
+              type="password"
+              label={t('management.users.forms.securityData.password')}
+              placeholder={t('management.users.forms.securityData.passwordOptional')}
+              disabled={mutation.isPending}
+            />
+          </DialogBody>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              {t('common.cancelText')}
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
+              {t('common.saveText')}
+            </Button>
+          </DialogFooter>
+        </AdminForm>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -55,6 +55,9 @@ const getUserById = (id: string) =>
 const updateUserById = (id: string, data: UpdateUserInfoRequest) =>
   apiClient.patch<{ message: string }>({ url: `${SystemUserAPI.byId}${id}`, data });
 
+const deleteUserById = (id: string) =>
+  apiClient.delete<{ message: string }>({ url: `${SystemUserAPI.byId}${id}` });
+
 const getMyTenantData = async () => {
   const response = await apiClient.get<MyUserTenantDataRes>({ url: SystemUserAPI.me });
   return response;
@@ -65,5 +68,6 @@ export default {
   getPaginatedUserList,
   getUserById,
   updateUserById,
+  deleteUserById,
   getMyTenantData,
 };

@@ -1,6 +1,6 @@
-import { Button, Result } from 'antd';
 import { useTranslation } from 'react-i18next';
 
+import { EmptyState } from '@/components/admin/empty-state';
 import { useRouter } from '@/router/hooks';
 import { useUserToken } from '@/store/userStore';
 
@@ -17,17 +17,13 @@ export default function Page403() {
   };
 
   return (
-    <div className="flex flex-1 items-center justify-center pb-12 pt-8">
-      <Result
-        status="403"
-        title={t('sys.error.403Title')}
-        subTitle={t('sys.error.403Desc')}
-        extra={
-          <Button type="primary" onClick={goBack}>
-            {isAuthenticated ? t('sys.error.backHome') : t('sys.error.backLogin')}
-          </Button>
-        }
-      />
-    </div>
+    <EmptyState
+      title={t('sys.error.403Title')}
+      description={t('sys.error.403Desc')}
+      action={{
+        label: isAuthenticated ? t('sys.error.backHome') : t('sys.error.backLogin'),
+        onClick: goBack,
+      }}
+    />
   );
 }

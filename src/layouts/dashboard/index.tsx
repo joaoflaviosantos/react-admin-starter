@@ -1,23 +1,20 @@
 import { useScroll } from 'framer-motion';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
 
 import { CircleLoading } from '@/components/loading';
 import ProgressBar from '@/components/progress-bar';
 import PermissionRouteWatcher from '@/router/components/permission-route-watcher';
 import { useSettings } from '@/store/settingStore';
-import { useThemeToken } from '@/theme/hooks';
 
 import Header from './header';
 import Main from './main';
 import Nav from './nav';
 import NavHorizontal from './nav-horizontal';
 
-import { ThemeLayout, ThemeMode } from '#/enum';
+import { ThemeLayout } from '#/enum';
 
 function DashboardLayout() {
-  const { colorBgLayout, colorTextBase } = useThemeToken();
-  const { themeLayout, themeMode } = useSettings();
+  const { themeLayout } = useSettings();
   const mainEl = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll({ container: mainEl });
   const [offsetTop, setOffsetTop] = useState(false);
@@ -38,52 +35,37 @@ function DashboardLayout() {
     </div>
   );
 
-  const nav = themeLayout === ThemeLayout.Horizontal ? <NavHorizontal /> : navVertical;
+  const isHorizontal = themeLayout === ThemeLayout.Horizontal;
 
   return (
-    <StyleWrapper $themeMode={themeMode}>
+    <div className="dashboard-scroll text-foreground">
       <ProgressBar />
       <PermissionRouteWatcher />
       <div
-        className={`flex h-screen overflow-hidden ${
-          themeLayout === ThemeLayout.Horizontal ? 'flex-col' : ''
+        className={`flex h-screen overflow-hidden bg-layout transition-colors duration-200 ${
+          isHorizontal ? 'flex-col' : ''
         }`}
-        style={{
-          color: colorTextBase,
-          background: colorBgLayout,
-          transition:
-            'color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, background 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
-        }}
       >
         <Suspense fallback={<CircleLoading />}>
-          <Header offsetTop={themeLayout === ThemeLayout.Vertical ? offsetTop : undefined} />
-          {nav}
-          <Main ref={mainEl} offsetTop={offsetTop} />
+          {isHorizontal ? (
+            <>
+              <Header />
+              <NavHorizontal />
+              <Main ref={mainEl} />
+            </>
+          ) : (
+            <>
+              {navVertical}
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                <Header offsetTop={offsetTop} />
+                <Main ref={mainEl} offsetTop={offsetTop} />
+              </div>
+            </>
+          )}
         </Suspense>
       </div>
-    </StyleWrapper>
+    </div>
   );
 }
 
 export default DashboardLayout;
-
-const StyleWrapper = styled.div<{ $themeMode?: ThemeMode }>`
-  ::-webkit-scrollbar {
-    width: 0.3rem;
-    height: 0.3rem;
-  }
-
-  ::-webkit-scrollbar-track {
-    border-radius: 8px;
-    background: ${(props) => (props.$themeMode === ThemeMode.Dark ? '#2c2c2c' : '#FAFAFA')};
-  }
-
-  ::-webkit-scrollbar-thumb {
-    border-radius: 8px;
-    background: ${(props) => (props.$themeMode === ThemeMode.Dark ? '#6b6b6b' : '#a3a1a1')};
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: ${(props) => (props.$themeMode === ThemeMode.Dark ? '#5e5d5d' : '#7D7D7D')};
-  }
-`;

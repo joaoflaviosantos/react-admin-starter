@@ -1,24 +1,72 @@
-import { CloseOutlined } from '@ant-design/icons';
-import { Card, Drawer, Switch } from 'antd';
-import Color from 'color';
-import { CSSProperties, useState } from 'react';
+import { useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import { IconButton, SvgIcon } from '@/components/icon';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import {
+  Sheet,
+  SheetBody,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { Switch } from '@/components/ui/switch';
 import { useSettingActions, useSettings } from '@/store/settingStore';
-import { colorPrimarys } from '@/theme/antd/theme';
-import { useThemeToken } from '@/theme/hooks';
+import {
+  colorPrimarys,
+  resolveThemePrimaryColor,
+  themeColorPresetOrder,
+} from '@/theme/color-presets';
+import { normalizeHexColor } from '@/theme/color-utils';
+import { cn } from '@/lib/utils';
 
 import { ThemeColorPresets, ThemeLayout, ThemeMode } from '#/enum';
 
+function ThemeColorOption({
+  preset,
+  customColor,
+  variant = 'option',
+}: {
+  preset: ThemeColorPresets;
+  customColor?: string;
+  variant?: 'option' | 'value';
+}) {
+  const { t } = useTranslation();
+  const isCustomPreset = preset === ThemeColorPresets.Custom;
+  const swatchColor = resolveThemePrimaryColor(
+    preset,
+    customColor ?? colorPrimarys[ThemeColorPresets.Custom],
+  );
+  const showCustomGradient = isCustomPreset && variant === 'option';
+
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <span
+        aria-hidden
+        className={cn(
+          'inline-block h-3.5 w-3.5 shrink-0 rounded-full border border-border/60',
+          showCustomGradient &&
+            'bg-[conic-gradient(from_180deg,red,yellow,lime,cyan,blue,magenta,red)]',
+        )}
+        style={showCustomGradient ? undefined : { backgroundColor: swatchColor }}
+      />
+      <span className="truncate">{t(`common.themeColors.${preset}`)}</span>
+    </div>
+  );
+}
+
 export default function SettingButton() {
   const { t } = useTranslation();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const { colorPrimary, colorBgContainer } = useThemeToken();
+  const [sheetOpen, setSheetOpen] = useState(false);
   const settings = useSettings();
-  const { themeMode, themeColorPresets, themeLayout, themeStretch, breadCrumb } = settings;
-  const { setSettings } = useSettingActions();
+  const { themeMode, themeColorPresets, themeCustomColor, themeLayout, themeStretch, breadCrumb } =
+    settings;
+  const { setSettings, resetSettings } = useSettingActions();
 
   const setThemeMode = (nextMode: ThemeMode) => {
     const apply = () => setSettings({ ...settings, themeMode: nextMode });
@@ -31,101 +79,179 @@ export default function SettingButton() {
     }
   };
 
-  const style: CSSProperties = {
-    backgroundColor: Color(colorBgContainer).alpha(0.95).toString(),
+  const updateCustomColor = (value: string) => {
+    setSettings({
+      ...settings,
+      themeCustomColor: normalizeHexColor(value, themeCustomColor),
+    });
+  };
+
+  const handleResetSettings = () => {
+    const apply = () => resetSettings();
+    if (!document.startViewTransition) {
+      apply();
+      return;
+    }
+
+    document.startViewTransition(() => {
+      flushSync(apply);
+    });
   };
 
   const layoutBackground = (layout: ThemeLayout) =>
     themeLayout === layout
-      ? `linear-gradient(135deg, ${colorBgContainer} 0%, ${colorPrimary} 100%)`
+      ? 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--primary)) 100%)'
       : '#919eab';
+
+  const settingCardHeaderClass = 'px-4 py-3';
+  const settingCardContentClass = 'px-4 pb-4 pt-3';
 
   return (
     <>
       <IconButton
         title={t('common.uiAdjusts')}
         className="h-10 w-10"
-        onClick={() => setDrawerOpen(true)}
+        onClick={() => setSheetOpen(true)}
       >
         <SvgIcon icon="ic-setting" size="22" />
       </IconButton>
-      <Drawer
-        placement="right"
-        title={t('common.uiAdjusts')}
-        onClose={() => setDrawerOpen(false)}
-        open={drawerOpen}
-        closable={false}
-        width={280}
-        styles={{ body: { padding: 16 }, mask: { backgroundColor: 'transparent' } }}
-        style={style}
-        extra={
-          <IconButton onClick={() => setDrawerOpen(false)} className="h-9 w-9">
-            <CloseOutlined className="text-gray-400" />
-          </IconButton>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <Card size="small" title={t('common.darkMode')}>
-            <Switch
-              checked={themeMode === ThemeMode.Dark}
-              onChange={(checked) => setThemeMode(checked ? ThemeMode.Dark : ThemeMode.Light)}
-            />
-          </Card>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="w-[280px]">
+          <SheetHeader>
+            <SheetTitle>{t('common.uiAdjusts')}</SheetTitle>
+          </SheetHeader>
+          <SheetBody className="flex flex-col gap-4">
+            <Card>
+              <CardHeader className={settingCardHeaderClass}>
+                <CardTitle className="text-sm">{t('common.darkMode')}</CardTitle>
+              </CardHeader>
+              <CardContent className={settingCardContentClass}>
+                <Switch
+                  checked={themeMode === ThemeMode.Dark}
+                  onCheckedChange={(checked) =>
+                    setThemeMode(checked ? ThemeMode.Dark : ThemeMode.Light)
+                  }
+                />
+              </CardContent>
+            </Card>
 
-          <Card size="small" title={t('common.color')}>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(colorPrimarys).map(([key, value]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className="rounded-full p-1"
-                  onClick={() =>
-                    setSettings({ ...settings, themeColorPresets: key as ThemeColorPresets })
+            <Card>
+              <CardHeader className={settingCardHeaderClass}>
+                <CardTitle className="text-sm">{t('common.color')}</CardTitle>
+              </CardHeader>
+              <CardContent className={settingCardContentClass}>
+                <Select
+                  value={themeColorPresets}
+                  onValueChange={(value) =>
+                    setSettings({
+                      ...settings,
+                      themeColorPresets: value as ThemeColorPresets,
+                    })
                   }
                 >
-                  <span
-                    className="inline-block h-5 w-5 rounded-full"
-                    style={{
-                      backgroundColor: value,
-                      opacity: themeColorPresets === key ? 1 : 0.45,
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-          </Card>
+                  <SelectTrigger className="w-full">
+                    <ThemeColorOption
+                      preset={themeColorPresets}
+                      customColor={themeCustomColor}
+                      variant="value"
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {themeColorPresetOrder.map((preset) => (
+                      <SelectItem key={preset} value={preset}>
+                        <ThemeColorOption preset={preset} customColor={themeCustomColor} />
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-          <Card size="small" title={t('common.layout')}>
-            <div className="flex gap-2">
-              {[ThemeLayout.Vertical, ThemeLayout.Horizontal, ThemeLayout.Mini].map((layout) => (
-                <button
-                  key={layout}
-                  type="button"
-                  className="h-10 flex-1 rounded-md text-xs text-white"
-                  style={{ background: layoutBackground(layout) }}
-                  onClick={() => setSettings({ ...settings, themeLayout: layout })}
-                >
-                  {t(`common.${layout}`)}
-                </button>
-              ))}
-            </div>
-          </Card>
+                {themeColorPresets === ThemeColorPresets.Custom ? (
+                  <div className="mt-3 space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {t('common.customColor')}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={themeCustomColor}
+                        onChange={(event) => updateCustomColor(event.target.value)}
+                        aria-label={t('common.customColor')}
+                        className="h-10 w-14 shrink-0 cursor-pointer rounded-md border border-border bg-transparent p-1"
+                      />
+                      <Input
+                        value={themeCustomColor}
+                        onChange={(event) => updateCustomColor(event.target.value)}
+                        className="font-mono uppercase"
+                        maxLength={7}
+                        spellCheck={false}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
 
-          <Card size="small" title={t('common.stretch')}>
-            <Switch
-              checked={themeStretch}
-              onChange={(checked) => setSettings({ ...settings, themeStretch: checked })}
-            />
-          </Card>
+            <Card>
+              <CardHeader className={settingCardHeaderClass}>
+                <CardTitle className="text-sm">{t('common.layout')}</CardTitle>
+              </CardHeader>
+              <CardContent className={settingCardContentClass}>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[ThemeLayout.Vertical, ThemeLayout.Horizontal, ThemeLayout.Mini].map(
+                    (layout) => (
+                      <Button
+                        key={layout}
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto min-h-10 min-w-0 whitespace-normal rounded-md px-1 py-2 text-center text-[11px] leading-tight text-white"
+                        style={{ background: layoutBackground(layout) }}
+                        onClick={() => setSettings({ ...settings, themeLayout: layout })}
+                      >
+                        {t(`common.${layout}`)}
+                      </Button>
+                    ),
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card size="small" title={t('common.breadcrumb')}>
-            <Switch
-              checked={breadCrumb}
-              onChange={(checked) => setSettings({ ...settings, breadCrumb: checked })}
-            />
-          </Card>
-        </div>
-      </Drawer>
+            <Card>
+              <CardHeader className={settingCardHeaderClass}>
+                <CardTitle className="text-sm">{t('common.stretch')}</CardTitle>
+              </CardHeader>
+              <CardContent className={settingCardContentClass}>
+                <Switch
+                  checked={themeStretch}
+                  onCheckedChange={(checked) => setSettings({ ...settings, themeStretch: checked })}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className={settingCardHeaderClass}>
+                <CardTitle className="text-sm">{t('common.breadcrumb')}</CardTitle>
+              </CardHeader>
+              <CardContent className={settingCardContentClass}>
+                <Switch
+                  checked={breadCrumb}
+                  onCheckedChange={(checked) => setSettings({ ...settings, breadCrumb: checked })}
+                />
+              </CardContent>
+            </Card>
+          </SheetBody>
+          <SheetFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-destructive/40 bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive dark:border-destructive/50 dark:text-red-400 dark:hover:bg-destructive/15 dark:hover:text-red-400"
+              onClick={handleResetSettings}
+            >
+              {t('common.resetSettings')}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

@@ -1,7 +1,7 @@
-import { Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 
+import { Skeleton } from '@/components/ui/skeleton';
 import { fetchCurrentUser, useUserActions, useUserInfo, useUserToken } from '@/store/userStore';
 import { isUserWithPermissionsRead } from '@/utils/permission';
 
@@ -67,8 +67,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   if (checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ant-bg-layout">
-        <Spin size="large" tip="Loading session..." />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-layout">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <p className="text-sm text-muted-foreground">Loading session...</p>
       </div>
     );
   }

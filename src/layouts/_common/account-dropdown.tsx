@@ -1,11 +1,15 @@
-import { Avatar, Divider, MenuProps } from 'antd';
-import Dropdown, { DropdownProps } from 'antd/es/dropdown/dropdown';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { IconButton } from '@/components/icon';
 import { useSignOut, useUserInfo } from '@/store/userStore';
-import { useThemeToken } from '@/theme/hooks';
 import { getColorFromName } from '@/utils/colors';
 import { getInitials } from '@/utils/format-string';
 
@@ -13,60 +17,39 @@ export default function AccountDropdown() {
   const userInfo = useUserInfo();
   const signOut = useSignOut();
   const { t } = useTranslation();
-
-  const logout = () => {
-    signOut();
-  };
-
-  const { colorBgElevated, borderRadiusLG, boxShadowSecondary } = useThemeToken();
-
-  const contentStyle: React.CSSProperties = {
-    backgroundColor: colorBgElevated,
-    borderRadius: borderRadiusLG,
-    boxShadow: boxShadowSecondary,
-  };
-
-  const menuStyle: React.CSSProperties = {
-    boxShadow: 'none',
-  };
-
-  const dropdownRender: DropdownProps['dropdownRender'] = (menu) => (
-    <div style={contentStyle}>
-      <div className="flex flex-col items-start p-4">
-        <div>{userInfo.name}</div>
-        <div className="text-gray">{userInfo.email}</div>
-        <div className="font-semibold opacity-60">{userInfo.role_label ?? userInfo.role}</div>
-      </div>
-      <Divider style={{ margin: 0 }} />
-      {React.cloneElement(menu as React.ReactElement, { style: menuStyle })}
-    </div>
-  );
-
-  const items: MenuProps['items'] = [
-    {
-      label: <button className="font-bold text-warning">{t('sys.login.logout')}</button>,
-      key: 'logout',
-      onClick: logout,
-    },
-  ];
+  const displayName = userInfo.name || '';
+  const avatarColor = getColorFromName(displayName);
 
   return (
-    <Dropdown menu={{ items }} trigger={['click']} dropdownRender={dropdownRender}>
-      <IconButton className="h-11 w-11 transform-none px-0">
-        {userInfo.profile_image_url ? (
-          <Avatar size="default" src={userInfo.profile_image_url} />
-        ) : (
-          <Avatar
-            size="default"
-            style={{
-              backgroundColor: getColorFromName(userInfo.name || ''),
-              fontSize: '0.7rem',
-            }}
-          >
-            {getInitials(userInfo.name || '', 2)}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <IconButton className="h-11 w-11 transform-none px-0">
+          <Avatar className="h-8 w-8">
+            {userInfo.profile_image_url ? (
+              <AvatarImage src={userInfo.profile_image_url} alt={displayName} />
+            ) : null}
+            <AvatarFallback
+              className="text-[0.7rem] font-medium text-white"
+              style={{ backgroundColor: avatarColor }}
+            >
+              {getInitials(displayName, 2)}
+            </AvatarFallback>
           </Avatar>
-        )}
-      </IconButton>
-    </Dropdown>
+        </IconButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <div className="flex flex-col items-start p-4">
+          <div className="font-medium">{userInfo.name}</div>
+          <div className="text-sm text-muted-foreground">{userInfo.email}</div>
+          <div className="text-sm font-semibold opacity-60">
+            {userInfo.role_label ?? userInfo.role}
+          </div>
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={signOut} className="font-bold text-warning">
+          {t('sys.login.logout')}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

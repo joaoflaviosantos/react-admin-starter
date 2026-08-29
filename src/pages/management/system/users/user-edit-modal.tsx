@@ -1,9 +1,30 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { App, Form, Input, Modal, Select, Switch } from 'antd';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import userService, { UpdateUserInfoRequest } from '@/api/services/system/userService';
+import { AdminForm } from '@/components/admin/form';
+import {
+  FormFieldInput,
+  FormFieldSelect,
+  FormFieldSwitch,
+} from '@/components/admin/form/form-field';
+import { DividerScheFlow } from '@/components/divider';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { appToast } from '@/lib/toast';
+import { modalContentWidthLgClass } from '@/lib/overlay-surface';
+import { cn } from '@/lib/utils';
+import { createUserEditSchema, type UserEditFormValues } from './schema';
 
 import type { UserRead } from '#/system/user';
 
@@ -13,13 +34,6 @@ export interface UserEditModalProps {
   onClose: () => void;
 }
 
-interface UserEditFormValues {
-  name: string;
-  email: string;
-  default_language: string;
-  is_active: boolean;
-}
-
 const LANGUAGE_OPTIONS = [
   { label: 'Português (Brasil)', value: 'pt_BR' },
   { label: 'English (US)', value: 'en_US' },
@@ -27,13 +41,22 @@ const LANGUAGE_OPTIONS = [
 
 export function UserEditModal({ user, show, onClose }: UserEditModalProps) {
   const { t } = useTranslation();
-  const { message } = App.useApp();
-  const [form] = Form.useForm<UserEditFormValues>();
   const queryClient = useQueryClient();
+  const schema = useMemo(() => createUserEditSchema(t), [t]);
+
+  const form = useForm<UserEditFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: '',
+      email: '',
+      default_language: 'pt_BR',
+      is_active: true,
+    },
+  });
 
   useEffect(() => {
     if (show && user) {
-      form.setFieldsValue({
+      form.reset({
         name: user.name,
         email: user.email,
         default_language: user.default_language || 'pt_BR',
@@ -45,18 +68,17 @@ export function UserEditModal({ user, show, onClose }: UserEditModalProps) {
   const mutation = useMutation({
     mutationFn: (data: UpdateUserInfoRequest) => userService.updateUserById(user?.id || '', data),
     onSuccess: () => {
-      message.success(t('management.users.messages.updateSuccess'));
+      appToast.success(t('management.users.messages.updateSuccess'));
       void queryClient.invalidateQueries({ queryKey: ['management-system-users'] });
       onClose();
     },
     onError: () => {
-      message.error(t('management.users.messages.updateError'));
+      appToast.error(t('management.users.messages.updateError'));
     },
   });
 
-  const handleOk = async () => {
+  const handleSubmit = (values: UserEditFormValues) => {
     if (!user) return;
-    const values = await form.validateFields();
     const payload: UpdateUserInfoRequest = {};
 
     if (values.name !== user.name) payload.name = values.name;
@@ -67,7 +89,7 @@ export function UserEditModal({ user, show, onClose }: UserEditModalProps) {
     if (values.is_active !== user.is_active) payload.is_active = values.is_active;
 
     if (Object.keys(payload).length === 0) {
-      message.info(t('common.noChanges'));
+      appToast.info(t('common.noChanges'));
       onClose();
       return;
     }
@@ -76,55 +98,51 @@ export function UserEditModal({ user, show, onClose }: UserEditModalProps) {
   };
 
   return (
-    <Modal
-      title={t('management.users.editTitle')}
-      open={show}
-      onOk={() => void handleOk()}
-      onCancel={onClose}
-      confirmLoading={mutation.isPending}
-      okText={t('common.saveText')}
-      cancelText={t('common.cancelText')}
-      maskClosable={false}
-      centered
-      destroyOnClose
-    >
-      <Form form={form} layout="vertical">
-        <Form.Item
-          label={t('management.users.forms.basicData.email')}
-          name="email"
-          rules={[
-            { required: true, message: t('common.requiredField') },
-            { type: 'email', message: t('common.invalidEmail') },
-          ]}
-        >
-          <Input disabled={mutation.isPending} />
-        </Form.Item>
-        <Form.Item
-          label={t('management.users.forms.basicData.name')}
-          name="name"
-          rules={[{ required: true, message: t('common.requiredField') }]}
-        >
-          <Input disabled={mutation.isPending} />
-        </Form.Item>
-        <Form.Item
-          label={t('management.users.forms.basicData.defaultLanguage')}
-          name="default_language"
-          rules={[{ required: true, message: t('common.requiredField') }]}
-        >
-          <Select disabled={mutation.isPending} options={LANGUAGE_OPTIONS} />
-        </Form.Item>
-        <Form.Item
-          label={t('management.users.forms.securityData.isActive')}
-          name="is_active"
-          valuePropName="checked"
-        >
-          <Switch
-            checkedChildren={t('common.active')}
-            unCheckedChildren={t('common.inactive')}
-            disabled={mutation.isPending}
-          />
-        </Form.Item>
-      </Form>
-    </Modal>
+    <Dialog open={show} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className={cn(modalContentWidthLgClass)}>
+        <DialogHeader>
+          <DialogTitle>{t('management.users.editTitle')}</DialogTitle>
+        </DialogHeader>
+        <AdminForm form={form} onSubmit={handleSubmit} className="flex flex-col">
+          <DialogBody className="space-y-4">
+            <DividerScheFlow>{t('management.users.forms.basicData.index')}</DividerScheFlow>
+            <FormFieldInput
+              control={form.control}
+              name="email"
+              label={t('management.users.forms.basicData.email')}
+              disabled={mutation.isPending}
+            />
+            <FormFieldInput
+              control={form.control}
+              name="name"
+              label={t('management.users.forms.basicData.name')}
+              disabled={mutation.isPending}
+            />
+            <FormFieldSelect
+              control={form.control}
+              name="default_language"
+              label={t('management.users.forms.basicData.defaultLanguage')}
+              options={LANGUAGE_OPTIONS}
+              disabled={mutation.isPending}
+            />
+            <DividerScheFlow>{t('management.users.forms.securityData.index')}</DividerScheFlow>
+            <FormFieldSwitch
+              control={form.control}
+              name="is_active"
+              label={t('management.users.forms.securityData.isActive')}
+              disabled={mutation.isPending}
+            />
+          </DialogBody>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              {t('common.cancelText')}
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
+              {t('common.saveText')}
+            </Button>
+          </DialogFooter>
+        </AdminForm>
+      </DialogContent>
+    </Dialog>
   );
 }

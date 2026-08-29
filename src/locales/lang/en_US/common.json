@@ -1,6 +1,6 @@
 {
   "common": {
-    "systemName": "React Ant Design Admin",
+    "systemName": "React Admin Starter",
     "swichTheme": "Switch theme",
     "changeLanguage": "Change language",
     "uiAdjusts": "Settings",
@@ -16,9 +16,33 @@
     "darkMode": "Dark mode",
     "lightMode": "Light mode",
     "color": "Color",
+    "themeColors": {
+      "neutral": "Neutral",
+      "amber": "Amber",
+      "blue": "Blue",
+      "cyan": "Cyan",
+      "emerald": "Emerald",
+      "fuchsia": "Fuchsia",
+      "green": "Green",
+      "indigo": "Indigo",
+      "lime": "Lime",
+      "orange": "Orange",
+      "pink": "Pink",
+      "purple": "Purple",
+      "red": "Red",
+      "rose": "Rose",
+      "sky": "Sky",
+      "teal": "Teal",
+      "violet": "Violet",
+      "yellow": "Yellow",
+      "custom": "Custom"
+    },
+    "customColor": "Custom color",
+    "resetSettings": "Reset settings",
     "newText": "New",
     "saveText": "Save",
     "cancelText": "Cancel",
+    "closeText": "Close",
     "clearText": "Clear",
     "searchText": "Search",
     "detailText": "Details",
@@ -36,7 +60,14 @@
     "noCreatePermission": "You do not have permission to create records.",
     "noUpdatePermission": "You do not have permission to update records.",
     "noDeletePermission": "You do not have permission to delete records.",
-    "noDetailPermission": "You do not have permission to view details."
+    "noDetailPermission": "You do not have permission to view details.",
+    "noData": "No data available.",
+    "notFound": "Record not found.",
+    "error": "Something went wrong.",
+    "total": "Total: {{total}}",
+    "perPage": "per page",
+    "previousPage": "Previous",
+    "nextPage": "Next"
   },
   "sys": {
     "login": {
@@ -88,9 +119,11 @@
       }
     },
     "users": {
-      "listTitle": "Users",
+      "listTitle": "User Listing",
       "newModalText": "New user",
       "editTitle": "Edit user",
+      "detailTitle": "User details",
+      "deleteConfirm": "Are you sure you want to delete {{name}}? This action cannot be undone.",
       "tableColumns": {
         "name": "Name",
         "email": "Email",
@@ -98,11 +131,13 @@
       },
       "forms": {
         "basicData": {
+          "index": "Basic data",
           "email": "Email",
           "name": "Name",
           "defaultLanguage": "Default language"
         },
         "securityData": {
+          "index": "Security data",
           "role": "Role",
           "password": "Password",
           "passwordOptional": "Optional — auto-generated if empty",
@@ -113,15 +148,31 @@
         "createSuccess": "User created successfully.",
         "createError": "Could not create the user.",
         "updateSuccess": "User updated successfully.",
-        "updateError": "Could not update the user."
+        "updateError": "Could not update the user.",
+        "deleteSuccess": "User deleted successfully.",
+        "deleteError": "Could not delete the user."
       }
     },
     "roles": {
-      "listTitle": "Roles",
+      "listTitle": "Role Listing",
+      "newModalText": "New role",
+      "createComingSoon": "Role creation is coming soon.",
       "detailTitle": "Permissions for {{role}}",
       "tableColumns": {
         "name": "Role",
         "description": "Description"
+      },
+      "forms": {
+        "basicData": {
+          "title": "Basic data",
+          "name": "Name",
+          "label": "Label",
+          "description": "Description",
+          "isActive": "Status"
+        },
+        "permissions": {
+          "title": "Permissions"
+        }
       },
       "permissions": {
         "columns": {

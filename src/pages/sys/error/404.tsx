@@ -1,6 +1,6 @@
-import { Button, Result } from 'antd';
 import { useTranslation } from 'react-i18next';
 
+import { EmptyState } from '@/components/admin/empty-state';
 import { useRouter } from '@/router/hooks';
 import { useUserToken } from '@/store/userStore';
 
@@ -17,17 +17,13 @@ export default function Page404() {
   };
 
   return (
-    <div className="flex flex-1 items-center justify-center pb-12 pt-8">
-      <Result
-        status="404"
-        title={t('sys.error.404Title')}
-        subTitle={t('sys.error.404Desc')}
-        extra={
-          <Button type="primary" onClick={goBack}>
-            {isAuthenticated ? t('sys.error.backHome') : t('sys.error.backLogin')}
-          </Button>
-        }
-      />
-    </div>
+    <EmptyState
+      title={t('sys.error.404Title')}
+      description={t('sys.error.404Desc')}
+      action={{
+        label: isAuthenticated ? t('sys.error.backHome') : t('sys.error.backLogin'),
+        onClick: goBack,
+      }}
+    />
   );
 }

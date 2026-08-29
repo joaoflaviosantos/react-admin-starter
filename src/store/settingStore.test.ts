@@ -13,6 +13,7 @@ describe('settingStore', () => {
     useSettingStore.setState({
       settings: {
         themeColorPresets: useSettingStore.getState().settings.themeColorPresets,
+        themeCustomColor: useSettingStore.getState().settings.themeCustomColor,
         themeMode: ThemeMode.Light,
         themeLayout: useSettingStore.getState().settings.themeLayout,
         themeStretch: true,
@@ -28,6 +29,24 @@ describe('settingStore', () => {
 
     expect(useSettingStore.getState().settings.themeMode).toBe(ThemeMode.Dark);
     expect(localStorage.getItem(StorageEnum.Settings)).toContain(ThemeMode.Dark);
+  });
+
+  it('restores default settings when resetSettings is called', () => {
+    const { actions, settings } = useSettingStore.getState();
+    actions.setSettings({
+      ...settings,
+      themeMode: ThemeMode.Dark,
+      themeStretch: false,
+      breadCrumb: false,
+    });
+
+    actions.resetSettings();
+
+    const nextSettings = useSettingStore.getState().settings;
+    expect(nextSettings.themeMode).toBe(ThemeMode.Light);
+    expect(nextSettings.themeStretch).toBe(true);
+    expect(nextSettings.breadCrumb).toBe(true);
+    expect(localStorage.getItem(StorageEnum.Settings)).toContain(ThemeMode.Light);
   });
 
   it('updates i18n language when locale changes', async () => {

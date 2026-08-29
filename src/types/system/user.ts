@@ -41,6 +41,9 @@ export type UserWithPermissionsRead = {
   role_label: string;
   is_support: boolean;
   is_superuser: boolean;
+  is_active?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
   permissions: Array<PermissionWithChildRead> | [];
 };
 

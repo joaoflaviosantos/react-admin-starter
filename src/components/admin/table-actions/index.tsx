@@ -1,9 +1,9 @@
-import { Popconfirm, PopconfirmProps } from 'antd';
 import { useTranslation } from 'react-i18next';
 
+import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { IconButton, Iconify } from '@/components/icon';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
-import { useThemeToken } from '@/theme/hooks';
+import { useTheme } from '@/theme/hooks';
 
 interface TableActionsProps {
   iconSize?: number;
@@ -14,7 +14,6 @@ interface TableActionsProps {
   onUpdate?: (id: string) => void;
   onToggleActive?: (id: string, isActive: boolean) => void;
   onDelete?: (id: string) => void;
-  deletePopconfirmProps?: Omit<PopconfirmProps, 'onConfirm' | 'children'>;
   record: {
     id: string;
     name?: string;
@@ -31,11 +30,10 @@ export default function TableActions({
   onUpdate,
   onToggleActive,
   onDelete,
-  deletePopconfirmProps,
   record,
 }: TableActionsProps) {
   const { t } = useTranslation();
-  const { colorPrimary } = useThemeToken();
+  const { colorPrimary } = useTheme();
   const { canRead, canUpdate, canDelete } = useHasRequiredPermission(permissionLabel);
 
   return (
@@ -65,68 +63,60 @@ export default function TableActions({
       )}
 
       {onToggleActive && (
-        <Popconfirm
+        <ConfirmDialog
           disabled={isFetching || !canUpdate}
+          headerTitle={record.is_active ? t('common.inactivateText') : t('common.activateText')}
           title={
             record.is_active
               ? `${t('common.inactivateText')} ${record.name}?`
               : `${t('common.activateText')} ${record.name}?`
           }
-          placement="left"
-          okText={t('common.yesText')}
-          cancelText={t('common.noText')}
+          confirmLabel={t('common.yesText')}
+          cancelLabel={t('common.noText')}
           onConfirm={() => {
             if (record.is_active !== undefined) {
               onToggleActive(record.id, record.is_active);
             }
           }}
-        >
-          <IconButton
-            disabled={isFetching || !canUpdate}
-            className={!canUpdate ? 'opacity-30' : ''}
-            type="button"
-            title={
-              !canUpdate
-                ? t('common.noUpdatePermission')
-                : record.is_active
-                  ? t('common.inactivateText')
-                  : t('common.activateText')
-            }
-          >
-            <Iconify
-              className={record.is_active ? 'text-warning' : 'text-green'}
-              icon={record.is_active ? 'mdi:cancel-bold' : 'ph:check-fat-fill'}
-              opacity={1}
-              size={iconSize}
-            />
-          </IconButton>
-        </Popconfirm>
+          trigger={
+            <IconButton
+              disabled={isFetching || !canUpdate}
+              className={!canUpdate ? 'opacity-30' : ''}
+              type="button"
+              title={
+                !canUpdate
+                  ? t('common.noUpdatePermission')
+                  : record.is_active
+                    ? t('common.inactivateText')
+                    : t('common.activateText')
+              }
+            >
+              <Iconify
+                className={record.is_active ? 'text-warning' : 'text-green'}
+                icon={record.is_active ? 'mdi:cancel-bold' : 'ph:check-fat-fill'}
+                opacity={1}
+                size={iconSize}
+              />
+            </IconButton>
+          }
+        />
       )}
 
       {onDelete && (
-        <Popconfirm
+        <IconButton
           disabled={isFetching || !canDelete}
-          title={deletePopconfirmProps?.title ?? `${t('common.deleteText')} ${record.name}?`}
-          description={deletePopconfirmProps?.description}
-          placement={deletePopconfirmProps?.placement ?? 'left'}
-          okText={deletePopconfirmProps?.okText ?? t('common.yesText')}
-          cancelText={deletePopconfirmProps?.cancelText ?? t('common.noText')}
-          onConfirm={() => onDelete(record.id)}
+          className={!canDelete ? 'opacity-30' : ''}
+          type="button"
+          title={!canDelete ? t('common.noDeletePermission') : t('common.deleteText')}
+          onClick={() => onDelete(record.id)}
         >
-          <IconButton
-            disabled={isFetching || !canDelete}
-            className={!canDelete ? 'opacity-30' : ''}
-            type="button"
-            title={!canDelete ? t('common.noDeletePermission') : t('common.deleteText')}
-          >
-            <Iconify
-              icon="mingcute:delete-2-fill"
-              opacity={0.9}
-              size={iconSize}
-              className="text-error"
-            />
-          </IconButton>
-        </Popconfirm>
+          <Iconify
+            icon="mingcute:delete-2-fill"
+            opacity={0.9}
+            size={iconSize}
+            className="text-error"
+          />
+        </IconButton>
       )}
     </div>
   );

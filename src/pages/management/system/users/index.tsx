@@ -1,19 +1,33 @@
-import { CloseCircleFilled } from '@ant-design/icons';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Avatar, Button, Card, Col, Form, Input, Row, Space, Tag } from 'antd';
-import Table, { ColumnsType, TableProps } from 'antd/es/table';
-import { useState } from 'react';
+import { type ColumnDef } from '@tanstack/react-table';
+import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import userService, { SystemUserAPISearchFormFieldType } from '@/api/services/system/userService';
-import TableActions from '@/components/table/actions';
+import { AdminTable } from '@/components/admin/data-table';
+import TableActions from '@/components/admin/table-actions';
+import { StatusBadge } from '@/components/admin/status-badge';
+import { AdminForm, AdminSearchPanel } from '@/components/admin/form';
+import { SearchFieldInput, SearchFieldSelect } from '@/components/admin/form/search-field';
+import { AdminPage } from '@/components/admin/page';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import useDynamicComponentStringHeight from '@/hooks/components/use-dynamic-component-string-height';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
+import { normalizeCrudSearchValues } from '@/lib/crud-search';
+import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta } from '@/router/hooks';
+import { createUserSearchSchema, type UserSearchFormValues } from './schema';
 import { getColorFromName } from '@/utils/colors';
 import { getInitials } from '@/utils/format-string';
 
 import { UserCreateModal, UserCreateModalProps } from './user-create-modal';
+import { UserDeleteConfirmModal } from './user-delete-confirm-modal';
+import { UserDetailModal } from './user-detail-modal';
 import { UserEditModal } from './user-edit-modal';
 
 import type { UserCreate, UserRead } from '#/system/user';
@@ -24,6 +38,12 @@ const DEFAULT_USER_VALUE: UserCreate = {
   role_id: '',
 };
 
+const EMPTY_USER_SEARCH: UserSearchFormValues = {
+  name: '',
+  role: '',
+  is_active: '',
+};
+
 function formatDate(value?: string | null) {
   if (!value) return '—';
   return new Date(value).toLocaleString();
@@ -31,15 +51,15 @@ function formatDate(value?: string | null) {
 
 export default function ManagementSystemUsersPage() {
   const { t } = useTranslation();
-  const { message } = App.useApp();
   const tableHeight = useDynamicComponentStringHeight();
   const queryClient = useQueryClient();
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
-  const [searchForm] = Form.useForm();
   const [searchValues, setSearchValues] = useState<SystemUserAPISearchFormFieldType>({});
   const currentRouteMeta = useMatchRouteMeta();
   const { canCreate } = useHasRequiredPermission(currentRouteMeta?.label);
   const [editUser, setEditUser] = useState<UserRead | null>(null);
+  const [detailUserId, setDetailUserId] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<UserRead | null>(null);
   const [userModalProps, setUserCreateModalProps] = useState<UserCreateModalProps>({
     formValue: { ...DEFAULT_USER_VALUE },
     title: t('common.newText'),
@@ -56,15 +76,35 @@ export default function ManagementSystemUsersPage() {
     },
   });
 
-  const toggleActiveMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      userService.updateUserById(id, { is_active: !isActive }),
+  const searchSchema = useMemo(() => createUserSearchSchema(), []);
+  const searchForm = useForm<UserSearchFormValues>({
+    resolver: zodResolver(searchSchema),
+    defaultValues: EMPTY_USER_SEARCH,
+  });
+
+  const statusSearchOptions = useMemo(
+    () => [
+      {
+        value: 'true',
+        label: <StatusBadge active activeLabel={t('common.active')} inactiveLabel="" />,
+      },
+      {
+        value: 'false',
+        label: <StatusBadge active={false} activeLabel="" inactiveLabel={t('common.inactive')} />,
+      },
+    ],
+    [t],
+  );
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (id: string) => userService.deleteUserById(id),
     onSuccess: () => {
-      message.success(t('management.users.messages.updateSuccess'));
+      appToast.success(t('management.users.messages.deleteSuccess'));
+      setUserToDelete(null);
       void queryClient.invalidateQueries({ queryKey: ['management-system-users'] });
     },
     onError: () => {
-      message.error(t('management.users.messages.updateError'));
+      appToast.error(t('management.users.messages.deleteError'));
     },
   });
 
@@ -78,176 +118,185 @@ export default function ManagementSystemUsersPage() {
       }),
   });
 
-  const onSearch = () => {
-    const fields = searchForm.getFieldsValue();
-    const filteredFields = Object.fromEntries(
-      Object.entries(fields).filter(
-        ([, value]) => value !== undefined && value !== null && value !== '',
-      ),
-    ) as SystemUserAPISearchFormFieldType;
-    setSearchValues(filteredFields);
+  const onSearch = (fields: UserSearchFormValues) => {
+    setSearchValues(normalizeCrudSearchValues(fields) as SystemUserAPISearchFormFieldType);
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
-  const columns: ColumnsType<UserRead> = [
-    {
-      title: t('management.users.tableColumns.name'),
-      dataIndex: 'name',
-      render: (_, record) => (
-        <div className="flex items-center gap-3">
-          <Avatar style={{ backgroundColor: getColorFromName(record.name) }}>
-            {getInitials(record.name, 2)}
-          </Avatar>
-          <span className="font-medium">{record.name}</span>
-        </div>
-      ),
-    },
-    {
-      title: t('management.users.tableColumns.email'),
-      dataIndex: 'email',
-    },
-    {
-      title: t('management.users.tableColumns.role'),
-      dataIndex: 'role_label',
-      render: (_, record) => <Tag>{record.role_label || record.role}</Tag>,
-    },
-    {
-      title: t('management.common.tableColumns.status'),
-      dataIndex: 'is_active',
-      render: (_, record) => (
-        <Tag color={record.is_active ? 'success' : 'error'}>
-          {record.is_active ? t('common.active') : t('common.inactive')}
-        </Tag>
-      ),
-    },
-    {
-      title: t('management.common.tableColumns.lastUpdate'),
-      dataIndex: 'updated_at',
-      render: (_, record) => formatDate(record.updated_at),
-    },
-    {
-      title: t('management.common.tableColumns.action'),
-      key: 'action',
-      align: 'center',
-      render: (_, record) => (
-        <TableActions
-          permissionLabel={currentRouteMeta?.label}
-          record={record}
-          onUpdate={(id) => {
-            const recordToEdit = data?.data?.find((item) => item.id === id) ?? null;
-            setEditUser(recordToEdit);
-          }}
-          onToggleActive={(id, isActive) => toggleActiveMutation.mutate({ id, isActive })}
-        />
-      ),
-    },
-  ];
-
-  const handleTableChange: TableProps<UserRead>['onChange'] = (nextPagination) => {
-    setPagination({
-      page: nextPagination.current ?? 1,
-      pageSize: nextPagination.pageSize ?? 10,
-    });
+  const onSearchReset = () => {
+    searchForm.reset(EMPTY_USER_SEARCH);
+    setSearchValues({});
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
-  return (
-    <div className="pb-4">
-      <Space direction="vertical" size="middle" className="w-full">
-        <Card className="shadow-sm" bordered={false}>
-          <Form form={searchForm} onFinish={onSearch}>
-            <Row gutter={[16, 16]}>
-              <Col span={24} lg={8}>
-                <Form.Item
-                  label={t('management.users.tableColumns.name')}
-                  name="name"
-                  className="!mb-0"
-                >
-                  <Input allowClear disabled={isFetching} />
-                </Form.Item>
-              </Col>
-              <Col span={24} lg={8}>
-                <Form.Item
-                  label={t('management.users.tableColumns.role')}
-                  name="role"
-                  className="!mb-0"
-                >
-                  <Input
-                    allowClear={{
-                      clearIcon: (
-                        <CloseCircleFilled
-                          onClick={() => {
-                            searchForm.setFieldValue('role', undefined);
-                            const next = { ...searchValues };
-                            delete next.role;
-                            setSearchValues(next);
-                          }}
-                        />
-                      ),
-                    }}
-                    disabled={isFetching}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={24} lg={8}>
-                <div className="flex justify-end gap-3 pt-7 lg:pt-0">
-                  <Button
-                    onClick={() => {
-                      searchForm.resetFields();
-                      setSearchValues({});
-                    }}
-                    disabled={isFetching}
-                  >
-                    {t('common.clearText')}
-                  </Button>
-                  <Button type="primary" htmlType="submit" disabled={isFetching}>
-                    {t('common.searchText')}
-                  </Button>
-                </div>
-              </Col>
-            </Row>
-          </Form>
-        </Card>
+  const columns: ColumnDef<UserRead>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'name',
+        header: t('management.users.tableColumns.name'),
+        cell: ({ row }) => {
+          const name = row.original.name;
+          const avatarColor = getColorFromName(name);
 
-        <Card
-          className="shadow-sm"
-          bordered={false}
-          title={t('management.users.listTitle')}
-          extra={
-            <Button
-              type="primary"
-              disabled={!canCreate || isFetching}
-              onClick={() =>
-                setUserCreateModalProps((prev) => ({
-                  ...prev,
-                  show: true,
-                  title: t('management.users.newModalText'),
-                }))
-              }
-            >
-              {t('common.newText')}
-            </Button>
-          }
-        >
-          <Table
-            rowKey="id"
-            size="small"
-            scroll={{ x: 'max-content', y: tableHeight }}
-            columns={columns}
-            loading={isFetching}
-            dataSource={data?.data}
-            onChange={handleTableChange}
-            pagination={{
-              current: data?.page ?? pagination.page,
-              pageSize: data?.items_per_page ?? pagination.pageSize,
-              total: data?.total_count ?? 0,
-              showSizeChanger: true,
+          return (
+            <div className="flex items-center gap-3">
+              <Avatar className="h-8 w-8">
+                {row.original.profile_image_url ? (
+                  <AvatarImage src={row.original.profile_image_url} alt={name} />
+                ) : null}
+                <AvatarFallback
+                  className="text-[0.7rem] font-medium text-white"
+                  style={{ backgroundColor: avatarColor }}
+                >
+                  {getInitials(name, 2)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="font-medium">{name}</span>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'email',
+        header: t('management.users.tableColumns.email'),
+      },
+      {
+        accessorKey: 'role_label',
+        header: t('management.users.tableColumns.role'),
+        cell: ({ row }) => (
+          <Badge variant="secondary">{row.original.role_label || row.original.role}</Badge>
+        ),
+      },
+      {
+        accessorKey: 'is_active',
+        header: t('management.common.tableColumns.status'),
+        cell: ({ row }) => (
+          <StatusBadge
+            active={row.original.is_active ?? false}
+            activeLabel={t('common.active')}
+            inactiveLabel={t('common.inactive')}
+          />
+        ),
+      },
+      {
+        accessorKey: 'updated_at',
+        header: t('management.common.tableColumns.lastUpdate'),
+        cell: ({ row }) => formatDate(row.original.updated_at),
+      },
+      {
+        id: 'action',
+        header: () => (
+          <div className="text-center">{t('management.common.tableColumns.action')}</div>
+        ),
+        cell: ({ row }) => (
+          <TableActions
+            permissionLabel={currentRouteMeta?.label}
+            record={row.original}
+            isFetching={isFetching}
+            onDetail={(id) => setDetailUserId(id)}
+            onUpdate={(id) => {
+              const recordToEdit = data?.data?.find((item) => item.id === id) ?? null;
+              setEditUser(recordToEdit);
+            }}
+            onDelete={(id) => {
+              const recordToDelete = data?.data?.find((item) => item.id === id) ?? null;
+              setUserToDelete(recordToDelete);
             }}
           />
-        </Card>
+        ),
+      },
+    ],
+    [t, currentRouteMeta?.label, data?.data, isFetching],
+  );
 
-        <UserCreateModal {...userModalProps} />
-        <UserEditModal user={editUser} show={editUser !== null} onClose={() => setEditUser(null)} />
-      </Space>
-    </div>
+  return (
+    <AdminPage className="flex flex-col gap-4">
+      <Card className="shadow-sm">
+        <CardContent className="pt-6">
+          <AdminForm form={searchForm} onSubmit={onSearch}>
+            <AdminSearchPanel
+              isLoading={isFetching}
+              clearDisabled={Object.keys(searchValues).length === 0}
+              onClear={onSearchReset}
+            >
+              <SearchFieldInput
+                control={searchForm.control}
+                name="name"
+                label={t('management.users.tableColumns.name')}
+                disabled={isFetching}
+              />
+              <SearchFieldInput
+                control={searchForm.control}
+                name="role"
+                label={t('management.users.tableColumns.role')}
+                disabled={isFetching}
+              />
+              <SearchFieldSelect
+                control={searchForm.control}
+                name="is_active"
+                label={t('management.common.tableColumns.status')}
+                options={statusSearchOptions}
+                disabled={isFetching}
+              />
+            </AdminSearchPanel>
+          </AdminForm>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-sm font-semibold">{t('management.users.listTitle')}</CardTitle>
+          <Button
+            disabled={!canCreate || isFetching}
+            title={!canCreate ? t('common.noCreatePermission') : t('common.newText')}
+            onClick={() =>
+              setUserCreateModalProps((prev) => ({
+                ...prev,
+                show: true,
+                title: t('management.users.newModalText'),
+              }))
+            }
+          >
+            {t('common.newText')}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <AdminTable
+            columns={columns}
+            data={data?.data ?? []}
+            isLoading={isFetching}
+            rowKey="id"
+            scrollHeight={tableHeight}
+            pagination={{
+              pageIndex: data?.page ?? pagination.page,
+              pageSize: data?.items_per_page ?? pagination.pageSize,
+              totalCount: data?.total_count ?? 0,
+              onPaginationChange: (pageIndex, pageSize) => {
+                setPagination({ page: pageIndex, pageSize });
+              },
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      <UserCreateModal {...userModalProps} />
+      <UserDetailModal
+        userId={detailUserId}
+        show={detailUserId !== null}
+        onClose={() => setDetailUserId(null)}
+      />
+      <UserEditModal user={editUser} show={editUser !== null} onClose={() => setEditUser(null)} />
+      <UserDeleteConfirmModal
+        user={userToDelete}
+        show={userToDelete !== null}
+        isPending={deleteUserMutation.isPending}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={() => {
+          if (userToDelete) {
+            deleteUserMutation.mutate(userToDelete.id);
+          }
+        }}
+      />
+    </AdminPage>
   );
 }

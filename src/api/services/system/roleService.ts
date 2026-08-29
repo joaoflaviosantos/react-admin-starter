@@ -1,3 +1,4 @@
+import { permissionsForRole } from '@/api/mock/permissions';
 import apiClient from '../../apiClient';
 
 import { PaginatedListResponse_RoleRead_, RoleRead } from '#/system/role';
@@ -29,6 +30,9 @@ const getPaginatedRoleList = ({
     params: { page, items_per_page, ...searchValues, sort_by: sortFields },
   });
 
+const getPermissionsForRole = (roleName: string) => permissionsForRole(roleName);
+
 export default {
   getPaginatedRoleList,
+  getPermissionsForRole,
 };

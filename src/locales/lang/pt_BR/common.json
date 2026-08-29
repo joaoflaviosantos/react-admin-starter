@@ -1,6 +1,6 @@
 {
   "common": {
-    "systemName": "React Ant Design Admin",
+    "systemName": "React Admin Starter",
     "swichTheme": "Alternar tema",
     "changeLanguage": "Alterar idioma",
     "uiAdjusts": "Configurações",
@@ -16,9 +16,33 @@
     "darkMode": "Modo escuro",
     "lightMode": "Modo claro",
     "color": "Cor",
+    "themeColors": {
+      "neutral": "Neutro",
+      "amber": "Âmbar",
+      "blue": "Azul",
+      "cyan": "Ciano",
+      "emerald": "Esmeralda",
+      "fuchsia": "Fúcsia",
+      "green": "Verde",
+      "indigo": "Índigo",
+      "lime": "Lima",
+      "orange": "Laranja",
+      "pink": "Rosa",
+      "purple": "Roxo",
+      "red": "Vermelho",
+      "rose": "Rosé",
+      "sky": "Céu",
+      "teal": "Verde-azulado",
+      "violet": "Violeta",
+      "yellow": "Amarelo",
+      "custom": "Customizada"
+    },
+    "customColor": "Cor personalizada",
+    "resetSettings": "Restaurar padrões",
     "newText": "Novo",
     "saveText": "Salvar",
     "cancelText": "Cancelar",
+    "closeText": "Fechar",
     "clearText": "Limpar",
     "searchText": "Pesquisar",
     "detailText": "Detalhes",
@@ -36,7 +60,14 @@
     "noCreatePermission": "Sem permissão para criar registros.",
     "noUpdatePermission": "Sem permissão para editar registros.",
     "noDeletePermission": "Sem permissão para excluir registros.",
-    "noDetailPermission": "Sem permissão para ver detalhes."
+    "noDetailPermission": "Sem permissão para ver detalhes.",
+    "noData": "Nenhum dado disponível.",
+    "notFound": "Registro não encontrado.",
+    "error": "Algo deu errado.",
+    "total": "Total: {{total}}",
+    "perPage": "por página",
+    "previousPage": "Anterior",
+    "nextPage": "Próximo"
   },
   "sys": {
     "login": {
@@ -56,10 +87,10 @@
       "workbench": "Workbench",
       "overview": "Visão geral",
       "management": {
-        "index": "Gestão",
+        "index": "Gerenciamento",
         "system": {
           "users": "Usuários",
-          "roles": "Papéis"
+          "roles": "Funções"
         }
       }
     },
@@ -88,22 +119,26 @@
       }
     },
     "users": {
-      "listTitle": "Usuários",
+      "listTitle": "Listagem de Usuários",
       "newModalText": "Novo usuário",
       "editTitle": "Editar usuário",
+      "detailTitle": "Detalhes do usuário",
+      "deleteConfirm": "Tem certeza que deseja excluir {{name}}? Esta ação não pode ser desfeita.",
       "tableColumns": {
         "name": "Nome",
         "email": "E-mail",
-        "role": "Papel"
+        "role": "Função"
       },
       "forms": {
         "basicData": {
+          "index": "Dados básicos",
           "email": "E-mail",
           "name": "Nome",
           "defaultLanguage": "Idioma padrão"
         },
         "securityData": {
-          "role": "Papel",
+          "index": "Dados de segurança",
+          "role": "Função",
           "password": "Senha",
           "passwordOptional": "Opcional — gerada automaticamente se vazio",
           "isActive": "Ativo"
@@ -113,15 +148,31 @@
         "createSuccess": "Usuário criado com sucesso.",
         "createError": "Não foi possível criar o usuário.",
         "updateSuccess": "Usuário atualizado com sucesso.",
-        "updateError": "Não foi possível atualizar o usuário."
+        "updateError": "Não foi possível atualizar o usuário.",
+        "deleteSuccess": "Usuário excluído com sucesso.",
+        "deleteError": "Não foi possível excluir o usuário."
       }
     },
     "roles": {
-      "listTitle": "Papéis",
+      "listTitle": "Listagem de Funções",
+      "newModalText": "Nova função",
+      "createComingSoon": "Cadastro de funções em breve.",
       "detailTitle": "Permissões de {{role}}",
       "tableColumns": {
-        "name": "Papel",
+        "name": "Função",
         "description": "Descrição"
+      },
+      "forms": {
+        "basicData": {
+          "title": "Dados básicos",
+          "name": "Nome",
+          "label": "Rótulo",
+          "description": "Descrição",
+          "isActive": "Status"
+        },
+        "permissions": {
+          "title": "Permissões"
+        }
       },
       "permissions": {
         "columns": {

@@ -1,0 +1,298 @@
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 0 0% 45%;
+    --radius: 0.375rem;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --info: 187 100% 42%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+
+    --layout-background: 240 5% 90%;
+    --elevated-background: 240 5% 96%;
+    --overlay-background: 0 0% 100%;
+    --menu-text: 240 3% 46%;
+    --menu-selected: 240 5% 94%;
+    --menu-active: 240 5% 94%;
+    --table-header: 210 14% 93%;
+    --descriptions-label-background: #e8e8e8;
+    --descriptions-label-border: #d4d4d8;
+
+    --scrollbar-track: #fafafa;
+    --scrollbar-thumb: #a3a1a1;
+    --scrollbar-thumb-hover: #7d7d7d;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 6% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --info: 187 100% 42%;
+
+    --layout-background: 0 0% 4%;
+    --elevated-background: 240 6% 10%;
+    --overlay-background: 240 4% 16%;
+    --menu-text: 0 0% 81%;
+    --menu-selected: 240 4% 16%;
+    --menu-active: 240 5% 21%;
+    --table-header: 240 4% 16%;
+    --descriptions-label-background: #3d3d3f;
+    --descriptions-label-border: #50525b;
+
+    --scrollbar-track: #2c2c2c;
+    --scrollbar-thumb: #6b6b6b;
+    --scrollbar-thumb-hover: #5e5d5d;
+  }
+
+  [data-theme-preset='neutral'] {
+    --primary: 0 0% 9%;
+    --ring: 0 0% 45%;
+  }
+
+  [data-theme-preset='amber'] {
+    --primary: 25 100% 37%;
+    --ring: 25 100% 37%;
+  }
+
+  [data-theme-preset='blue'] {
+    --primary: 225 84% 49%;
+    --ring: 225 84% 49%;
+  }
+
+  [data-theme-preset='cyan'] {
+    --primary: 193 100% 29%;
+    --ring: 193 100% 29%;
+  }
+
+  [data-theme-preset='emerald'] {
+    --primary: 162 100% 24%;
+    --ring: 162 100% 24%;
+  }
+
+  [data-theme-preset='fuchsia'] {
+    --primary: 295 100% 36%;
+    --ring: 295 100% 36%;
+  }
+
+  [data-theme-preset='green'] {
+    --primary: 145 100% 25%;
+    --ring: 145 100% 25%;
+  }
+
+  [data-theme-preset='indigo'] {
+    --primary: 248 68% 51%;
+    --ring: 248 68% 51%;
+  }
+
+  [data-theme-preset='lime'] {
+    --primary: 80 100% 45%;
+    --ring: 80 100% 45%;
+  }
+
+  [data-theme-preset='orange'] {
+    --primary: 16 100% 40%;
+    --ring: 16 100% 40%;
+  }
+
+  [data-theme-preset='pink'] {
+    --primary: 332 100% 39%;
+    --ring: 332 100% 39%;
+  }
+
+  [data-theme-preset='purple'] {
+    --primary: 276 100% 43%;
+    --ring: 276 100% 43%;
+  }
+
+  [data-theme-preset='red'] {
+    --primary: 358 100% 38%;
+    --ring: 358 100% 38%;
+  }
+
+  [data-theme-preset='rose'] {
+    --primary: 344 100% 39%;
+    --ring: 344 100% 39%;
+  }
+
+  [data-theme-preset='sky'] {
+    --primary: 203 100% 33%;
+    --ring: 203 100% 33%;
+  }
+
+  [data-theme-preset='teal'] {
+    --primary: 176 100% 23%;
+    --ring: 176 100% 23%;
+  }
+
+  [data-theme-preset='violet'] {
+    --primary: 268 93% 47%;
+    --ring: 268 93% 47%;
+  }
+
+  [data-theme-preset='yellow'] {
+    --primary: 47 100% 50%;
+    --ring: 47 100% 50%;
+  }
+
+  [data-theme-preset='custom'] {
+    --primary: 203 100% 33%;
+    --ring: 203 100% 33%;
+  }
+
+  /* Legacy preset saved in localStorage before shadcn palette migration */
+  [data-theme-preset='default'] {
+    --primary: 0 0% 9%;
+    --ring: 0 0% 45%;
+  }
+
+  /* Modals, drawers — explicit rule so Tailwind JIT cannot omit bg-overlay */
+  .overlay-surface {
+    background-color: hsl(var(--overlay-background));
+  }
+
+  .elevated-surface {
+    background-color: hsl(var(--elevated-background));
+  }
+
+  .modal-chrome-surface {
+    background-color: hsl(var(--elevated-background));
+  }
+
+  .modal-body-surface {
+    background-color: hsl(var(--overlay-background));
+  }
+
+  .form-field-surface {
+    background-color: hsl(var(--background));
+  }
+
+  .dark .form-field-surface {
+    background-color: hsl(var(--elevated-background));
+  }
+
+  .select-content-surface {
+    background-color: hsl(var(--popover));
+  }
+
+  .dark .select-content-surface {
+    background-color: hsl(var(--elevated-background));
+  }
+
+  .overlay-chrome-divider {
+    border-color: hsl(var(--border));
+  }
+
+  .dark .overlay-chrome-divider {
+    border-color: var(--descriptions-label-border);
+  }
+
+  .descriptions-label-surface {
+    background-color: var(--descriptions-label-background);
+  }
+
+  .descriptions-bordered .descriptions-label-block,
+  .descriptions-bordered th.descriptions-label-surface {
+    border-color: var(--descriptions-label-border);
+  }
+
+  .descriptions-bordered {
+    border-color: hsl(var(--border));
+  }
+
+  .descriptions-bordered .descriptions-cell-divider {
+    border-color: hsl(var(--border));
+  }
+
+  .dark .descriptions-bordered {
+    border-color: var(--descriptions-label-border);
+  }
+
+  .dark .descriptions-bordered .descriptions-cell-divider {
+    border-color: var(--descriptions-label-border);
+  }
+
+  .admin-table-descriptions {
+    border-color: hsl(var(--border));
+  }
+
+  .admin-table-descriptions table {
+    border-collapse: collapse;
+  }
+
+  .admin-table-descriptions thead tr,
+  .admin-table-descriptions tbody tr {
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .admin-table-descriptions th,
+  .admin-table-descriptions td {
+    border-right: 1px solid hsl(var(--border));
+  }
+
+  .admin-table-descriptions th:last-child,
+  .admin-table-descriptions td:last-child {
+    border-right: 0;
+  }
+
+  .admin-table-descriptions tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .admin-table-descriptions thead {
+    background-color: hsl(var(--table-header));
+  }
+
+  .admin-table-descriptions th {
+    color: hsl(var(--foreground));
+    font-weight: 700;
+  }
+
+  .dark .admin-table-descriptions,
+  .dark .admin-table-descriptions thead tr,
+  .dark .admin-table-descriptions tbody tr,
+  .dark .admin-table-descriptions th,
+  .dark .admin-table-descriptions td {
+    border-color: var(--descriptions-label-border);
+  }
+
+  .dark .admin-table-descriptions thead {
+    background-color: var(--descriptions-label-background);
+  }
+}

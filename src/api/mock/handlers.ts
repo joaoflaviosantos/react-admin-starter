@@ -12,7 +12,7 @@ import {
   toUserRead,
   toUserWithPermissionsRead,
 } from './store';
-import type { MockUserRecord } from './types';
+import type { MockRoleRecord, MockUserRecord } from './types';
 
 export type MockHandlerResult = {
   status: number;
@@ -128,6 +128,32 @@ function applyUserFilters(users: MockUserRecord[], searchValues: Record<string, 
   });
 }
 
+function applyRoleFilters(roles: MockRoleRecord[], searchValues: Record<string, unknown>) {
+  return roles.filter((role) => {
+    if (typeof searchValues.name === 'string' && searchValues.name.length > 0) {
+      const term = searchValues.name.toLowerCase();
+      if (!role.name.toLowerCase().includes(term) && !role.label.toLowerCase().includes(term)) {
+        return false;
+      }
+    }
+    if (typeof searchValues.description === 'string' && searchValues.description.length > 0) {
+      if (!role.description.toLowerCase().includes(searchValues.description.toLowerCase())) {
+        return false;
+      }
+    }
+    if (searchValues.is_active !== undefined && searchValues.is_active !== null) {
+      const active =
+        typeof searchValues.is_active === 'boolean'
+          ? searchValues.is_active
+          : String(searchValues.is_active).toLowerCase() === 'true';
+      if (role.is_active !== active) {
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
 function assertUsersCreateAllowed(user: MockUserRecord | undefined) {
   if (!user) {
     return { status: 401, data: { detail: 'User not authenticated.' } } as const;
@@ -153,6 +179,38 @@ function assertUsersUpdateAllowed(user: MockUserRecord | undefined) {
       user.permissions,
       'sys.menu.management.system.users',
       PermissionActionType.UPDATE,
+    )
+  ) {
+    return { status: 403, data: { detail: 'Insufficient permissions.' } } as const;
+  }
+  return null;
+}
+
+function assertUsersDeleteAllowed(user: MockUserRecord | undefined) {
+  if (!user) {
+    return { status: 401, data: { detail: 'User not authenticated.' } } as const;
+  }
+  if (
+    !hasPermissionAction(
+      user.permissions,
+      'sys.menu.management.system.users',
+      PermissionActionType.DELETE,
+    )
+  ) {
+    return { status: 403, data: { detail: 'Insufficient permissions.' } } as const;
+  }
+  return null;
+}
+
+function assertUsersReadAllowed(user: MockUserRecord | undefined) {
+  if (!user) {
+    return { status: 401, data: { detail: 'User not authenticated.' } } as const;
+  }
+  if (
+    !hasPermissionAction(
+      user.permissions,
+      'sys.menu.management.system.users',
+      PermissionActionType.READ,
     )
   ) {
     return { status: 403, data: { detail: 'Insufficient permissions.' } } as const;
@@ -245,6 +303,18 @@ export function handleMockRequest(config: InternalAxiosRequestConfig): MockHandl
   }
 
   const userByIdMatch = pathname.match(/^\/v1\/system\/users\/([^/]+)$/);
+  if (method === 'GET' && userByIdMatch) {
+    const authUser = findUserByToken(readBearerToken(config));
+    const denied = assertUsersReadAllowed(authUser);
+    if (denied) return denied;
+
+    const user = store.users.find((item) => item.id === userByIdMatch[1]);
+    if (!user) {
+      return { status: 404, data: { detail: 'User not found.' } };
+    }
+    return { status: 200, data: toUserWithPermissionsRead(user) };
+  }
+
   if (method === 'PATCH' && userByIdMatch) {
     const authUser = findUserByToken(readBearerToken(config));
     const denied = assertUsersUpdateAllowed(authUser);
@@ -264,9 +334,25 @@ export function handleMockRequest(config: InternalAxiosRequestConfig): MockHandl
     return { status: 200, data: { message: 'User updated successfully.' } };
   }
 
+  if (method === 'DELETE' && userByIdMatch) {
+    const authUser = findUserByToken(readBearerToken(config));
+    const denied = assertUsersDeleteAllowed(authUser);
+    if (denied) return denied;
+
+    const userId = userByIdMatch[1];
+    const index = store.users.findIndex((item) => item.id === userId);
+    if (index === -1) {
+      return { status: 404, data: { detail: 'User not found.' } };
+    }
+    store.users.splice(index, 1);
+    return { status: 200, data: { message: 'User deleted successfully.' } };
+  }
+
   if (method === 'GET' && pathname === '/v1/system/roles') {
     const { page, itemsPerPage } = readPagination(config);
-    const items = store.roles.map(toRoleRead);
+    const searchValues = (config.params as Record<string, unknown> | undefined) ?? {};
+    const filtered = applyRoleFilters(store.roles, searchValues);
+    const items = filtered.map(toRoleRead);
     return { status: 200, data: paginate(items, page, itemsPerPage) };
   }
 

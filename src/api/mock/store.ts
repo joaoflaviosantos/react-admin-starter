@@ -67,6 +67,9 @@ export function toUserWithPermissionsRead(user: MockUserRecord): UserWithPermiss
     role_label: user.role_label,
     is_support: user.is_support,
     is_superuser: user.is_superuser,
+    is_active: user.is_active,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
     permissions: user.permissions,
   };
 }

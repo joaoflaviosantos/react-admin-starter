@@ -1,17 +1,18 @@
-import { Menu, MenuProps } from 'antd';
-import Color from 'color';
-import { CSSProperties, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useMatches, useNavigate } from 'react-router-dom';
 
+import { AdminNavMenu } from '@/components/admin/sidebar-nav';
 import { Iconify } from '@/components/icon';
 import Logo from '@/components/logo';
 import Scrollbar from '@/components/scrollbar';
 import { useFlattenedRoutes, usePermissionRoutes, useRouteToMenuFn } from '@/router/hooks';
 import { menuFilter } from '@/router/utils';
 import { useSettingActions, useSettings } from '@/store/settingStore';
-import { useThemeToken } from '@/theme/hooks';
+import { useTheme } from '@/theme/hooks';
 
-import { NAV_COLLAPSED_WIDTH, NAV_WIDTH } from './config';
+import { elevatedSurfaceClass } from '@/lib/overlay-surface';
+
+import { HEADER_HEIGHT, NAV_COLLAPSED_WIDTH, NAV_WIDTH } from './config';
 
 import { ThemeLayout, ThemeMode } from '#/enum';
 
@@ -19,19 +20,16 @@ type Props = {
   closeSideBarDrawer?: () => void;
 };
 
-export default function Nav(props: Props) {
+export default function Nav({ closeSideBarDrawer }: Props) {
   const navigate = useNavigate();
   const matches = useMatches();
   const { pathname } = useLocation();
-  const { colorTextBase, colorBorder, colorBgElevated, colorPrimary } = useThemeToken();
+  const { colorPrimary } = useTheme();
   const settings = useSettings();
   const { themeLayout, themeMode } = settings;
   const { setSettings } = useSettingActions();
 
-  const menuStyle: CSSProperties = {
-    background: colorBgElevated,
-    fontSize: '0.85rem',
-  };
+  const isMobileDrawer = Boolean(closeSideBarDrawer);
 
   const routeToMenuFn = useRouteToMenuFn();
   const menuRoutes = usePermissionRoutes();
@@ -40,35 +38,31 @@ export default function Nav(props: Props) {
 
   const [collapsed, setCollapsed] = useState(themeLayout === ThemeLayout.Mini);
   const [openKeys, setOpenKeys] = useState<string[]>([]);
-  const [menuMode, setMenuMode] = useState<MenuProps['mode']>('inline');
+  const isCollapsed = isMobileDrawer ? false : collapsed;
 
   useEffect(() => {
-    if (themeLayout === ThemeLayout.Vertical) {
+    if (themeLayout === ThemeLayout.Vertical || isMobileDrawer) {
       setOpenKeys(matches.filter((match) => match.pathname !== '/').map((match) => match.pathname));
     }
-  }, [matches, themeLayout]);
+  }, [isMobileDrawer, matches, themeLayout]);
 
   useEffect(() => {
     if (themeLayout === ThemeLayout.Vertical) {
       setCollapsed(false);
-      setMenuMode('inline');
     }
     if (themeLayout === ThemeLayout.Mini) {
       setCollapsed(true);
-      setMenuMode('inline');
     }
   }, [themeLayout]);
 
-  const onOpenChange: MenuProps['onOpenChange'] = (keys) => setOpenKeys(keys);
-
-  const onClick: MenuProps['onClick'] = ({ key }) => {
+  const onSelect = (key: string) => {
     const nextLink = flattenedRoutes.find((el) => el.key === key);
     if (nextLink?.is_tab_hide && nextLink?.frame_src) {
       window.open(nextLink.frame_src, '_blank');
       return;
     }
     navigate(key);
-    props.closeSideBarDrawer?.();
+    closeSideBarDrawer?.();
   };
 
   const setThemeLayout = (layout: ThemeLayout) => {
@@ -86,53 +80,43 @@ export default function Nav(props: Props) {
 
   return (
     <div
-      className="flex h-full flex-col"
-      style={{
-        width: collapsed ? NAV_COLLAPSED_WIDTH : NAV_WIDTH,
-        borderRight: `1.6px solid ${Color(colorBorder).alpha(0.9).toString()}`,
-        background: colorBgElevated,
-      }}
+      className={`flex h-full flex-col border-r border-border ${elevatedSurfaceClass}`}
+      style={{ width: isCollapsed ? NAV_COLLAPSED_WIDTH : NAV_WIDTH }}
     >
-      <div className="relative flex h-20 items-center justify-center py-4">
-        <div className={`relative ${themeLayout === ThemeLayout.Mini ? 'px-6' : 'h-20 w-80 px-4'}`}>
-          <Logo
-            iconOnly={themeLayout === ThemeLayout.Mini}
-            darkMode={themeMode === ThemeMode.Dark}
-          />
-        </div>
+      <div
+        className="relative flex shrink-0 items-center justify-center border-b border-border px-3"
+        style={{ height: HEADER_HEIGHT }}
+      >
+        <Logo
+          iconOnly={!isMobileDrawer && themeLayout === ThemeLayout.Mini}
+          darkMode={themeMode === ThemeMode.Dark}
+          className="truncate"
+        />
         <button
           type="button"
           onClick={toggleCollapsed}
-          className="absolute right-0 top-2 z-50 hidden h-6 w-6 translate-x-1/2 cursor-pointer select-none rounded-full text-center !text-gray md:block"
-          style={{ color: colorTextBase, borderColor: colorTextBase, fontSize: 21 }}
+          className="absolute right-0 top-1/2 z-50 hidden h-6 w-6 -translate-y-1/2 translate-x-1/2 cursor-pointer select-none rounded-full text-center text-muted-foreground md:block"
         >
-          {collapsed ? (
-            <Iconify
-              icon="icon-park-solid:right-c"
-              color={colorPrimary}
-              size={18}
-              style={{ marginTop: -7 }}
-            />
+          {isCollapsed ? (
+            <Iconify icon="icon-park-solid:right-c" color={colorPrimary} size={18} />
           ) : (
             <Iconify icon="icon-park-solid:left-c" color={colorPrimary} size={22} />
           )}
         </button>
       </div>
 
-      <Scrollbar style={{ height: 'calc(100vh - 125px)' }}>
-        <Menu
-          mode={menuMode}
-          items={menuList}
-          className="h-full !border-none"
-          selectedKeys={[pathname]}
-          openKeys={openKeys}
-          onOpenChange={onOpenChange}
-          onClick={onClick}
-          style={menuStyle}
-          inlineCollapsed={collapsed}
-          inlineIndent={17}
-        />
-      </Scrollbar>
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <Scrollbar style={{ height: '100%' }}>
+          <AdminNavMenu
+            items={menuList}
+            selectedKey={pathname}
+            openKeys={openKeys}
+            onOpenChange={setOpenKeys}
+            onSelect={onSelect}
+            collapsed={isCollapsed}
+          />
+        </Scrollbar>
+      </div>
     </div>
   );
 }

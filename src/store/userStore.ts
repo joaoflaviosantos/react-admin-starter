@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { App } from 'antd';
 import { AxiosError } from 'axios';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +6,7 @@ import { create } from 'zustand';
 
 import authService, { SignInReq } from '@/api/services/authService';
 import userService, { MyUserTenantDataRes } from '@/api/services/system/userService';
+import { appToast } from '@/lib/toast';
 import { getItem, removeItem, setItem } from '@/utils/storage';
 
 import { TokenRead } from '#/auth';
@@ -51,7 +51,6 @@ export const useUserActions = () => useUserStore((state) => state.actions);
 
 export function useSignIn() {
   const navigate = useNavigate();
-  const { notification } = App.useApp();
   const { setUserToken, setUserInfo, clearAllUserInfoAndToken } = useUserActions();
   const queryClient = useQueryClient();
   const signInMutation = useMutation({ mutationFn: authService.signin });
@@ -61,11 +60,7 @@ export function useSignIn() {
       const token = await signInMutation.mutateAsync(data);
       if (!token.access_token || !token.token_type) {
         clearAllUserInfoAndToken();
-        notification.error({
-          message: 'Login failed',
-          description: 'Invalid token response from the server.',
-          duration: 3,
-        });
+        appToast.error('Login failed', 'Invalid token response from the server.');
         return;
       }
 
@@ -78,21 +73,13 @@ export function useSignIn() {
 
       if (!userData?.permissions?.length) {
         clearAllUserInfoAndToken();
-        notification.error({
-          message: 'Login failed',
-          description: 'Your account has no permissions assigned.',
-          duration: 3,
-        });
+        appToast.error('Login failed', 'Your account has no permissions assigned.');
         return;
       }
 
       setUserInfo(userData);
       navigate(HOMEPAGE, { replace: true });
-      notification.success({
-        message: 'Signed in',
-        description: `Welcome, ${userData.name}.`,
-        duration: 3,
-      });
+      appToast.success('Signed in', `Welcome, ${userData.name}.`);
     } catch (error) {
       const detail =
         error instanceof AxiosError
@@ -100,18 +87,16 @@ export function useSignIn() {
           : error instanceof Error
             ? error.message
             : 'Login failed.';
-      notification.warning({
-        message: 'Sign in failed',
-        description: typeof detail === 'string' ? detail : 'Invalid credentials.',
-        duration: 3,
-      });
+      appToast.warning(
+        'Sign in failed',
+        typeof detail === 'string' ? detail : 'Invalid credentials.',
+      );
     }
   };
 
   return useCallback(signIn, [
     clearAllUserInfoAndToken,
     navigate,
-    notification,
     queryClient,
     setUserInfo,
     setUserToken,
