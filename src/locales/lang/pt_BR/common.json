@@ -9,6 +9,7 @@
     "stretch": "Esticar",
     "stretchTip": "Disponível apenas em resoluções grandes > 1600px (xl)",
     "breadcrumb": "Breadcrumb",
+    "multiTab": "Abas múltiplas",
     "layout": "Layout",
     "vertical": "Vertical",
     "horizontal": "Horizontal",
@@ -93,6 +94,15 @@
           "roles": "Funções"
         }
       }
+    },
+    "tab": {
+      "fullscreen": "Tela Cheia",
+      "refresh": "Atualizar",
+      "close": "Fechar",
+      "closeOthers": "Fechar Outros",
+      "closeAll": "Fechar Todos",
+      "closeLeft": "Fechar à Esquerda",
+      "closeRight": "Fechar à Direita"
     },
     "error": {
       "404Title": "Página não encontrada",

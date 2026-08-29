@@ -5,7 +5,7 @@ import { AdminNavMenu } from '@/components/admin/sidebar-nav';
 import { useFlattenedRoutes, usePermissionRoutes, useRouteToMenuFn } from '@/router/hooks';
 import { menuFilter } from '@/router/utils';
 
-import { elevatedSurfaceClass } from '@/lib/overlay-surface';
+import { chromeSurfaceClass } from '@/lib/overlay-surface';
 
 import { NAV_HORIZONTAL_HEIGHT } from './config';
 
@@ -34,7 +34,7 @@ export default function NavHorizontal() {
   };
 
   return (
-    <div className={`w-screen ${elevatedSurfaceClass}`} style={{ height: NAV_HORIZONTAL_HEIGHT }}>
+    <div className={`w-screen ${chromeSurfaceClass}`} style={{ height: NAV_HORIZONTAL_HEIGHT }}>
       <AdminNavMenu
         items={menuList}
         selectedKey={selectedKey}

@@ -8,7 +8,7 @@ import Logo from '@/components/logo';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useSettingActions, useSettings } from '@/store/settingStore';
 
-import { elevatedSurfaceClass } from '@/lib/overlay-surface';
+import { chromeSurfaceClass } from '@/lib/overlay-surface';
 
 import AccountDropdown from '../_common/account-dropdown';
 import BreadCrumb from '../_common/bread-crumb';
@@ -47,7 +47,7 @@ export default function Header({ className = '', offsetTop = false }: Props) {
   return (
     <>
       <header
-        className={`${elevatedSurfaceClass} z-20 shrink-0 border-b border-border ${
+        className={`${chromeSurfaceClass} z-20 shrink-0 border-b border-border ${
           isHorizontal ? 'relative w-full' : 'sticky top-0 w-full'
         } ${className}`}
       >

@@ -18,7 +18,7 @@ describe('settingStore', () => {
         themeLayout: useSettingStore.getState().settings.themeLayout,
         themeStretch: true,
         breadCrumb: true,
-        multiTab: false,
+        multiTab: true,
       },
     });
   });

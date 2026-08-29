@@ -3,6 +3,9 @@ export const overlaySurfaceClass =
 
 export const elevatedSurfaceClass = 'elevated-surface';
 
+/** Shell chrome (header, sidebar, tab bar) — matches Card background. */
+export const chromeSurfaceClass = 'bg-card';
+
 export const modalSurfaceClass =
   'modal-body-surface border border-border text-foreground shadow-lg dark:border-transparent dark:shadow-xl';
 

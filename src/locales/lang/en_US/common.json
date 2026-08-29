@@ -9,6 +9,7 @@
     "stretch": "Stretch",
     "stretchTip": "Only available at large resolutions > 1600px (xl)",
     "breadcrumb": "Breadcrumb",
+    "multiTab": "Multi tabs",
     "layout": "Layout",
     "vertical": "Vertical",
     "horizontal": "Horizontal",
@@ -93,6 +94,15 @@
           "roles": "Roles"
         }
       }
+    },
+    "tab": {
+      "fullscreen": "Fullscreen",
+      "refresh": "Refresh",
+      "close": "Close",
+      "closeOthers": "Close Others",
+      "closeAll": "Close All",
+      "closeLeft": "Close Left",
+      "closeRight": "Close Right"
     },
     "error": {
       "404Title": "Page not found",

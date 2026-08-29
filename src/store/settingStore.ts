@@ -36,7 +36,7 @@ const defaultSettings: SettingsType = {
   themeLayout: ThemeLayout.Vertical,
   themeStretch: true,
   breadCrumb: true,
-  multiTab: false,
+  multiTab: true,
 };
 
 function normalizeSettings(settings: Partial<SettingsType>): SettingsType {

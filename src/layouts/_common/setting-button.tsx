@@ -64,8 +64,15 @@ export default function SettingButton() {
   const { t } = useTranslation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const settings = useSettings();
-  const { themeMode, themeColorPresets, themeCustomColor, themeLayout, themeStretch, breadCrumb } =
-    settings;
+  const {
+    themeMode,
+    themeColorPresets,
+    themeCustomColor,
+    themeLayout,
+    themeStretch,
+    breadCrumb,
+    multiTab,
+  } = settings;
   const { setSettings, resetSettings } = useSettingActions();
 
   const setThemeMode = (nextMode: ThemeMode) => {
@@ -236,6 +243,18 @@ export default function SettingButton() {
                 <Switch
                   checked={breadCrumb}
                   onCheckedChange={(checked) => setSettings({ ...settings, breadCrumb: checked })}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className={settingCardHeaderClass}>
+                <CardTitle className="text-sm">{t('common.multiTab')}</CardTitle>
+              </CardHeader>
+              <CardContent className={settingCardContentClass}>
+                <Switch
+                  checked={multiTab}
+                  onCheckedChange={(checked) => setSettings({ ...settings, multiTab: checked })}
                 />
               </CardContent>
             </Card>

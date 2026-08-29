@@ -16,7 +16,7 @@ describe('useTheme', () => {
         themeLayout: ThemeLayout.Vertical,
         themeStretch: true,
         breadCrumb: true,
-        multiTab: false,
+        multiTab: true,
       },
     });
   });

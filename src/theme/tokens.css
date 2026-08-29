@@ -38,6 +38,7 @@
     --table-header: 210 14% 93%;
     --descriptions-label-background: #e8e8e8;
     --descriptions-label-border: #d4d4d8;
+    --tab-border: #d4d4d8;
 
     --scrollbar-track: #fafafa;
     --scrollbar-thumb: #a3a1a1;
@@ -75,6 +76,7 @@
     --table-header: 240 4% 16%;
     --descriptions-label-background: #3d3d3f;
     --descriptions-label-border: #50525b;
+    --tab-border: #35363d;
 
     --scrollbar-track: #2c2c2c;
     --scrollbar-thumb: #6b6b6b;

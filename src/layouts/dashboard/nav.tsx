@@ -10,7 +10,7 @@ import { menuFilter } from '@/router/utils';
 import { useSettingActions, useSettings } from '@/store/settingStore';
 import { useTheme } from '@/theme/hooks';
 
-import { elevatedSurfaceClass } from '@/lib/overlay-surface';
+import { chromeSurfaceClass } from '@/lib/overlay-surface';
 
 import { HEADER_HEIGHT, NAV_COLLAPSED_WIDTH, NAV_WIDTH } from './config';
 
@@ -80,7 +80,7 @@ export default function Nav({ closeSideBarDrawer }: Props) {
 
   return (
     <div
-      className={`flex h-full flex-col border-r border-border ${elevatedSurfaceClass}`}
+      className={`flex h-full flex-col border-r border-border ${chromeSurfaceClass}`}
       style={{ width: isCollapsed ? NAV_COLLAPSED_WIDTH : NAV_WIDTH }}
     >
       <div
