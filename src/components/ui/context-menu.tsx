@@ -154,7 +154,8 @@ function getContextMenuItemClassName({
 
 const ContextMenuItem = React.forwardRef<
   HTMLDivElement,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Item> & {
+  Omit<React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Item>, 'className'> & {
+    className?: string;
     inset?: boolean;
     asChild?: boolean;
   }
