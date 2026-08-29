@@ -39,6 +39,15 @@ describe('mock axios adapter', () => {
     });
   });
 
+  it('signs in viewer with seed credentials and returns TokenRead', async () => {
+    const result = await authService.signin({ username: 'viewer', password: 'viewer123' });
+
+    expect(result).toEqual<TokenRead>({
+      access_token: 'mock-token-user-viewer',
+      token_type: 'bearer',
+    });
+  });
+
   it('rejects invalid credentials with 401 detail', async () => {
     const error = await authService
       .signin({ username: 'admin', password: 'wrong' })
@@ -111,6 +120,16 @@ describe('mock axios adapter', () => {
     expect(me.role).toBe('admin');
     expect(me.permissions.length).toBeGreaterThan(0);
     expect(me.permissions.some((item) => item.label === 'sys.menu.management.index')).toBe(true);
+  });
+
+  it('returns viewer permissions without management menu labels on GET /me', async () => {
+    await signInAsViewer();
+
+    const me = await userService.getMyTenantData();
+    expect(me.email).toBe('viewer@example.com');
+    expect(me.role).toBe('viewer');
+    expect(me.permissions.some((item) => item.label === 'sys.menu.management.index')).toBe(false);
+    expect(me.permissions.some((item) => item.label.includes('workbench'))).toBe(true);
   });
 
   it('returns 401 from GET /me without token', async () => {
