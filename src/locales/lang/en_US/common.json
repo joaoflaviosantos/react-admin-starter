@@ -15,7 +15,28 @@
     "mini": "Mini",
     "darkMode": "Dark mode",
     "lightMode": "Light mode",
-    "color": "Color"
+    "color": "Color",
+    "newText": "New",
+    "saveText": "Save",
+    "cancelText": "Cancel",
+    "clearText": "Clear",
+    "searchText": "Search",
+    "detailText": "Details",
+    "updateText": "Edit",
+    "deleteText": "Delete",
+    "inactivateText": "Deactivate",
+    "activateText": "Activate",
+    "active": "Active",
+    "inactive": "Inactive",
+    "yesText": "Yes",
+    "noText": "No",
+    "requiredField": "This field is required.",
+    "invalidEmail": "Enter a valid email address.",
+    "noChanges": "No changes to save.",
+    "noCreatePermission": "You do not have permission to create records.",
+    "noUpdatePermission": "You do not have permission to update records.",
+    "noDeletePermission": "You do not have permission to delete records.",
+    "noDetailPermission": "You do not have permission to view details."
   },
   "sys": {
     "login": {
@@ -33,11 +54,20 @@
     },
     "menu": {
       "workbench": "Workbench",
-      "overview": "Overview"
+      "overview": "Overview",
+      "management": {
+        "index": "Management",
+        "system": {
+          "users": "Users",
+          "roles": "Roles"
+        }
+      }
     },
     "error": {
       "404Title": "Page not found",
       "404Desc": "Sorry, we could not find the page you are looking for.",
+      "403Title": "Access denied",
+      "403Desc": "You do not have permission to access this page.",
       "backHome": "Back to home",
       "backLogin": "Back to login"
     }
@@ -47,6 +77,59 @@
       "welcome": "Welcome back",
       "subtitle": "This is a simple overview page for the admin boilerplate.",
       "comingSoon": "More modules will appear here in future releases."
+    }
+  },
+  "management": {
+    "common": {
+      "tableColumns": {
+        "status": "Status",
+        "lastUpdate": "Last update",
+        "action": "Actions"
+      }
+    },
+    "users": {
+      "listTitle": "Users",
+      "newModalText": "New user",
+      "editTitle": "Edit user",
+      "tableColumns": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role"
+      },
+      "forms": {
+        "basicData": {
+          "email": "Email",
+          "name": "Name",
+          "defaultLanguage": "Default language"
+        },
+        "securityData": {
+          "role": "Role",
+          "password": "Password",
+          "passwordOptional": "Optional — auto-generated if empty",
+          "isActive": "Active"
+        }
+      },
+      "messages": {
+        "createSuccess": "User created successfully.",
+        "createError": "Could not create the user.",
+        "updateSuccess": "User updated successfully.",
+        "updateError": "Could not update the user."
+      }
+    },
+    "roles": {
+      "listTitle": "Roles",
+      "detailTitle": "Permissions for {{role}}",
+      "tableColumns": {
+        "name": "Role",
+        "description": "Description"
+      },
+      "permissions": {
+        "columns": {
+          "label": "Menu label",
+          "route": "Route segment",
+          "actions": "Allowed actions"
+        }
+      }
     }
   }
 }

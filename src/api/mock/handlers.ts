@@ -2,8 +2,9 @@ import type { InternalAxiosRequestConfig } from 'axios';
 import { AxiosHeaders } from 'axios';
 
 import type { UserCreate } from '#/system/user';
+import { PermissionActionType } from '#/enum';
 
-import { permissionsForRole } from './permissions';
+import { permissionsForRole, hasPermissionAction } from './permissions';
 import {
   findUserByToken,
   getState,
@@ -127,6 +128,38 @@ function applyUserFilters(users: MockUserRecord[], searchValues: Record<string, 
   });
 }
 
+function assertUsersCreateAllowed(user: MockUserRecord | undefined) {
+  if (!user) {
+    return { status: 401, data: { detail: 'User not authenticated.' } } as const;
+  }
+  if (
+    !hasPermissionAction(
+      user.permissions,
+      'sys.menu.management.system.users',
+      PermissionActionType.CREATE,
+    )
+  ) {
+    return { status: 403, data: { detail: 'Insufficient permissions.' } } as const;
+  }
+  return null;
+}
+
+function assertUsersUpdateAllowed(user: MockUserRecord | undefined) {
+  if (!user) {
+    return { status: 401, data: { detail: 'User not authenticated.' } } as const;
+  }
+  if (
+    !hasPermissionAction(
+      user.permissions,
+      'sys.menu.management.system.users',
+      PermissionActionType.UPDATE,
+    )
+  ) {
+    return { status: 403, data: { detail: 'Insufficient permissions.' } } as const;
+  }
+  return null;
+}
+
 export function handleMockRequest(config: InternalAxiosRequestConfig): MockHandlerResult {
   const method = (config.method ?? 'get').toUpperCase();
   const pathname = requestPathname(config);
@@ -173,6 +206,10 @@ export function handleMockRequest(config: InternalAxiosRequestConfig): MockHandl
   }
 
   if (method === 'POST' && pathname === '/v1/system/users') {
+    const authUser = findUserByToken(readBearerToken(config));
+    const denied = assertUsersCreateAllowed(authUser);
+    if (denied) return denied;
+
     const payload = body as UserCreate | undefined;
     if (!payload?.email || !payload.name || !payload.role_id) {
       return { status: 422, data: { detail: 'Missing required user fields.' } };
@@ -209,6 +246,10 @@ export function handleMockRequest(config: InternalAxiosRequestConfig): MockHandl
 
   const userByIdMatch = pathname.match(/^\/v1\/system\/users\/([^/]+)$/);
   if (method === 'PATCH' && userByIdMatch) {
+    const authUser = findUserByToken(readBearerToken(config));
+    const denied = assertUsersUpdateAllowed(authUser);
+    if (denied) return denied;
+
     const userId = userByIdMatch[1];
     const user = store.users.find((item) => item.id === userId);
     if (!user) {

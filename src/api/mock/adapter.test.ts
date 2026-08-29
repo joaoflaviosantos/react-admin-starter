@@ -12,6 +12,18 @@ import { getState, resetToSeed } from './store';
 import { TokenRead } from '#/auth';
 import { StorageEnum } from '#/enum';
 
+async function signInAsAdmin() {
+  const token = await authService.signin({ username: 'admin', password: 'admin123' });
+  setItem<TokenRead>(StorageEnum.Token, token);
+  return token;
+}
+
+async function signInAsViewer() {
+  const token = await authService.signin({ username: 'viewer', password: 'viewer123' });
+  setItem<TokenRead>(StorageEnum.Token, token);
+  return token;
+}
+
 describe('mock axios adapter', () => {
   beforeEach(() => {
     resetToSeed();
@@ -40,6 +52,7 @@ describe('mock axios adapter', () => {
   });
 
   it('creates a user that then appears in getPaginatedUserList', async () => {
+    await signInAsAdmin();
     const created = await userService.createUser({
       email: 'alice@example.com',
       name: 'Alice',
@@ -57,6 +70,7 @@ describe('mock axios adapter', () => {
   });
 
   it('isolates tests with resetToSeed', async () => {
+    await signInAsAdmin();
     await userService.createUser({
       email: 'bob@example.com',
       name: 'Bob',
@@ -76,6 +90,7 @@ describe('mock axios adapter', () => {
   });
 
   it('lists roles with paginated envelope and patches a user', async () => {
+    await signInAsAdmin();
     const roles = await roleService.getPaginatedRoleList({});
     expect(roles.total_count).toBe(2);
     expect(roles.data.map((role) => role.name)).toEqual(['admin', 'viewer']);
@@ -105,6 +120,37 @@ describe('mock axios adapter', () => {
     expect(error).toMatchObject({
       message: 'User not authenticated.',
       response: { status: 401 },
+    });
+  });
+
+  it('returns 403 when viewer attempts to create a user', async () => {
+    await signInAsViewer();
+
+    const error = await userService
+      .createUser({
+        email: 'blocked@example.com',
+        name: 'Blocked User',
+        password: 'secret123',
+        role_id: 'role-viewer',
+      })
+      .catch((err: unknown) => err);
+
+    expect(error).toBeInstanceOf(AxiosError);
+    expect(error).toMatchObject({
+      response: { status: 403, data: { detail: 'Insufficient permissions.' } },
+    });
+  });
+
+  it('returns 403 when viewer attempts to patch a user', async () => {
+    await signInAsViewer();
+
+    const error = await userService
+      .updateUserById('user-admin', { name: 'Blocked Rename' })
+      .catch((err: unknown) => err);
+
+    expect(error).toBeInstanceOf(AxiosError);
+    expect(error).toMatchObject({
+      response: { status: 403, data: { detail: 'Insufficient permissions.' } },
     });
   });
 });

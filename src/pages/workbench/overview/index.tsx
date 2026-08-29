@@ -13,7 +13,9 @@ export default function OverviewPage() {
         <Typography.Title level={3} className="!mb-2">
           {t('workbench.overview.welcome')}, {userInfo.name ?? 'User'}
         </Typography.Title>
-        <Typography.Paragraph type="secondary">{t('workbench.overview.subtitle')}</Typography.Paragraph>
+        <Typography.Paragraph type="secondary">
+          {t('workbench.overview.subtitle')}
+        </Typography.Paragraph>
         <Typography.Paragraph>{t('workbench.overview.comingSoon')}</Typography.Paragraph>
       </Card>
     </div>

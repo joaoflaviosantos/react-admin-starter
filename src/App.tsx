@@ -1,8 +1,8 @@
+import AppRoutes from '@/router';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App as AntdApp } from 'antd';
-import { RouterProvider } from 'react-router-dom';
 
-import { router } from '@/router';
 import AntdConfig from '@/theme/AntdConfig';
 
 const queryClient = new QueryClient({
@@ -19,7 +19,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AntdConfig>
         <AntdApp>
-          <RouterProvider router={router} />
+          <AppRoutes />
         </AntdApp>
       </AntdConfig>
     </QueryClientProvider>

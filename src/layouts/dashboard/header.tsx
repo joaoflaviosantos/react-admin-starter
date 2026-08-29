@@ -83,7 +83,9 @@ export default function Header({ className = '', offsetTop = false }: Props) {
             ) : (
               <Logo className="mr-2 text-xl" darkMode={themeMode === ThemeMode.Dark} />
             )}
-            <div className={`hidden md:block ${themeLayout === ThemeLayout.Horizontal ? 'ml-4' : ''}`}>
+            <div
+              className={`hidden md:block ${themeLayout === ThemeLayout.Horizontal ? 'ml-4' : ''}`}
+            >
               {breadCrumb ? <BreadCrumb /> : null}
             </div>
           </div>
@@ -97,7 +99,9 @@ export default function Header({ className = '', offsetTop = false }: Props) {
               }
             >
               <SvgIcon
-                icon={themeMode === ThemeMode.Dark ? 'ic-settings-mode-sun' : 'ic-settings-mode-moon'}
+                icon={
+                  themeMode === ThemeMode.Dark ? 'ic-settings-mode-sun' : 'ic-settings-mode-moon'
+                }
                 size="20"
               />
             </IconButton>

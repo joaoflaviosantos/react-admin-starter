@@ -6,7 +6,7 @@ import { useLocation, useMatches, useNavigate } from 'react-router-dom';
 import { Iconify } from '@/components/icon';
 import Logo from '@/components/logo';
 import Scrollbar from '@/components/scrollbar';
-import { useFlattenedRoutes, useMenuRoutes, useRouteToMenuFn } from '@/router/hooks';
+import { useFlattenedRoutes, usePermissionRoutes, useRouteToMenuFn } from '@/router/hooks';
 import { menuFilter } from '@/router/utils';
 import { useSettingActions, useSettings } from '@/store/settingStore';
 import { useThemeToken } from '@/theme/hooks';
@@ -34,8 +34,8 @@ export default function Nav(props: Props) {
   };
 
   const routeToMenuFn = useRouteToMenuFn();
-  const menuRoutes = useMenuRoutes();
-  const menuList = routeToMenuFn(menuFilter([...menuRoutes]));
+  const menuRoutes = usePermissionRoutes();
+  const menuList = routeToMenuFn(menuFilter(menuRoutes));
   const flattenedRoutes = useFlattenedRoutes();
 
   const [collapsed, setCollapsed] = useState(themeLayout === ThemeLayout.Mini);
@@ -44,9 +44,7 @@ export default function Nav(props: Props) {
 
   useEffect(() => {
     if (themeLayout === ThemeLayout.Vertical) {
-      setOpenKeys(
-        matches.filter((match) => match.pathname !== '/').map((match) => match.pathname),
-      );
+      setOpenKeys(matches.filter((match) => match.pathname !== '/').map((match) => match.pathname));
     }
   }, [matches, themeLayout]);
 
@@ -97,7 +95,10 @@ export default function Nav(props: Props) {
     >
       <div className="relative flex h-20 items-center justify-center py-4">
         <div className={`relative ${themeLayout === ThemeLayout.Mini ? 'px-6' : 'h-20 w-80 px-4'}`}>
-          <Logo iconOnly={themeLayout === ThemeLayout.Mini} darkMode={themeMode === ThemeMode.Dark} />
+          <Logo
+            iconOnly={themeLayout === ThemeLayout.Mini}
+            darkMode={themeMode === ThemeMode.Dark}
+          />
         </div>
         <button
           type="button"
@@ -106,7 +107,12 @@ export default function Nav(props: Props) {
           style={{ color: colorTextBase, borderColor: colorTextBase, fontSize: 21 }}
         >
           {collapsed ? (
-            <Iconify icon="icon-park-solid:right-c" color={colorPrimary} size={18} style={{ marginTop: -7 }} />
+            <Iconify
+              icon="icon-park-solid:right-c"
+              color={colorPrimary}
+              size={18}
+              style={{ marginTop: -7 }}
+            />
           ) : (
             <Iconify icon="icon-park-solid:left-c" color={colorPrimary} size={22} />
           )}

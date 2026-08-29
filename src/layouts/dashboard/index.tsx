@@ -4,6 +4,7 @@ import styled from 'styled-components';
 
 import { CircleLoading } from '@/components/loading';
 import ProgressBar from '@/components/progress-bar';
+import PermissionRouteWatcher from '@/router/components/permission-route-watcher';
 import { useSettings } from '@/store/settingStore';
 import { useThemeToken } from '@/theme/hooks';
 
@@ -42,6 +43,7 @@ function DashboardLayout() {
   return (
     <StyleWrapper $themeMode={themeMode}>
       <ProgressBar />
+      <PermissionRouteWatcher />
       <div
         className={`flex h-screen overflow-hidden ${
           themeLayout === ThemeLayout.Horizontal ? 'flex-col' : ''

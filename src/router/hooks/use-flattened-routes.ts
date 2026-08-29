@@ -1,15 +1,13 @@
 import { useMemo } from 'react';
 
-import { menuRoutes } from '@/router/routes/menu-routes';
+import { usePermissionRoutes } from '@/router/hooks/use-permission-routes';
 import { flattenMenuRoutes, menuFilter } from '@/router/utils';
 
-export function useMenuRoutes() {
-  return menuRoutes;
-}
-
 export function useFlattenedRoutes() {
+  const permissionRoutes = usePermissionRoutes();
+
   return useMemo(() => {
-    const filtered = menuFilter([...menuRoutes]);
+    const filtered = menuFilter(permissionRoutes);
     return flattenMenuRoutes(filtered);
-  }, []);
+  }, [permissionRoutes]);
 }

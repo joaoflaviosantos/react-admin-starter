@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useMatches } from 'react-router-dom';
 
 import { Iconify } from '@/components/icon';
-import { useFlattenedRoutes, useMenuRoutes } from '@/router/hooks';
+import { useFlattenedRoutes, usePermissionRoutes } from '@/router/hooks';
 import { menuFilter } from '@/router/utils';
 import { useThemeToken } from '@/theme/hooks';
 
@@ -17,17 +17,19 @@ export default function BreadCrumb() {
   const [breadCrumbs, setBreadCrumbs] = useState<ItemType[]>([]);
   const { colorPrimary } = useThemeToken();
   const flattenedRoutes = useFlattenedRoutes();
-  const menuRoutes = useMenuRoutes();
+  const menuRoutes = usePermissionRoutes();
 
   useEffect(() => {
-    const filteredRoutes = menuFilter([...menuRoutes]);
+    const filteredRoutes = menuFilter(menuRoutes);
     const paths = matches.filter((item) => item.pathname !== '/').map((item) => item.pathname);
     const pathRouteMetas = flattenedRoutes.filter((item) => paths.includes(item.key));
 
     let items: AppRouteObject[] | undefined = [...filteredRoutes];
     const crumbs = pathRouteMetas.map((routeMeta) => {
       const { key, label, alternative_label } = routeMeta;
-      items = items!.find((item) => item.meta?.key === key)?.children?.filter((item) => !item.meta?.is_hide);
+      items = items!
+        .find((item) => item.meta?.key === key)
+        ?.children?.filter((item) => !item.meta?.is_hide);
       const result: ItemType = {
         key,
         title: t(alternative_label || label),

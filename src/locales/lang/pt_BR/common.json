@@ -15,7 +15,28 @@
     "mini": "Mini",
     "darkMode": "Modo escuro",
     "lightMode": "Modo claro",
-    "color": "Cor"
+    "color": "Cor",
+    "newText": "Novo",
+    "saveText": "Salvar",
+    "cancelText": "Cancelar",
+    "clearText": "Limpar",
+    "searchText": "Pesquisar",
+    "detailText": "Detalhes",
+    "updateText": "Editar",
+    "deleteText": "Excluir",
+    "inactivateText": "Desativar",
+    "activateText": "Ativar",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "yesText": "Sim",
+    "noText": "Não",
+    "requiredField": "Campo obrigatório.",
+    "invalidEmail": "Informe um e-mail válido.",
+    "noChanges": "Nenhuma alteração para salvar.",
+    "noCreatePermission": "Sem permissão para criar registros.",
+    "noUpdatePermission": "Sem permissão para editar registros.",
+    "noDeletePermission": "Sem permissão para excluir registros.",
+    "noDetailPermission": "Sem permissão para ver detalhes."
   },
   "sys": {
     "login": {
@@ -33,11 +54,20 @@
     },
     "menu": {
       "workbench": "Workbench",
-      "overview": "Visão geral"
+      "overview": "Visão geral",
+      "management": {
+        "index": "Gestão",
+        "system": {
+          "users": "Usuários",
+          "roles": "Papéis"
+        }
+      }
     },
     "error": {
       "404Title": "Página não encontrada",
       "404Desc": "Desculpe, não encontramos a página que você procura.",
+      "403Title": "Acesso negado",
+      "403Desc": "Você não tem permissão para acessar esta página.",
       "backHome": "Voltar ao início",
       "backLogin": "Voltar ao login"
     }
@@ -47,6 +77,59 @@
       "welcome": "Bem-vindo de volta",
       "subtitle": "Esta é uma página de visão geral simples do boilerplate admin.",
       "comingSoon": "Mais módulos aparecerão aqui em versões futuras."
+    }
+  },
+  "management": {
+    "common": {
+      "tableColumns": {
+        "status": "Status",
+        "lastUpdate": "Última atualização",
+        "action": "Ações"
+      }
+    },
+    "users": {
+      "listTitle": "Usuários",
+      "newModalText": "Novo usuário",
+      "editTitle": "Editar usuário",
+      "tableColumns": {
+        "name": "Nome",
+        "email": "E-mail",
+        "role": "Papel"
+      },
+      "forms": {
+        "basicData": {
+          "email": "E-mail",
+          "name": "Nome",
+          "defaultLanguage": "Idioma padrão"
+        },
+        "securityData": {
+          "role": "Papel",
+          "password": "Senha",
+          "passwordOptional": "Opcional — gerada automaticamente se vazio",
+          "isActive": "Ativo"
+        }
+      },
+      "messages": {
+        "createSuccess": "Usuário criado com sucesso.",
+        "createError": "Não foi possível criar o usuário.",
+        "updateSuccess": "Usuário atualizado com sucesso.",
+        "updateError": "Não foi possível atualizar o usuário."
+      }
+    },
+    "roles": {
+      "listTitle": "Papéis",
+      "detailTitle": "Permissões de {{role}}",
+      "tableColumns": {
+        "name": "Papel",
+        "description": "Descrição"
+      },
+      "permissions": {
+        "columns": {
+          "label": "Rótulo do menu",
+          "route": "Segmento de rota",
+          "actions": "Ações permitidas"
+        }
+      }
     }
   }
 }

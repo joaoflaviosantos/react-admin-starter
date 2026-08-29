@@ -1,15 +1,13 @@
 import { AppRouteObject, RouteMeta } from '#/router';
 
-export const menuFilter = (items: AppRouteObject[]) => {
+export const menuFilter = (items: AppRouteObject[]): AppRouteObject[] => {
   return items
-    .filter((item) => {
-      const show = item.meta?.key;
-      if (show && item.children) {
-        item.children = menuFilter(item.children);
-      }
-      return show;
-    })
-    .sort((a, b) => (a.order ?? '').localeCompare(b.order ?? ''));
+    .filter((item) => item.meta?.key)
+    .map((item) => ({
+      ...item,
+      children: item.children ? menuFilter(item.children) : undefined,
+    }))
+    .sort((a, b) => String(a.order ?? '').localeCompare(String(b.order ?? '')));
 };
 
 export function flattenMenuRoutes(routes: AppRouteObject[]) {

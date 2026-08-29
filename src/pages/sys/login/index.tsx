@@ -70,7 +70,10 @@ export default function LoginPage() {
             name="password"
             rules={[{ required: true, message: t('sys.login.passwordRequired') }]}
           >
-            <Input.Password autoComplete="current-password" placeholder={t('sys.login.passwordPlaceholder')} />
+            <Input.Password
+              autoComplete="current-password"
+              placeholder={t('sys.login.passwordPlaceholder')}
+            />
           </Form.Item>
           <Form.Item className="!mb-0">
             <Button type="primary" htmlType="submit" block loading={loading}>

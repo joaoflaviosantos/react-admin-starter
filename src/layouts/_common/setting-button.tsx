@@ -42,7 +42,11 @@ export default function SettingButton() {
 
   return (
     <>
-      <IconButton title={t('common.uiAdjusts')} className="h-10 w-10" onClick={() => setDrawerOpen(true)}>
+      <IconButton
+        title={t('common.uiAdjusts')}
+        className="h-10 w-10"
+        onClick={() => setDrawerOpen(true)}
+      >
         <SvgIcon icon="ic-setting" size="22" />
       </IconButton>
       <Drawer

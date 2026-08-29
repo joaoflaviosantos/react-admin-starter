@@ -19,12 +19,7 @@ interface SvgIconProps {
   style?: CSSProperties;
 }
 
-export default function SvgIcon({
-  icon,
-  size = '1em',
-  className = '',
-  style = {},
-}: SvgIconProps) {
+export default function SvgIcon({ icon, size = '1em', className = '', style = {} }: SvgIconProps) {
   const mapped = ICON_MAP[icon] ?? icon;
   return <Iconify icon={mapped} size={size} className={className} style={style} />;
 }

@@ -2,7 +2,7 @@ import { Menu, MenuProps } from 'antd';
 import { CSSProperties, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { useFlattenedRoutes, useMenuRoutes, useRouteToMenuFn } from '@/router/hooks';
+import { useFlattenedRoutes, usePermissionRoutes, useRouteToMenuFn } from '@/router/hooks';
 import { menuFilter } from '@/router/utils';
 import { useThemeToken } from '@/theme/hooks';
 
@@ -13,8 +13,8 @@ export default function NavHorizontal() {
   const { pathname } = useLocation();
   const { colorBgElevated } = useThemeToken();
   const routeToMenuFn = useRouteToMenuFn();
-  const menuRoutes = useMenuRoutes();
-  const menuList = routeToMenuFn(menuFilter([...menuRoutes]));
+  const menuRoutes = usePermissionRoutes();
+  const menuList = routeToMenuFn(menuFilter(menuRoutes));
   const flattenedRoutes = useFlattenedRoutes();
 
   const [openKeys, setOpenKeys] = useState<string[]>([]);
