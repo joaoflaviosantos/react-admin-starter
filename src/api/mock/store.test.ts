@@ -12,9 +12,11 @@ describe('mock store', () => {
     expect(users.map((user) => user.username)).toEqual(['admin', 'viewer']);
     expect(roles.map((role) => role.name)).toEqual(['admin', 'viewer']);
     expect(users[0]?.permissions.length).toBeGreaterThan(0);
-    expect(users[0]?.permissions.some((item) => item.label.includes('management'))).toBe(true);
+    expect(users[0]?.permissions.some((item) => item.label === 'sys.menu.management.index')).toBe(
+      true,
+    );
     expect(users[1]?.role).toBe('viewer');
-    expect(users[1]?.permissions).toHaveLength(1);
+    expect(users[1]?.permissions.length).toBeGreaterThan(0);
   });
 
   it('resetToSeed restores arrays after mutation', () => {

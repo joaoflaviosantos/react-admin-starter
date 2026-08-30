@@ -46,7 +46,11 @@ export default function LoginPage() {
         style={{ background: bg }}
       />
 
-      <div className="relative flex min-h-screen w-full max-w-[480px] flex-col justify-center border-l border-border bg-background px-6 md:px-10 lg:px-12">
+      <div
+        className={`relative flex min-h-screen w-full max-w-[480px] flex-col justify-center border-l border-border px-6 md:px-10 lg:px-12 ${
+          themeMode === ThemeMode.Light ? 'bg-[#F4F4F5]' : 'bg-background'
+        }`}
+      >
         <div className="mt-[-2rem] md:mt-[-3rem] lg:mt-[-4rem]">
           <LoginStateProvider>
             <LoginForm />

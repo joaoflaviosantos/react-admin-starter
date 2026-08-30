@@ -22,6 +22,7 @@ type FormFieldInputProps<T extends FieldValues> = {
   className?: string;
   autoComplete?: string;
   prefix?: React.ReactNode;
+  suffix?: React.ReactNode;
 };
 
 export function FormFieldInput<T extends FieldValues>({
@@ -34,6 +35,7 @@ export function FormFieldInput<T extends FieldValues>({
   className,
   autoComplete,
   prefix,
+  suffix,
 }: FormFieldInputProps<T>) {
   return (
     <FormField
@@ -49,6 +51,7 @@ export function FormFieldInput<T extends FieldValues>({
               disabled={disabled}
               autoComplete={autoComplete}
               prefix={prefix}
+              suffix={suffix}
               {...field}
             />
           </FormControl>

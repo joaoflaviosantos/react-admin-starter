@@ -131,13 +131,13 @@ function SortableTab({
             style={style}
             {...attributes}
             className={cn(
-              'relative mx-[0.10rem] flex cursor-pointer select-none items-center rounded-t-lg border-solid py-1 pl-4 pr-2 transition-colors duration-200',
+              'relative mx-[0.10rem] flex cursor-pointer select-none items-center rounded-t-lg border-solid py-1 pl-4 pr-2 text-[0.9em] transition-colors duration-200',
               tabBorderClass,
               themeLayout === ThemeLayout.Horizontal && 'mt-2.5',
               isActive
                 ? 'z-[3] -mb-px border-x border-b-[0.1rem] border-t border-b-layout bg-layout font-medium text-primary'
                 : cn(
-                    'z-[1] border-x border-b-0 border-t bg-card font-light text-muted-foreground',
+                    'z-[1] border-x border-b-[0.1rem] border-t border-b-transparent bg-card font-light text-muted-foreground',
                     isHovering && 'text-primary/80',
                   ),
             )}
@@ -468,10 +468,10 @@ export default function MultiTabs({ offsetTop }: MultiTabsProps) {
             items={tabs.map((tab) => tab.key)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="flex w-full">
+            <div className="flex h-full w-full">
               <div
                 ref={scrollContainer}
-                className="relative flex w-full items-end overflow-x-auto px-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="relative flex h-full w-full items-end overflow-x-auto px-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 {tabs.map((tab, index) => (
                   <SortableTab

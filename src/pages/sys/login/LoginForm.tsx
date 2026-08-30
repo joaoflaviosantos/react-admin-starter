@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { User, Lock } from 'lucide-react';
+import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 import { AdminForm } from '@/components/admin/form';
@@ -14,12 +14,12 @@ import { createLoginSchema, type LoginFormValues } from './schema';
 import { LoginStateEnum, useLoginStateContext } from './providers/LoginStateProvider';
 import { useSettings } from '@/store/settingStore';
 import { ThemeMode } from '@/types/enum';
-import LogoDark from '@/assets/branding/company_logo_dark.svg';
-import LogoLight from '@/assets/branding/company_logo_light.svg';
+import Logo from '@/components/logo';
 
 export default function LoginForm() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { loginState, setLoginState } = useLoginStateContext();
   const signIn = useSignIn();
   const { themeMode } = useSettings();
@@ -44,12 +44,8 @@ export default function LoginForm() {
 
   return (
     <div className="w-full">
-      <div className="my-20 flex justify-center">
-        <img
-          src={themeMode === ThemeMode.Dark ? LogoDark : LogoLight}
-          alt="Logo"
-          className="w-full"
-        />
+      <div className="my-20 flex h-16 justify-center">
+        <Logo darkMode={themeMode === ThemeMode.Dark} withLink={false} className="h-full w-full" />
       </div>
       <div className="mb-4 text-2xl font-bold xl:text-3xl">{t('sys.login.signInFormTitle')}</div>
 
@@ -66,9 +62,17 @@ export default function LoginForm() {
           control={form.control}
           name="password"
           label=""
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           placeholder={t('sys.login.passwordPlaceholder')}
           prefix={<Lock className="size-4" />}
+          suffix={
+            <div
+              className="cursor-pointer hover:text-foreground"
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </div>
+          }
         />
 
         <div className="mt-2 flex items-center justify-between">

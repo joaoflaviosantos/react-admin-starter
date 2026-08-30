@@ -63,6 +63,17 @@ const getMyTenantData = async () => {
   return response;
 };
 
+const updateMyInfo = (data: UpdateUserInfoRequest) =>
+  apiClient.patch<{ message: string }>({ url: SystemUserAPI.updateMe, data });
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+const changeMyPassword = (data: ChangePasswordRequest) =>
+  apiClient.post<{ message: string }>({ url: SystemUserAPI.changePassword, data });
+
 export default {
   createUser,
   getPaginatedUserList,
@@ -70,4 +81,6 @@ export default {
   updateUserById,
   deleteUserById,
   getMyTenantData,
+  updateMyInfo,
+  changeMyPassword,
 };

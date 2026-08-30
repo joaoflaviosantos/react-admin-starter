@@ -103,6 +103,7 @@
       "overview": "Visão geral",
       "management": {
         "index": "Gerenciamento",
+        "myAccount": "Minha Conta",
         "system": {
           "users": "Usuários",
           "roles": "Funções"
@@ -203,6 +204,58 @@
           "label": "Rótulo do menu",
           "route": "Segmento de rota",
           "actions": "Ações permitidas"
+        }
+      }
+    },
+    "myAccount": {
+      "personalInfo": {
+        "title": "Informações Pessoais",
+        "description": "Atualize seus dados pessoais aqui.",
+        "name": "Nome",
+        "email": "E-mail",
+        "defaultLanguage": "Idioma",
+        "defaultOrganization": "Organização Padrão",
+        "selectDefaultOrganization": "Selecione a organização",
+        "default": "Padrão",
+        "saveChanges": "Salvar Alterações",
+        "validation": {
+          "nameRequired": "Nome é obrigatório.",
+          "nameMinLength": "Nome deve ter pelo menos 2 caracteres.",
+          "emailRequired": "E-mail é obrigatório.",
+          "emailInvalid": "Informe um e-mail válido.",
+          "languageRequired": "Idioma é obrigatório.",
+          "organizationRequired": "Organização é obrigatória."
+        },
+        "messages": {
+          "updateSuccess": "Informações atualizadas com sucesso.",
+          "updateError": "Falha ao atualizar informações.",
+          "avatarUpdateSuccess": "Avatar atualizado com sucesso.",
+          "avatarUpdateError": "Falha ao atualizar o avatar."
+        }
+      },
+      "security": {
+        "title": "Segurança",
+        "description": "Altere sua senha.",
+        "currentPassword": "Senha Atual",
+        "newPassword": "Nova Senha",
+        "confirmNewPassword": "Confirmar Nova Senha",
+        "changePassword": "Alterar Senha",
+        "placeholders": {
+          "currentPassword": "Digite a senha atual",
+          "newPassword": "Digite a nova senha",
+          "confirmNewPassword": "Confirme a nova senha"
+        },
+        "validation": {
+          "currentPasswordRequired": "Senha atual é obrigatória.",
+          "newPasswordRequired": "Nova senha é obrigatória.",
+          "newPasswordMinLength": "A senha deve ter pelo menos 8 caracteres.",
+          "newPasswordPattern": "A senha deve ter maiúsculas, minúsculas e um número.",
+          "confirmPasswordRequired": "Confirme sua nova senha.",
+          "passwordsNotMatch": "As senhas não conferem."
+        },
+        "messages": {
+          "changePasswordSuccess": "Senha alterada com sucesso.",
+          "changePasswordError": "Falha ao alterar a senha."
         }
       }
     }

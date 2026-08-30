@@ -63,3 +63,9 @@ html {
 .dashboard-scroll ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
 }
+
+/* Hide native browser password reveal icons (Edge) */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+  display: none;
+}

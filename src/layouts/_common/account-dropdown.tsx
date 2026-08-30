@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
+import { NavLink } from 'react-router-dom';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -45,6 +47,12 @@ export default function AccountDropdown() {
             {userInfo.role_label ?? userInfo.role}
           </div>
         </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <NavLink to="/management/system/my-account">
+            {t('sys.menu.management.myAccount', 'My Account')}
+          </NavLink>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={signOut} className="font-bold text-warning">
           {t('sys.login.logout')}

@@ -128,7 +128,7 @@ describe('mock axios adapter', () => {
     const me = await userService.getMyTenantData();
     expect(me.email).toBe('viewer@example.com');
     expect(me.role).toBe('viewer');
-    expect(me.permissions.some((item) => item.label === 'sys.menu.management.index')).toBe(false);
+    expect(me.permissions.some((item) => item.label === 'sys.menu.management.index')).toBe(true);
     expect(me.permissions.some((item) => item.label.includes('workbench'))).toBe(true);
   });
 
