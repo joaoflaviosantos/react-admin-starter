@@ -254,7 +254,7 @@ function MenuItem({
           <span>{item.label}</span>
           <ChevronDown className="h-4 w-4" />
         </button>
-        <div className="invisible absolute left-0 top-full z-50 min-w-[180px] rounded-md border bg-popover p-1 opacity-0 shadow-md transition-all group-hover:visible group-hover:opacity-100">
+        <div className="invisible absolute left-0 top-full z-[9999] min-w-[180px] rounded-md border bg-popover p-1 opacity-0 shadow-md transition-all group-hover:visible group-hover:opacity-100">
           {item.children!.map((child) => (
             <button
               key={child.key}

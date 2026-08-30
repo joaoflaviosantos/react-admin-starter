@@ -58,9 +58,11 @@ export default function Header({ className = '', offsetTop = false }: Props) {
             transition: 'height 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
           }}
         >
-          <div className="flex min-w-0 items-center">
+          <div className="flex h-full min-w-0 items-center">
             {isHorizontal ? (
-              <Logo className="mr-2 text-xl" darkMode={themeMode === ThemeMode.Dark} />
+              <div className="mr-2 flex h-full w-40 items-center">
+                <Logo iconOnly={false} darkMode={themeMode === ThemeMode.Dark} />
+              </div>
             ) : (
               <IconButton onClick={() => setSheetOpen(true)} className="h-10 w-10 md:hidden">
                 <SvgIcon icon="ic-menu" size="24" />

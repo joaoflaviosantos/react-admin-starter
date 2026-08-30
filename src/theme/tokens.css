@@ -30,7 +30,7 @@
     --chart-5: 27 87% 67%;
 
     --layout-background: 240 5% 90%;
-    --elevated-background: 240 5% 96%;
+    --elevated-background: 0 0% 100%;
     --overlay-background: 0 0% 100%;
     --menu-text: 240 3% 46%;
     --menu-selected: 240 5% 94%;
@@ -194,6 +194,10 @@
   }
 
   .modal-chrome-surface {
+    background-color: #f4f4f5;
+  }
+
+  .dark .modal-chrome-surface {
     background-color: hsl(var(--elevated-background));
   }
 

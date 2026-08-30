@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export function createLoginSchema(t: (key: string) => string) {
   return z.object({
-    username: z.string().min(1, t('sys.login.usernameRequired')),
+    email: z.string().min(1, t('sys.login.emailRequired')),
     password: z.string().min(1, t('sys.login.passwordRequired')),
   });
 }

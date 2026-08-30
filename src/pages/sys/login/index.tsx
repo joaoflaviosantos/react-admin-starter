@@ -1,92 +1,76 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { IconButton, SvgIcon } from '@/components/icon';
 
-import { SignInReq } from '@/api/services/authService';
-import { AdminForm } from '@/components/admin/form';
-import { FormFieldInput } from '@/components/admin/form/form-field';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useSignIn, useUserInfo, useUserToken } from '@/store/userStore';
+import BackgroundImageDark from '@/assets/images/background/login_dark.jpg';
+import BackgroundImageLight from '@/assets/images/background/login_light.jpg';
+import LocalePicker from '@/components/locale-picker';
+
+import { useSettings, useSettingActions } from '@/store/settingStore';
+import { useUserInfo, useUserToken } from '@/store/userStore';
 import { isUserWithPermissionsRead } from '@/utils/permission';
+import { ThemeMode } from '@/types/enum';
 
-import { createLoginSchema, type LoginFormValues } from './schema';
+import LoginForm from './LoginForm';
+import MobileForm from './MobileForm';
+import { LoginStateProvider } from './providers/LoginStateProvider';
+import RegisterForm from './RegisterForm';
+import ResetForm from './ResetForm';
 
 const HOMEPAGE = import.meta.env.VITE_APP_HOMEPAGE ?? '/workbench/overview';
 
 export default function LoginPage() {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(false);
   const token = useUserToken();
   const userInfo = useUserInfo();
-  const signIn = useSignIn();
-
-  const schema = useMemo(() => createLoginSchema(t), [t]);
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { username: '', password: '' },
-  });
+  const settings = useSettings();
+  const { themeMode } = settings;
+  const { setSettings } = useSettingActions();
 
   if (token.access_token && isUserWithPermissionsRead(userInfo)) {
     return <Navigate to={HOMEPAGE} replace />;
   }
 
-  const handleFinish = async (values: SignInReq) => {
-    setLoading(true);
-    try {
-      await signIn(values);
-    } finally {
-      setLoading(false);
-    }
+  const setThemeMode = (mode: ThemeMode) => {
+    setSettings({ ...settings, themeMode: mode });
   };
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-layout p-6">
-      <Card className="w-full max-w-md shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl">{t('sys.login.signInFormTitle')}</CardTitle>
-          <CardDescription>{t('sys.login.demoHint')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert className="mb-6">
-            <AlertTitle>{t('sys.login.demoCredentials')}</AlertTitle>
-            <AlertDescription>
-              <ul className="mb-0 list-disc pl-4">
-                <li>
-                  Admin: <strong>admin</strong> / <strong>admin123</strong>
-                </li>
-                <li>
-                  Viewer: <strong>viewer</strong> / <strong>viewer123</strong>
-                </li>
-              </ul>
-            </AlertDescription>
-          </Alert>
+  const bg = `center center / cover no-repeat url(${
+    themeMode === ThemeMode.Dark ? BackgroundImageDark : BackgroundImageLight
+  })`;
 
-          <AdminForm form={form} onSubmit={handleFinish} className="space-y-4">
-            <FormFieldInput
-              control={form.control}
-              name="username"
-              label={t('sys.login.username')}
-              placeholder={t('sys.login.usernamePlaceholder')}
-              autoComplete="username"
+  return (
+    <div className="relative flex min-h-screen w-full flex-row justify-center bg-background">
+      <div
+        className="hidden grow flex-col items-center justify-center gap-4 bg-center bg-no-repeat md:flex"
+        style={{ background: bg }}
+      />
+
+      <div className="relative flex min-h-screen w-full max-w-[480px] flex-col justify-center border-l border-border bg-background px-6 md:px-10 lg:px-12">
+        <div className="mt-[-2rem] md:mt-[-3rem] lg:mt-[-4rem]">
+          <LoginStateProvider>
+            <LoginForm />
+            <MobileForm />
+            <RegisterForm />
+            <ResetForm />
+          </LoginStateProvider>
+        </div>
+
+        <div className="absolute right-4 top-4 flex gap-2">
+          <LocalePicker />
+          <IconButton
+            title={t('common.swichTheme')}
+            onClick={() =>
+              setThemeMode(themeMode === ThemeMode.Dark ? ThemeMode.Light : ThemeMode.Dark)
+            }
+          >
+            <SvgIcon
+              icon={themeMode === ThemeMode.Dark ? 'ic-settings-mode-sun' : 'ic-settings-mode-moon'}
+              size="20"
             />
-            <FormFieldInput
-              control={form.control}
-              name="password"
-              label={t('sys.login.password')}
-              type="password"
-              placeholder={t('sys.login.passwordPlaceholder')}
-            />
-            <Button type="submit" className="w-full" disabled={loading}>
-              {t('sys.login.loginButton')}
-            </Button>
-          </AdminForm>
-        </CardContent>
-      </Card>
+          </IconButton>
+        </div>
+      </div>
     </div>
   );
 }

@@ -12,7 +12,7 @@ import { useTheme } from '@/theme/hooks';
 
 import { chromeSurfaceClass } from '@/lib/overlay-surface';
 
-import { HEADER_HEIGHT, NAV_COLLAPSED_WIDTH, NAV_WIDTH } from './config';
+import { NAV_COLLAPSED_WIDTH, NAV_WIDTH } from './config';
 
 import { ThemeLayout, ThemeMode } from '#/enum';
 
@@ -83,24 +83,31 @@ export default function Nav({ closeSideBarDrawer }: Props) {
       className={`flex h-full flex-col border-r border-border ${chromeSurfaceClass}`}
       style={{ width: isCollapsed ? NAV_COLLAPSED_WIDTH : NAV_WIDTH }}
     >
-      <div
-        className="relative flex shrink-0 items-center justify-center border-b border-border px-3"
-        style={{ height: HEADER_HEIGHT }}
-      >
-        <Logo
-          iconOnly={!isMobileDrawer && themeLayout === ThemeLayout.Mini}
-          darkMode={themeMode === ThemeMode.Dark}
-          className="truncate"
-        />
+      <div className="relative flex h-20 shrink-0 items-center justify-center py-4">
+        {isCollapsed ? (
+          <div className="relative px-6">
+            <Logo iconOnly darkMode={themeMode === ThemeMode.Dark} className="scale-110" />
+          </div>
+        ) : (
+          <div className="relative h-20 w-80 px-4">
+            <Logo iconOnly={false} darkMode={themeMode === ThemeMode.Dark} className="scale-95" />
+          </div>
+        )}
         <button
-          type="button"
           onClick={toggleCollapsed}
-          className="absolute right-0 top-1/2 z-50 hidden h-6 w-6 -translate-y-1/2 translate-x-1/2 cursor-pointer select-none rounded-full text-center text-muted-foreground md:block"
+          className="absolute right-0 top-2 z-50 hidden h-6 w-6 translate-x-1/2 cursor-pointer select-none rounded-full text-center !text-muted-foreground md:block"
+          style={{ fontSize: 21 }}
         >
           {isCollapsed ? (
-            <Iconify icon="icon-park-solid:right-c" color={colorPrimary} size={18} />
+            <Iconify
+              icon="icon-park-solid:right-c"
+              color={colorPrimary}
+              opacity={1.0}
+              size={18}
+              style={{ marginTop: -7 }}
+            />
           ) : (
-            <Iconify icon="icon-park-solid:left-c" color={colorPrimary} size={22} />
+            <Iconify icon="icon-park-solid:left-c" color={colorPrimary} opacity={1.0} size={22} />
           )}
         </button>
       </div>

@@ -226,10 +226,13 @@ export function handleMockRequest(config: InternalAxiosRequestConfig): MockHandl
 
   if (method === 'POST' && pathname === '/v1/auth/login') {
     const credentials = body as { username?: string; password?: string } | undefined;
-    const username = credentials?.username?.trim();
+    const usernameOrEmail = credentials?.username?.trim();
     const password = credentials?.password;
     const user = store.users.find(
-      (item) => item.username === username && item.password === password && item.is_active,
+      (item) =>
+        (item.email === usernameOrEmail || item.username === usernameOrEmail) &&
+        item.password === password &&
+        item.is_active,
     );
     if (!user) {
       return { status: 401, data: { detail: 'Invalid credentials.' } };
