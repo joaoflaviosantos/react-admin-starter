@@ -76,7 +76,7 @@ export const ADMIN_PERMISSIONS: PermissionWithChildRead[] = [
       menuPermission(
         'perm-users',
         'sys.menu.management.system.users',
-        'system/users',
+        'users',
         [
           PermissionActionType.READ,
           PermissionActionType.CREATE,
@@ -86,29 +86,29 @@ export const ADMIN_PERMISSIONS: PermissionWithChildRead[] = [
         {
           parent_id: 'perm-management',
           order: '3',
-          component: '/management/system/users/index.tsx',
+          component: '/management/users/index.tsx',
         },
       ),
       menuPermission(
         'perm-roles',
         'sys.menu.management.system.roles',
-        'system/roles',
+        'roles',
         [PermissionActionType.READ],
         {
           parent_id: 'perm-management',
           order: '2',
-          component: '/management/system/roles/index.tsx',
+          component: '/management/roles/index.tsx',
         },
       ),
       menuPermission(
         'perm-my-account',
         'sys.menu.management.myAccount',
-        'system/my-account',
+        'my-account',
         [PermissionActionType.READ],
         {
           parent_id: 'perm-management',
           order: '1',
-          component: '/management/system/my-account/index.tsx',
+          component: '/management/my-account/index.tsx',
           is_hide: false,
           is_tab_hide: false,
         },
@@ -163,12 +163,12 @@ export const VIEWER_PERMISSIONS: PermissionWithChildRead[] = [
       menuPermission(
         'perm-my-account-viewer',
         'sys.menu.management.myAccount',
-        'system/my-account',
+        'my-account',
         [PermissionActionType.READ],
         {
           parent_id: 'perm-management-viewer',
           order: '1',
-          component: '/management/system/my-account/index.tsx',
+          component: '/management/my-account/index.tsx',
           is_hide: false,
           is_tab_hide: false,
         },

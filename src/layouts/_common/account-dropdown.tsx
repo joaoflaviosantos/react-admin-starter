@@ -49,7 +49,7 @@ export default function AccountDropdown() {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="cursor-pointer">
-          <NavLink to="/management/system/my-account">
+          <NavLink to="/management/my-account">
             {t('sys.menu.management.myAccount', 'My Account')}
           </NavLink>
         </DropdownMenuItem>
