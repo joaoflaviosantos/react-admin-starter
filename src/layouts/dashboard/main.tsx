@@ -1,5 +1,5 @@
 import { CSSProperties, forwardRef } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 import { useSettings } from '@/store/settingStore';
 
@@ -12,6 +12,7 @@ type MainProps = {
 
 const Main = forwardRef<HTMLDivElement, MainProps>(function Main({ offsetTop }, ref) {
   const { themeStretch, multiTab } = useSettings();
+  const { pathname } = useLocation();
 
   const mainStyle: CSSProperties | undefined = multiTab
     ? {
@@ -31,7 +32,7 @@ const Main = forwardRef<HTMLDivElement, MainProps>(function Main({ offsetTop }, 
           multiTab ? '' : 'p-2.5 sm:p-3 md:p-3.5 lg:p-4'
         }`}
       >
-        {multiTab ? <MultiTabs offsetTop={offsetTop} /> : <Outlet />}
+        {multiTab && pathname !== '/' ? <MultiTabs offsetTop={offsetTop} /> : <Outlet />}
       </div>
     </main>
   );

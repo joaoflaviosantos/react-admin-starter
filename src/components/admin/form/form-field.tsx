@@ -96,7 +96,11 @@ export function FormFieldSelect<T extends FieldValues>({
           <Select disabled={disabled} onValueChange={field.onChange} value={field.value}>
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder={placeholder} />
+                <SelectValue placeholder={placeholder}>
+                  {field.value
+                    ? options.find((opt) => opt.value === field.value)?.label || field.value
+                    : placeholder}
+                </SelectValue>
               </SelectTrigger>
             </FormControl>
             <SelectContent>

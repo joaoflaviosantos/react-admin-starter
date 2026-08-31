@@ -3,6 +3,7 @@ import { useEffect, type ReactNode } from 'react';
 import { useSettings } from '@/store/settingStore';
 import { resolveThemePrimaryColor } from '@/theme/color-presets';
 import { hexToHslCss } from '@/theme/color-utils';
+import { useDynamicFavicon } from '@/hooks/web/use-dynamic-favicon';
 
 import { ThemeColorPresets, ThemeMode } from '#/enum';
 
@@ -13,13 +14,15 @@ type ThemeProviderProps = {
 export default function ThemeProvider({ children }: ThemeProviderProps) {
   const { themeMode, themeColorPresets, themeCustomColor } = useSettings();
 
+  const primaryColor = resolveThemePrimaryColor(themeColorPresets, themeCustomColor);
+  useDynamicFavicon(themeMode, primaryColor);
+
   useEffect(() => {
     const root = document.documentElement;
     root.classList.toggle('dark', themeMode === ThemeMode.Dark);
     root.setAttribute('data-theme-preset', themeColorPresets);
 
     if (themeColorPresets === ThemeColorPresets.Custom) {
-      const primaryColor = resolveThemePrimaryColor(themeColorPresets, themeCustomColor);
       const hsl = hexToHslCss(primaryColor);
       root.style.setProperty('--primary', hsl);
       root.style.setProperty('--ring', hsl);
@@ -28,7 +31,7 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
 
     root.style.removeProperty('--primary');
     root.style.removeProperty('--ring');
-  }, [themeMode, themeColorPresets, themeCustomColor]);
+  }, [themeMode, themeColorPresets, primaryColor]);
 
   return children;
 }
