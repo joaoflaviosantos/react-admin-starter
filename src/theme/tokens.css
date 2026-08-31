@@ -32,6 +32,7 @@
     --layout-background: 240 5% 90%;
     --elevated-background: 0 0% 100%;
     --overlay-background: 0 0% 100%;
+    --modal-background: 0 0% 100%;
     --menu-text: 240 3% 46%;
     --menu-selected: 240 5% 94%;
     --menu-active: 240 5% 94%;
@@ -69,7 +70,8 @@
 
     --layout-background: 0 0% 4%;
     --elevated-background: 240 6% 10%;
-    --overlay-background: 240 4% 16%;
+    --overlay-background: 240 6% 10%;
+    --modal-background: 240 4% 16%;
     --menu-text: 0 0% 81%;
     --menu-selected: 240 4% 16%;
     --menu-active: 240 5% 21%;
@@ -202,7 +204,7 @@
   }
 
   .modal-body-surface {
-    background-color: hsl(var(--overlay-background));
+    background-color: hsl(var(--modal-background));
   }
 
   .form-field-surface {
@@ -226,7 +228,7 @@
   }
 
   .dark .overlay-chrome-divider {
-    border-color: var(--descriptions-label-border);
+    border-color: var(--tab-border);
   }
 
   .descriptions-label-surface {

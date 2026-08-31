@@ -12,7 +12,7 @@ type ThemeProviderProps = {
 };
 
 export default function ThemeProvider({ children }: ThemeProviderProps) {
-  const { themeMode, themeColorPresets, themeCustomColor } = useSettings();
+  const { themeMode, themeColorPresets, themeCustomColor, themeRadius } = useSettings();
 
   const primaryColor = resolveThemePrimaryColor(themeColorPresets, themeCustomColor);
   useDynamicFavicon(themeMode, primaryColor);
@@ -21,6 +21,9 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     const root = document.documentElement;
     root.classList.toggle('dark', themeMode === ThemeMode.Dark);
     root.setAttribute('data-theme-preset', themeColorPresets);
+
+    // Apply radius globally
+    root.style.setProperty('--radius', `${themeRadius ?? 0.5}rem`);
 
     if (themeColorPresets === ThemeColorPresets.Custom) {
       const hsl = hexToHslCss(primaryColor);
@@ -31,7 +34,7 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
 
     root.style.removeProperty('--primary');
     root.style.removeProperty('--ring');
-  }, [themeMode, themeColorPresets, primaryColor]);
+  }, [themeMode, themeColorPresets, primaryColor, themeRadius]);
 
   return children;
 }

@@ -14,6 +14,7 @@ type SettingsType = {
   themeStretch: boolean;
   breadCrumb: boolean;
   multiTab: boolean;
+  themeRadius: number;
 };
 
 type SettingStore = {
@@ -37,6 +38,7 @@ const defaultSettings: SettingsType = {
   themeStretch: true,
   breadCrumb: true,
   multiTab: true,
+  themeRadius: 0.5,
 };
 
 function normalizeSettings(settings: Partial<SettingsType>): SettingsType {

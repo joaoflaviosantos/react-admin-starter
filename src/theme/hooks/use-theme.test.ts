@@ -17,6 +17,7 @@ describe('useTheme', () => {
         themeStretch: true,
         breadCrumb: true,
         multiTab: true,
+        themeRadius: 0.5,
       },
     });
   });

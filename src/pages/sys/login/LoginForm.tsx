@@ -76,13 +76,15 @@ export default function LoginForm() {
         />
 
         <div className="mt-2 flex items-center justify-between">
-          <label className="flex cursor-pointer items-center space-x-2 text-sm text-muted-foreground">
-            <input
-              type="checkbox"
-              className="size-4 cursor-pointer rounded accent-primary"
-              defaultChecked
-            />
-            <span>{t('sys.login.rememberMe')}</span>
+          <label className="flex cursor-pointer items-center text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                className="size-4 cursor-pointer rounded-sm accent-primary"
+                defaultChecked
+              />
+              <span className="text-sm">{t('sys.login.rememberMe')}</span>
+            </div>
           </label>
           <div
             onClick={() => setLoginState(LoginStateEnum.RESET_PASSWORD)}

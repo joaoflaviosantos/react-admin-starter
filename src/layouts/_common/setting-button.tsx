@@ -72,6 +72,7 @@ export default function SettingButton() {
     themeStretch,
     breadCrumb,
     multiTab,
+    themeRadius = 0.5,
   } = settings;
   const { setSettings, resetSettings } = useSettingActions();
 
@@ -105,11 +106,6 @@ export default function SettingButton() {
     });
   };
 
-  const layoutBackground = (layout: ThemeLayout) =>
-    themeLayout === layout
-      ? 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--primary)) 100%)'
-      : '#919eab';
-
   const settingCardHeaderClass = 'px-4 py-3';
   const settingCardContentClass = 'px-4 pb-4 pt-3';
 
@@ -128,7 +124,7 @@ export default function SettingButton() {
             <SheetTitle>{t('common.uiAdjusts')}</SheetTitle>
           </SheetHeader>
           <SheetBody className="flex flex-col gap-4">
-            <Card>
+            <Card variant="border">
               <CardHeader className={settingCardHeaderClass}>
                 <CardTitle className="text-sm">{t('common.darkMode')}</CardTitle>
               </CardHeader>
@@ -142,7 +138,7 @@ export default function SettingButton() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card variant="border">
               <CardHeader className={settingCardHeaderClass}>
                 <CardTitle className="text-sm">{t('common.color')}</CardTitle>
               </CardHeader>
@@ -198,32 +194,64 @@ export default function SettingButton() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card variant="border">
+              <CardHeader className={settingCardHeaderClass}>
+                <CardTitle className="text-sm">{t('common.radius', 'Radius')}</CardTitle>
+              </CardHeader>
+              <CardContent className={settingCardContentClass}>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[0, 0.3, 0.5, 0.75, 1.0].map((r) => (
+                    <Button
+                      key={r}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 min-w-0 px-1 py-1 text-center text-xs ${
+                        themeRadius === r
+                          ? 'border-2 border-primary bg-primary/10 text-primary'
+                          : 'border border-border text-foreground hover:bg-muted'
+                      }`}
+                      onClick={() => setSettings({ ...settings, themeRadius: r })}
+                    >
+                      {r}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card variant="border">
               <CardHeader className={settingCardHeaderClass}>
                 <CardTitle className="text-sm">{t('common.layout')}</CardTitle>
               </CardHeader>
               <CardContent className={settingCardContentClass}>
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="flex -space-x-px">
                   {[ThemeLayout.Vertical, ThemeLayout.Horizontal, ThemeLayout.Mini].map(
-                    (layout) => (
-                      <Button
-                        key={layout}
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-auto min-h-10 min-w-0 whitespace-normal rounded-md px-1 py-2 text-center text-[11px] leading-tight text-white"
-                        style={{ background: layoutBackground(layout) }}
-                        onClick={() => setSettings({ ...settings, themeLayout: layout })}
-                      >
-                        {t(`common.${layout}`)}
-                      </Button>
-                    ),
+                    (layout) => {
+                      const isActive = themeLayout === layout;
+                      return (
+                        <Button
+                          key={layout}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            'flex-1 rounded-none first:rounded-l-md last:rounded-r-md focus:z-10',
+                            isActive &&
+                              'z-10 border-primary bg-primary/10 text-primary hover:bg-primary/20',
+                          )}
+                          onClick={() => setSettings({ ...settings, themeLayout: layout })}
+                        >
+                          {t(`common.${layout}`)}
+                        </Button>
+                      );
+                    },
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card variant="border">
               <CardHeader className={settingCardHeaderClass}>
                 <CardTitle className="text-sm">{t('common.stretch')}</CardTitle>
               </CardHeader>
@@ -235,7 +263,7 @@ export default function SettingButton() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card variant="border">
               <CardHeader className={settingCardHeaderClass}>
                 <CardTitle className="text-sm">{t('common.breadcrumb')}</CardTitle>
               </CardHeader>
@@ -247,7 +275,7 @@ export default function SettingButton() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card variant="border">
               <CardHeader className={settingCardHeaderClass}>
                 <CardTitle className="text-sm">{t('common.multiTab')}</CardTitle>
               </CardHeader>
