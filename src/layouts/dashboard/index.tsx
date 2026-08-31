@@ -3,7 +3,6 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
 import { CircleLoading } from '@/components/loading';
 import ProgressBar from '@/components/progress-bar';
-import PermissionRouteWatcher from '@/router/components/permission-route-watcher';
 import { useSettings } from '@/store/settingStore';
 
 import Header from './header';
@@ -40,7 +39,6 @@ function DashboardLayout() {
   return (
     <div className="dashboard-scroll text-foreground">
       <ProgressBar />
-      <PermissionRouteWatcher />
       <div
         className={`flex h-screen overflow-hidden bg-layout transition-colors duration-200 ${
           isHorizontal ? 'flex-col' : ''

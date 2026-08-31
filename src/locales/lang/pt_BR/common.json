@@ -72,6 +72,7 @@
   },
   "sys": {
     "login": {
+      "loadingText": "Carregando...",
       "signInFormTitle": "Entrar",
       "loginButton": "Entrar",
       "logout": "Sair",
