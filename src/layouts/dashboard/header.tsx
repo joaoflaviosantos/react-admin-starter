@@ -94,7 +94,7 @@ export default function Header({ className = '', offsetTop = false }: Props) {
         </div>
       </header>
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="left" className="w-auto p-0">
+        <SheetContent side="left" className="w-auto p-0" showCloseButton={false}>
           <Nav closeSideBarDrawer={() => setSheetOpen(false)} />
         </SheetContent>
       </Sheet>
