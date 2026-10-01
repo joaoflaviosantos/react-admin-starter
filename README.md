@@ -46,6 +46,9 @@ The dashboard shell includes sidebar navigation, theme switching (light/dark + c
 - 🚫 **403 handling:** Unauthorized deep links under `/management` show a clear forbidden page.
 - 👥 **Mock user CRUD:** Paginated TanStack Table, RHF+Zod modals, deactivate — gated by permissions.
 - 🏷️ **Roles list:** Read-only view of roles and nested permissions in a Sheet.
+- 🧩 **B2B SaaS examples:** Workbench analytics, Customers, Subscriptions, Invoices, Support tickets, API keys, and Audit logs under a recursive permission-driven menu.
+- 📊 **Analytics:** Native Apache ECharts visualizations for revenue, MRR, plan mix, and acquisition; charts are intentionally read-only and do not use cross-filter state.
+- 🗂️ **Responsive data views:** Shared listings can switch between table, card grid, and compact list modes. The selected mode is represented by the URL and follows responsive defaults on narrow screens.
 - 🧪 **Vitest tests:** Mock adapter, stores, RBAC, admin components, and Zod schemas.
 - ✅ **CI:** GitHub Actions runs lint, build, and tests on every push.
 - 🚀 **Vercel-ready:** SPA rewrite for the history router; mock adapter in production demo builds.
@@ -88,6 +91,20 @@ Tests exercise the **mock Axios adapter**, Zustand stores, RBAC hooks, admin UI 
 | -------- | ----------- | ------------------------------------------------- |
 | `admin`  | `admin123`  | Workbench + system management (users CRUD, roles) |
 | `viewer` | `viewer123` | Workbench only; management deep links return **403** |
+
+### Examples and mock reset
+
+The **Examples** catalogue demonstrates a B2B SaaS operating model: Customers, Revenue
+(Subscriptions and Invoices), Support (Tickets), and Platform (API Keys and Audit Logs).
+Admin accounts can run the available mutations; viewer accounts can browse the business data in
+read-only mode while platform administration remains admin-only. Each list demonstrates the shared
+table, card-grid, and list presentation modes, and Invoices also exercises the third-level menu at
+`Examples > Revenue > Invoices > List/New invoice`.
+
+All example data lives in the in-memory mock store. Changes remain available while the application
+is running and reset to the bundled seed data whenever the page is fully reloaded or the dev server
+is restarted. No data is sent to an external service; payment processing, email delivery, PDF
+generation, and backend persistence are intentionally out of scope.
 
 ### Environment variables
 

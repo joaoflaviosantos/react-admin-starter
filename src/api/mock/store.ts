@@ -4,16 +4,25 @@ import type { RoleRead } from '#/system/role';
 import { permissionsForRole } from './permissions';
 import rolesSeed from './seed/roles.json';
 import usersSeed from './seed/users.json';
-import type { MockRoleRecord, MockUserRecord } from './types';
+import {
+  apiKeysSeed,
+  auditLogsSeed,
+  customersSeed,
+  invoicesSeed,
+  subscriptionsSeed,
+  supportTicketsSeed,
+} from './seed/examples';
+import type { MockExamplesStore, MockRoleRecord, MockUserRecord } from './types';
 
 /**
  * In-memory mock store. Demo credentials:
  * admin / admin123, viewer / viewer123.
  */
 
-type MockStore = {
+export type MockStore = {
   users: MockUserRecord[];
   roles: MockRoleRecord[];
+  examples: MockExamplesStore;
 };
 
 function hydrateUser(user: Omit<MockUserRecord, 'permissions'>): MockUserRecord {
@@ -28,7 +37,18 @@ function cloneSeed(): MockStore {
   const users = (structuredClone(usersSeed) as Omit<MockUserRecord, 'permissions'>[]).map(
     hydrateUser,
   );
-  return { users, roles };
+  return {
+    users,
+    roles,
+    examples: {
+      customers: structuredClone(customersSeed),
+      subscriptions: structuredClone(subscriptionsSeed),
+      invoices: structuredClone(invoicesSeed),
+      supportTickets: structuredClone(supportTicketsSeed),
+      apiKeys: structuredClone(apiKeysSeed),
+      auditLogs: structuredClone(auditLogsSeed),
+    },
+  };
 }
 
 let state: MockStore = cloneSeed();

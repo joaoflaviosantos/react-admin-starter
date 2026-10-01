@@ -37,7 +37,7 @@ type AdminNavMenuProps = {
 const collapsedDropdownHoverProps = {
   openOnHover: true,
   delay: 0,
-  closeDelay: 150,
+  closeDelay: 1000,
 } as const;
 
 function verticalItemPaddingStyle(collapsed: boolean | undefined, depth: number) {
@@ -178,9 +178,7 @@ function MenuItem({
   const hasChildren = Boolean(item.children?.length);
   const isOpen = openKeys.includes(item.key);
   const isSelected = selectedKey === item.key;
-  const isChildSelected = item.children?.some(
-    (child) => child.key === selectedKey || child.children?.some((c) => c.key === selectedKey),
-  );
+  const isChildSelected = item.children?.some((child) => isMenuItemSelected(child, selectedKey));
 
   if (hasChildren && mode === 'vertical' && collapsed) {
     return <CollapsedVerticalMenuItem item={item} selectedKey={selectedKey} onSelect={onSelect} />;
@@ -240,10 +238,10 @@ function MenuItem({
 
   if (hasChildren && mode === 'horizontal') {
     return (
-      <div className="group relative">
-        <button
-          type="button"
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger
           disabled={item.disabled}
+          {...collapsedDropdownHoverProps}
           className={cn(
             'flex items-center gap-1 rounded-md px-3 py-2 text-sm hover:bg-accent',
             (isSelected || isChildSelected) && 'font-semibold text-primary',
@@ -253,25 +251,15 @@ function MenuItem({
           {item.icon ? <span className="shrink-0">{item.icon}</span> : null}
           <span>{item.label}</span>
           <ChevronDown className="h-4 w-4" />
-        </button>
-        <div className="invisible absolute left-0 top-full z-[9999] min-w-[180px] rounded-md border bg-popover p-1 opacity-0 shadow-md transition-all group-hover:visible group-hover:opacity-100">
-          {item.children!.map((child) => (
-            <button
-              key={child.key}
-              type="button"
-              disabled={child.disabled}
-              onClick={() => onSelect(child.key)}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent',
-                selectedKey === child.key && 'font-semibold text-primary',
-              )}
-            >
-              {child.icon ? <span className="shrink-0">{child.icon}</span> : null}
-              <span>{child.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="bottom" align="start" className="min-w-[180px]">
+          <CollapsedMenuDropdownItems
+            items={item.children!}
+            selectedKey={selectedKey}
+            onSelect={onSelect}
+          />
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 

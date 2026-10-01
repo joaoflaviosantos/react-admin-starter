@@ -1,4 +1,5 @@
 import type { PermissionWithChildRead } from '#/system/user';
+import type { ApiKey, AuditLog, Customer, Invoice, Subscription, SupportTicket } from '#/examples';
 
 /** Internal mock store record — not exposed via API types. */
 export type MockUserRecord = {
@@ -29,4 +30,13 @@ export type MockRoleRecord = {
   is_editable: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type MockExamplesStore = {
+  customers: Customer[];
+  subscriptions: Subscription[];
+  invoices: Invoice[];
+  supportTickets: SupportTicket[];
+  apiKeys: ApiKey[];
+  auditLogs: AuditLog[];
 };

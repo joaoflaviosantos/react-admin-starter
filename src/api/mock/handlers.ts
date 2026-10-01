@@ -5,6 +5,7 @@ import type { UserCreate } from '#/system/user';
 import { PermissionActionType } from '#/enum';
 
 import { permissionsForRole, hasPermissionAction } from './permissions';
+import { handleExamplesMockRequest, isExamplesRequest } from './handlers/examples';
 import {
   findUserByToken,
   getState,
@@ -219,6 +220,10 @@ function assertUsersReadAllowed(user: MockUserRecord | undefined) {
 }
 
 export function handleMockRequest(config: InternalAxiosRequestConfig): MockHandlerResult {
+  if (isExamplesRequest(config)) {
+    return handleExamplesMockRequest(config);
+  }
+
   const method = (config.method ?? 'get').toUpperCase();
   const pathname = requestPathname(config);
   const body = readBody(config);

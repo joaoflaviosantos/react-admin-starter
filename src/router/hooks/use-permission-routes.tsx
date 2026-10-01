@@ -10,10 +10,19 @@ import { AppRouteObject } from '#/router';
 import { PermissionWithChildRead } from '#/system/user';
 
 const entryPath = '/src/pages';
-const pages = import.meta.glob('/src/pages/**/*.tsx');
+const pages = import.meta.glob(['/src/pages/**/*.tsx', '!/src/pages/**/*.test.tsx']);
 
 function resolveComponent(path: string) {
   return pages[`${entryPath}${path}`];
+}
+
+export async function loadPageComponent(path: string): Promise<{ default: ComponentType }> {
+  const loader = resolveComponent(path);
+  if (!loader) throw new Error(`Page component not found: ${path}`);
+
+  const module = (await loader()) as { default?: ComponentType };
+  if (!module.default) throw new Error(`Page component has no default export: ${path}`);
+  return { default: module.default };
 }
 
 function getCompleteRoute(
@@ -33,7 +42,7 @@ function getCompleteRoute(
   return currentRoute;
 }
 
-function transformPermissionToMenuRoutes(
+export function transformPermissionToMenuRoutes(
   permissions: PermissionWithChildRead[],
   flattenedPermissions: PermissionWithChildRead[],
 ): AppRouteObject[] {
@@ -54,6 +63,9 @@ function transformPermissionToMenuRoutes(
       children = [],
     } = permission;
 
+    const isAuthorized =
+      !permission.required_action ||
+      permission.actions_allowed?.includes(permission.required_action);
     const appRoute: AppRouteObject = {
       path: route,
       meta: {
@@ -61,7 +73,7 @@ function transformPermissionToMenuRoutes(
         label,
         alternative_label,
         key: getCompleteRoute(permission, flattenedPermissions),
-        is_hide: !!is_hide,
+        is_hide: !!is_hide || !isAuthorized,
         is_tab_hide,
         disabled: status === BasicStatus.DISABLE,
       },
@@ -70,6 +82,11 @@ function transformPermissionToMenuRoutes(
     if (order) appRoute.order = order;
     if (icon) appRoute.meta!.icon = icon;
     if (frame_src) appRoute.meta!.frame_src = frame_src;
+
+    if (!isAuthorized) {
+      appRoute.element = <Navigate to="/403" replace />;
+      return appRoute;
+    }
 
     if (type === PermissionType.CATALOGUE) {
       appRoute.meta!.is_tab_hide = true;
@@ -89,9 +106,7 @@ function transformPermissionToMenuRoutes(
         });
       }
     } else if (type === PermissionType.MENU && component) {
-      const Element = lazy(
-        resolveComponent(component) as () => Promise<{ default: ComponentType }>,
-      );
+      const Element = lazy(() => loadPageComponent(component));
       appRoute.element = (
         <Suspense fallback={<CircleLoading />}>
           <Element />

@@ -53,6 +53,14 @@ export function FormFieldInput<T extends FieldValues>({
               prefix={prefix}
               suffix={suffix}
               {...field}
+              onChange={
+                type === 'number'
+                  ? (event) =>
+                      field.onChange(
+                        event.target.value === '' ? Number.NaN : event.target.valueAsNumber,
+                      )
+                  : field.onChange
+              }
             />
           </FormControl>
           <FormMessage />

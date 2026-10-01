@@ -1,4 +1,4 @@
-import { BasicStatus, PermissionType } from '#/enum';
+import { BasicStatus, PermissionActionType, PermissionType } from '#/enum';
 
 export type UserCreate = {
   role_id?: string;
@@ -27,6 +27,7 @@ export type PermissionWithChildRead = {
   name: string;
   id: string;
   actions_allowed?: Array<string> | null;
+  required_action?: PermissionActionType | null;
   module_name?: string | null;
   children?: Array<PermissionWithChildRead>;
 };

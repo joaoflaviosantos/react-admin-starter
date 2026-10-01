@@ -46,6 +46,67 @@ describe('mock store', () => {
     expect(getState().users.map((user) => user.username)).toEqual(['admin', 'viewer']);
   });
 
+  it('seeds the retained invoice domain with deterministic values and restores session state', () => {
+    const examples = getState().examples;
+
+    expect(examples.invoices).toHaveLength(2);
+    expect(examples.invoices[0]?.total).toBe(125000);
+
+    examples.invoices[0]!.total = 1;
+
+    resetToSeed();
+
+    expect(getState().examples.invoices[0]?.total).toBe(125000);
+  });
+
+  it('seeds every SaaS domain with deterministic relational data', () => {
+    const { examples } = getState();
+    const customerIds = new Set(examples.customers.map((customer) => customer.id));
+
+    expect(examples.customers).toHaveLength(6);
+    expect(examples.subscriptions).toHaveLength(6);
+    expect(examples.supportTickets).toHaveLength(5);
+    expect(examples.apiKeys).toHaveLength(3);
+    expect(examples.auditLogs).toHaveLength(6);
+    expect(examples.subscriptions.every((item) => customerIds.has(item.customerId))).toBe(true);
+    expect(examples.supportTickets.every((item) => customerIds.has(item.customerId))).toBe(true);
+    expect(examples.customers.map((item) => item.mrrCents)).toEqual([
+      12900, 49900, 149900, 49900, 12900, 149900,
+    ]);
+  });
+
+  it('restores a deep clone of every SaaS seed after nested mutations', () => {
+    const initial = structuredClone(getState().examples);
+
+    getState().examples.customers[0]!.name = 'Mutated customer';
+    getState().examples.apiKeys[0]!.scopes.push('audit:read');
+    getState().examples.auditLogs[0]!.metadata.customerName = 'Mutated metadata';
+    getState().examples.invoices[0]!.items[0]!.description = 'Mutated item';
+
+    resetToSeed();
+
+    expect(getState().examples).toEqual(initial);
+    expect(getState().examples).not.toBe(initial);
+    expect(getState().examples.apiKeys[0]!.scopes).not.toBe(initial.apiKeys[0]!.scopes);
+    expect(getState().examples.auditLogs[0]!.metadata).not.toBe(initial.auditLogs[0]!.metadata);
+  });
+
+  it('never persists a full API key secret in the mock store', () => {
+    const serialized = JSON.stringify(getState().examples.apiKeys);
+
+    expect(serialized).not.toContain('secret');
+    expect(Object.keys(getState().examples.apiKeys[0] ?? {})).toEqual([
+      'id',
+      'name',
+      'prefix',
+      'scopes',
+      'createdAt',
+      'lastUsedAt',
+      'expiresAt',
+      'revokedAt',
+    ]);
+  });
+
   it('toUserRead matches Portal UserRead shape', () => {
     const [admin] = getState().users;
     expect(admin).toBeDefined();

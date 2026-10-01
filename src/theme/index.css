@@ -69,3 +69,38 @@ input[type='password']::-ms-reveal,
 input[type='password']::-ms-clear {
   display: none;
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .invoice-print-sheet,
+  .invoice-print-sheet * {
+    visibility: visible;
+  }
+
+  .invoice-print-sheet {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: black !important;
+    break-inside: avoid;
+  }
+
+  .invoice-print-hidden {
+    display: none !important;
+  }
+}

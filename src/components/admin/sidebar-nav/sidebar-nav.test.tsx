@@ -23,6 +23,23 @@ const menuItems: AdminMenuItem[] = [
   },
 ];
 
+const nestedMenuItems: AdminMenuItem[] = [
+  {
+    key: '/examples',
+    label: 'Exemplos',
+    children: [
+      {
+        key: '/examples/revenue',
+        label: 'Receita',
+        children: [
+          { key: '/examples/revenue/subscriptions', label: 'Assinaturas' },
+          { key: '/examples/revenue/invoices', label: 'Faturas' },
+        ],
+      },
+    ],
+  },
+];
+
 describe('AdminNavMenu collapsed', () => {
   afterEach(() => {
     cleanup();
@@ -69,5 +86,79 @@ describe('AdminNavMenu collapsed', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Usuários' }));
 
     expect(onSelect).toHaveBeenCalledWith('/management/users');
+  });
+});
+
+describe('AdminNavMenu nested catalogues', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('opens and selects a third-level item in the vertical drawer without selecting catalogues', async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+
+    render(
+      <AdminNavMenu
+        items={nestedMenuItems}
+        selectedKey="/examples/revenue/invoices"
+        openKeys={['/examples', '/examples/revenue']}
+        onOpenChange={vi.fn()}
+        onSelect={onSelect}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Exemplos' })).toHaveClass('text-primary');
+    expect(screen.getByRole('button', { name: 'Receita' })).toHaveClass('text-primary');
+
+    await user.click(screen.getByRole('button', { name: 'Faturas' }));
+
+    expect(onSelect).toHaveBeenCalledWith('/examples/revenue/invoices');
+    expect(onSelect).not.toHaveBeenCalledWith('/examples');
+    expect(onSelect).not.toHaveBeenCalledWith('/examples/revenue');
+  });
+
+  it('opens a third-level item from the mini hover menu', async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+
+    render(
+      <AdminNavMenu
+        items={nestedMenuItems}
+        selectedKey="/examples/revenue/invoices"
+        openKeys={[]}
+        onOpenChange={vi.fn()}
+        onSelect={onSelect}
+        collapsed
+      />,
+    );
+
+    await user.hover(screen.getByRole('button', { name: 'Exemplos' }));
+    await user.hover(await screen.findByRole('menuitem', { name: 'Receita' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Faturas' }));
+
+    expect(onSelect).toHaveBeenCalledWith('/examples/revenue/invoices');
+  });
+
+  it('opens and selects a third-level item from the horizontal hover menu', async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+
+    render(
+      <AdminNavMenu
+        items={nestedMenuItems}
+        selectedKey="/examples/revenue/invoices"
+        openKeys={[]}
+        onOpenChange={vi.fn()}
+        onSelect={onSelect}
+        mode="horizontal"
+      />,
+    );
+
+    await user.hover(screen.getByRole('button', { name: 'Exemplos' }));
+    await user.hover(await screen.findByRole('menuitem', { name: 'Receita' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Faturas' }));
+
+    expect(onSelect).toHaveBeenCalledWith('/examples/revenue/invoices');
   });
 });

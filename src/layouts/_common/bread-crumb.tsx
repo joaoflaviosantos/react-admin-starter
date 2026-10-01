@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useMatches } from 'react-router-dom';
 
@@ -67,7 +67,7 @@ export default function BreadCrumb() {
     <Breadcrumb>
       <BreadcrumbList>
         {breadCrumbs.map((crumb, index) => (
-          <BreadcrumbItem key={crumb.key}>
+          <Fragment key={crumb.key}>
             {index > 0 ? (
               <BreadcrumbSeparator>
                 <Iconify
@@ -78,27 +78,29 @@ export default function BreadCrumb() {
                 />
               </BreadcrumbSeparator>
             ) : null}
-            {crumb.siblings?.length ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="text-sm hover:text-primary">
-                  {crumb.title}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  {crumb.siblings.map((sibling) => (
-                    <DropdownMenuItem key={sibling.key} asChild>
-                      <Link to={sibling.key}>{sibling.label}</Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : index === breadCrumbs.length - 1 ? (
-              <BreadcrumbPage className="text-sm">{crumb.title}</BreadcrumbPage>
-            ) : (
-              <BreadcrumbLink asChild className="text-sm">
-                <Link to={crumb.key}>{crumb.title}</Link>
-              </BreadcrumbLink>
-            )}
-          </BreadcrumbItem>
+            <BreadcrumbItem>
+              {crumb.siblings?.length ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="text-sm hover:text-primary">
+                    {crumb.title}
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {crumb.siblings.map((sibling) => (
+                      <DropdownMenuItem key={sibling.key} asChild>
+                        <Link to={sibling.key}>{sibling.label}</Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : index === breadCrumbs.length - 1 ? (
+                <BreadcrumbPage className="text-sm">{crumb.title}</BreadcrumbPage>
+              ) : (
+                <BreadcrumbLink asChild className="text-sm">
+                  <Link to={crumb.key}>{crumb.title}</Link>
+                </BreadcrumbLink>
+              )}
+            </BreadcrumbItem>
+          </Fragment>
         ))}
       </BreadcrumbList>
     </Breadcrumb>

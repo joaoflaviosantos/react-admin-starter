@@ -8,6 +8,7 @@ import userService from '@/api/services/system/userService';
 import { setItem } from '@/utils/storage';
 
 import { getState, resetToSeed } from './store';
+import { handleMockRequest } from './handlers';
 
 import { TokenRead } from '#/auth';
 import { StorageEnum } from '#/enum';
@@ -171,5 +172,93 @@ describe('mock axios adapter', () => {
     expect(error).toMatchObject({
       response: { status: 403, data: { detail: 'Insufficient permissions.' } },
     });
+  });
+
+  it('delegates recognized Examples routes and requires a Bearer token', () => {
+    const response = handleMockRequest({
+      url: '/v1/examples/revenue/invoices',
+      method: 'get',
+      headers: {},
+    } as never);
+
+    expect(response).toEqual({ status: 401, data: { detail: 'User not authenticated.' } });
+  });
+
+  it('rejects Examples mutations from viewers before a domain handler changes state', async () => {
+    await signInAsViewer();
+
+    const error = await apiClient
+      .post({ url: '/v1/examples/revenue/invoices', data: { number: 'INV-BLOCKED' } })
+      .catch((err: unknown) => err);
+
+    expect(error).toBeInstanceOf(AxiosError);
+    expect(error).toMatchObject({
+      response: { status: 403, data: { detail: 'Insufficient permissions.' } },
+    });
+  });
+
+  it('returns a consistent 404 shape for an unimplemented Examples endpoint', async () => {
+    await signInAsAdmin();
+
+    const error = await apiClient.get({ url: '/v1/examples/unknown' }).catch((err: unknown) => err);
+
+    expect(error).toBeInstanceOf(AxiosError);
+    expect(error).toMatchObject({
+      response: { status: 404, data: { detail: 'No mock handler for GET /v1/examples/unknown' } },
+    });
+  });
+
+  it('registers only the revised SaaS domains', async () => {
+    const { examplesDomainHandlers } = await import('./handlers/examples/domains');
+
+    expect(examplesDomainHandlers.map((domain) => domain.name)).toEqual([
+      'customers',
+      'subscriptions',
+      'invoices',
+      'supportTickets',
+      'apiKeys',
+      'auditLogs',
+      'dashboard',
+    ]);
+  });
+
+  it('enforces domain-specific permission actions before dispatching a mutation', () => {
+    const before = structuredClone(getState().examples);
+    const response = handleMockRequest({
+      url: '/v1/examples/revenue/invoices',
+      method: 'post',
+      data: { number: 'INV-BYPASS' },
+      headers: { Authorization: 'Bearer mock-token-user-viewer' },
+    } as never);
+
+    expect(response).toEqual({ status: 403, data: { detail: 'Insufficient permissions.' } });
+    expect(getState().examples).toEqual(before);
+  });
+
+  it('distinguishes inaccessible domains, unsupported methods and invalid bodies', () => {
+    expect(
+      handleMockRequest({
+        url: '/v1/examples/platform/api-keys',
+        method: 'get',
+        headers: { Authorization: 'Bearer mock-token-user-viewer' },
+      } as never),
+    ).toEqual({ status: 403, data: { detail: 'Insufficient permissions.' } });
+
+    expect(
+      handleMockRequest({
+        url: '/v1/examples/platform/audit-logs',
+        method: 'post',
+        headers: { Authorization: 'Bearer mock-token-user-admin' },
+      } as never),
+    ).toEqual({ status: 405, data: { detail: 'Method not allowed.' } });
+
+    expect(
+      handleMockRequest({
+        url: '/v1/examples/revenue/invoices',
+        method: 'post',
+        data: '{malformed',
+        headers: { Authorization: 'Bearer mock-token-user-admin' },
+      } as never),
+    ).toEqual({ status: 422, data: { detail: 'Invoice payload is invalid.' } });
   });
 });

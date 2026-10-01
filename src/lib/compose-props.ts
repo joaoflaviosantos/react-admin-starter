@@ -19,8 +19,8 @@ export function shouldUseNativeButton(element: React.ReactElement): boolean {
   }
 
   if (typeof element.type !== 'string') {
-    const props = element.props as { type?: string; href?: string };
-    if (props.href || props.type === 'a') {
+    const props = element.props as { type?: string; href?: string; to?: unknown };
+    if (props.href || props.to || props.type === 'a') {
       return false;
     }
 
