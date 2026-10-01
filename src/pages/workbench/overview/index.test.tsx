@@ -88,7 +88,7 @@ describe('Workbench overview', () => {
     expect(screen.getAllByTestId('native-chart')).toHaveLength(3);
     expect(screen.getByText('Vertex Finance')).toBeInTheDocument();
     expect(screen.getByText('Updated Vertex')).toBeInTheDocument();
-    expect(getDashboard).toHaveBeenCalledWith('30d');
+    expect(getDashboard).toHaveBeenCalledWith('12m');
   });
 
   it('changes the period using the single dashboard query key', async () => {

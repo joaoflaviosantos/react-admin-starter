@@ -19,6 +19,7 @@ import { ThemeMode } from '#/enum';
 import type { DashboardPeriod, DashboardResponse } from '#/examples';
 
 const periods: DashboardPeriod[] = ['30d', '90d', '12m'];
+const defaultPeriod: DashboardPeriod = '12m';
 
 function formatMoney(value: number, language: string) {
   return new Intl.NumberFormat(language === 'pt_BR' ? 'pt-BR' : 'en-US', {
@@ -170,7 +171,7 @@ export default function OverviewPage() {
   const requestedPeriod = searchParams.get('period');
   const period: DashboardPeriod = periods.includes(requestedPeriod as DashboardPeriod)
     ? (requestedPeriod as DashboardPeriod)
-    : '12m';
+    : defaultPeriod;
   useHasRequiredPermission('sys.menu.overview');
   const query = useQuery({
     queryKey: ['workbench', 'dashboard', period],
