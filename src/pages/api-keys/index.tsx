@@ -1,14 +1,11 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Check, Copy, Eye, KeyRound, Plus, ShieldOff } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Eye, Plus, ShieldOff } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { z } from 'zod';
 
 import apiKeyService, { type ApiKeyListParams } from '@/api/services/domains/apiKeyService';
-import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
 import {
   AdminDataView,
@@ -26,29 +23,16 @@ import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta } from '@/router/hooks';
-import type { ApiKey, ApiKeyCreateResponse, ApiKeyInput, ApiKeyScope } from '#/domain';
+import type { ApiKey } from '#/domain';
 
-const scopes: ApiKeyScope[] = [
-  'customers:read',
-  'customers:write',
-  'billing:read',
-  'billing:write',
-  'tickets:read',
-  'tickets:write',
-  'audit:read',
-];
+import { ApiKeyCreateModal } from './api-key-create-modal';
+import { ApiKeyDetailModal } from './api-key-detail-modal';
+import { ApiKeyRevokeConfirmModal } from './api-key-revoke-confirm-modal';
+import { ApiKeySecretModal } from './api-key-secret-modal';
+
 type ApiKeyFilters = {
   search: string;
   status: NonNullable<ApiKeyListParams['status']>;
@@ -59,168 +43,6 @@ const EMPTY_API_KEY_FILTERS: ApiKeyFilters = {
   status: '',
 };
 
-const keyScopeSchema = z.enum([
-  'customers:read',
-  'customers:write',
-  'billing:read',
-  'billing:write',
-  'tickets:read',
-  'tickets:write',
-  'audit:read',
-] as const);
-
-type KeyFormValues = ApiKeyInput;
-
-function KeyDialog({
-  open,
-  pending,
-  onOpenChange,
-  onSubmit,
-}: {
-  open: boolean;
-  pending: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (value: ApiKeyInput) => void;
-}) {
-  const { t } = useTranslation();
-  const schema = useMemo(
-    () =>
-      z.object({
-        name: z.string().trim().min(3, t('app.apiKeys.nameRequired')).max(80),
-        scopes: z.array(keyScopeSchema).min(1, t('app.apiKeys.scopeRequired')),
-        expiresAt: z
-          .string()
-          .nullable()
-          .refine(
-            (value) => !value || Date.parse(`${value}T23:59:59Z`) > Date.now(),
-            t('app.apiKeys.expiryInvalid'),
-          ),
-      }),
-    [t],
-  );
-  const form = useForm<KeyFormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { name: '', scopes: ['customers:read'], expiresAt: null },
-  });
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t('app.apiKeys.new')}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <DialogBody className="space-y-4">
-            <label className="block space-y-1 text-sm font-medium" htmlFor="api-key-name">
-              <span>{t('app.apiKeys.name')}</span>
-              <Input id="api-key-name" {...form.register('name')} />
-              {form.formState.errors.name ? (
-                <span className="text-xs text-destructive">
-                  {form.formState.errors.name.message}
-                </span>
-              ) : null}
-            </label>
-            <fieldset className="space-y-2">
-              <legend className="text-sm font-medium">{t('app.apiKeys.scopes')}</legend>
-              <Controller
-                name="scopes"
-                control={form.control}
-                render={({ field }) => (
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {scopes.map((scope) => {
-                      const checked = field.value.includes(scope);
-                      return (
-                        <label key={scope} className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() =>
-                              field.onChange(
-                                checked
-                                  ? field.value.filter((item) => item !== scope)
-                                  : [...field.value, scope],
-                              )
-                            }
-                          />
-                          {t(
-                            `app.apiKeys.scope${scope
-                              .split(':')
-                              .map((part) => part[0]!.toUpperCase() + part.slice(1))
-                              .join('')}`,
-                          )}
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-              />
-              {form.formState.errors.scopes ? (
-                <span className="text-xs text-destructive">
-                  {form.formState.errors.scopes.message}
-                </span>
-              ) : null}
-            </fieldset>
-            <label className="block space-y-1 text-sm font-medium" htmlFor="api-key-expires">
-              <span>{t('app.apiKeys.expiresAt')}</span>
-              <Input
-                id="api-key-expires"
-                type="date"
-                {...form.register('expiresAt', { setValueAs: (value) => value || null })}
-              />
-              {form.formState.errors.expiresAt ? (
-                <span className="text-xs text-destructive">
-                  {form.formState.errors.expiresAt.message}
-                </span>
-              ) : null}
-            </label>
-          </DialogBody>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t('app.common.actions.cancel')}
-            </Button>
-            <Button type="submit" disabled={pending}>
-              <KeyRound className="mr-2 h-4 w-4" />
-              {t('app.common.actions.create')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function SecretDialog({ secret, onClose }: { secret: string | null; onClose: () => void }) {
-  const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  if (!secret) return null;
-  const copy = async () => {
-    await navigator.clipboard?.writeText(secret);
-    setCopied(true);
-    appToast.success(t('app.apiKeys.copied'));
-  };
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('app.apiKeys.secretTitle')}</DialogTitle>
-        </DialogHeader>
-        <DialogBody className="space-y-4">
-          <p className="text-sm text-muted-foreground">{t('app.apiKeys.secretOnce')}</p>
-          <code className="block break-all rounded-md bg-muted p-3 text-sm">{secret}</code>
-        </DialogBody>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={copy}>
-            {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
-            {copied ? t('app.apiKeys.copied') : t('app.apiKeys.copy')}
-          </Button>
-          <Button type="button" onClick={onClose}>
-            {t('app.common.actions.close')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 export default function ApiKeysPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'pt_BR' ? 'pt-BR' : 'en-US';
@@ -230,7 +52,9 @@ export default function ApiKeysPage() {
   const [filters, setFilters] = useState<ApiKeyFilters>(EMPTY_API_KEY_FILTERS);
   const searchForm = useForm<ApiKeyFilters>({ defaultValues: EMPTY_API_KEY_FILTERS });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [details, setDetails] = useState<ApiKey | null>(null);
+  const [revoking, setRevoking] = useState<ApiKey | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const query = useQuery({
     queryKey: ['domains', 'api-keys', filters, pagination],
@@ -238,19 +62,10 @@ export default function ApiKeysPage() {
       apiKeyService.getApiKeys({ ...filters, ...pagination, items_per_page: pagination.pageSize }),
   });
   const invalidate = () => client.invalidateQueries({ queryKey: ['domains', 'api-keys'] });
-  const create = useMutation({
-    mutationFn: apiKeyService.createApiKey,
-    onSuccess: (result: ApiKeyCreateResponse) => {
-      setDialogOpen(false);
-      setSecret(result.secret);
-      void invalidate();
-      appToast.success(t('app.apiKeys.saved'));
-    },
-    onError: () => appToast.error(t('app.apiKeys.saveError')),
-  });
   const revoke = useMutation({
     mutationFn: apiKeyService.revokeApiKey,
     onSuccess: () => {
+      setRevoking(null);
       void invalidate();
       appToast.success(t('app.apiKeys.revokedToast'));
     },
@@ -272,26 +87,19 @@ export default function ApiKeysPage() {
         variant="ghost"
         aria-label={t('app.apiKeys.viewAria', { name: key.name })}
         title={key.prefix}
+        onClick={() => setDetails(key)}
       >
         <Eye className="h-4 w-4" />
       </Button>
       {permissions.canDelete && !key.revokedAt ? (
-        <ConfirmDialog
-          title={t('app.apiKeys.revokeTitle', { name: key.name })}
-          description={t('app.apiKeys.revokeDescription')}
-          confirmLabel={t('app.apiKeys.revoke')}
-          cancelLabel={t('app.common.actions.cancel')}
-          onConfirm={() => revoke.mutate(key.id)}
-          trigger={
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label={t('app.apiKeys.revokeAria', { name: key.name })}
-            >
-              <ShieldOff className="h-4 w-4" />
-            </Button>
-          }
-        />
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label={t('app.apiKeys.revokeAria', { name: key.name })}
+          onClick={() => setRevoking(key)}
+        >
+          <ShieldOff className="h-4 w-4" />
+        </Button>
       ) : null}
     </div>
   );
@@ -399,7 +207,7 @@ export default function ApiKeysPage() {
             }}
           />
           {permissions.canCreate ? (
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button onClick={() => setCreating(true)}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.apiKeys.new')}
             </Button>
@@ -434,13 +242,20 @@ export default function ApiKeysPage() {
           />
         }
       />
-      <KeyDialog
-        open={dialogOpen}
-        pending={create.isPending}
-        onOpenChange={setDialogOpen}
-        onSubmit={(payload) => create.mutate(payload)}
+      <ApiKeyCreateModal
+        open={creating}
+        onOpenChange={setCreating}
+        onCreated={(result) => setSecret(result.secret)}
       />
-      <SecretDialog secret={secret} onClose={() => setSecret(null)} />
+      <ApiKeyDetailModal apiKey={details} locale={locale} onClose={() => setDetails(null)} />
+      <ApiKeyRevokeConfirmModal
+        apiKey={revoking}
+        show={revoking !== null}
+        isPending={revoke.isPending}
+        onClose={() => setRevoking(null)}
+        onConfirm={() => revoking && revoke.mutate(revoking.id)}
+      />
+      <ApiKeySecretModal secret={secret} onClose={() => setSecret(null)} />
     </AdminListPage>
   );
 }

@@ -12,19 +12,19 @@ import {
 } from '@/components/ui/dialog';
 import type { SupportTicket } from '#/domain';
 
-type TicketDetailDialogProps = {
+type TicketDetailModalProps = {
   ticket: SupportTicket | null;
   customerName: string;
   locale: string;
   onClose: () => void;
 };
 
-export function TicketDetailDialog({
+export function TicketDetailModal({
   ticket,
   customerName,
   locale,
   onClose,
-}: TicketDetailDialogProps) {
+}: TicketDetailModalProps) {
   const { t } = useTranslation();
   if (!ticket) return null;
   const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(

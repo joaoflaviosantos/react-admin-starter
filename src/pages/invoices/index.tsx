@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Plus, Printer, Send, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import invoiceService, { type InvoiceListParams } from '@/api/services/domains/invoiceService';
-import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
 import {
   AdminDataView,
@@ -26,8 +25,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { appToast } from '@/lib/toast';
-import { useMatchRouteMeta, useRouter } from '@/router/hooks';
+import { useMatchRouteMeta } from '@/router/hooks';
 import type { Invoice, InvoiceStatus } from '#/domain';
+
+import { InvoiceCreateModal } from './invoice-create-modal';
+import { InvoiceDeleteConfirmModal } from './invoice-delete-confirm-modal';
+import { InvoiceDetailModal } from './invoice-detail-modal';
+import { InvoiceEditModal } from './invoice-edit-modal';
+import { InvoicePrintModal } from './invoice-print-modal';
 
 type InvoiceFilters = {
   search: string;
@@ -51,13 +56,17 @@ export default function InvoiceListPage() {
   const locale = i18n.language === 'pt_BR' ? 'pt-BR' : 'en-US';
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
   const { mode, setMode } = useAdminDataViewMode();
-  const router = useRouter();
   const client = useQueryClient();
   const [filters, setFilters] = useState<InvoiceFilters>(EMPTY_INVOICE_FILTERS);
   const searchForm = useForm<InvoiceFilters>({ defaultValues: EMPTY_INVOICE_FILTERS });
   const [sort, setSort] = useState(DEFAULT_SORT);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
   const [selected, setSelected] = useState<string[]>([]);
+  const [creating, setCreating] = useState(false);
+  const [details, setDetails] = useState<Invoice | null>(null);
+  const [previewing, setPreviewing] = useState<Invoice | null>(null);
+  const [editing, setEditing] = useState<Invoice | null>(null);
+  const [deletingIds, setDeletingIds] = useState<string[] | null>(null);
   const query = useQuery({
     queryKey: ['domains', 'invoices', filters, sort, pagination],
     queryFn: () =>
@@ -73,10 +82,19 @@ export default function InvoiceListPage() {
     mutationFn: invoiceService.deleteInvoices,
     onSuccess: () => {
       setSelected([]);
+      setDeletingIds(null);
       void client.invalidateQueries({ queryKey: ['domains', 'invoices'] });
       appToast.success(t('app.invoices.deleted'));
     },
     onError: (error) => appToast.error(t('app.invoices.deleteError'), error.message),
+  });
+  const send = useMutation({
+    mutationFn: (invoiceId: string) => invoiceService.sendInvoice(invoiceId),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ['domains', 'invoices'] });
+      appToast.success(t('app.invoices.sent'));
+    },
+    onError: (error) => appToast.error(t('app.invoices.sendError'), error.message),
   });
   const invoices = query.data?.data ?? [];
   const money = (minor: number, currency: string) =>
@@ -90,37 +108,50 @@ export default function InvoiceListPage() {
         size="icon"
         variant="ghost"
         aria-label={t('app.invoices.viewAria', { number: invoice.number })}
-        onClick={() => router.push(`/revenue/invoices/${invoice.id}`)}
+        onClick={() => setDetails(invoice)}
       >
         <Eye className="h-4 w-4" />
       </Button>
+      {permissions.canExport ? (
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label={t('app.invoices.printAria')}
+          onClick={() => setPreviewing(invoice)}
+        >
+          <Printer className="h-4 w-4" />
+        </Button>
+      ) : null}
+      {permissions.canUpdate && invoice.status === 'draft' ? (
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label={t('app.invoices.sendAria')}
+          disabled={send.isPending}
+          onClick={() => send.mutate(invoice.id)}
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      ) : null}
       {permissions.canUpdate ? (
         <Button
           size="icon"
           variant="ghost"
           aria-label={t('app.invoices.editAria', { number: invoice.number })}
-          onClick={() => router.push(`/revenue/invoices/${invoice.id}/edit`)}
+          onClick={() => setEditing(invoice)}
         >
           <Pencil className="h-4 w-4" />
         </Button>
       ) : null}
       {permissions.canDelete ? (
-        <ConfirmDialog
-          title={t('app.invoices.deleteTitle')}
-          description={t('app.common.confirm.irreversible')}
-          confirmLabel={t('app.common.actions.delete')}
-          cancelLabel={t('app.common.actions.cancel')}
-          onConfirm={() => remove.mutate([invoice.id])}
-          trigger={
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label={t('app.invoices.deleteAria', { number: invoice.number })}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          }
-        />
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label={t('app.invoices.deleteAria', { number: invoice.number })}
+          onClick={() => setDeletingIds([invoice.id])}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       ) : null}
     </div>
   );
@@ -281,21 +312,17 @@ export default function InvoiceListPage() {
             }}
           />
           {permissions.canDelete && selected.length ? (
-            <ConfirmDialog
-              title={t('app.invoices.deleteSelectedTitle', { count: selected.length })}
-              confirmLabel={t('app.common.actions.delete')}
-              cancelLabel={t('app.common.actions.cancel')}
-              onConfirm={() => remove.mutate(selected)}
-              trigger={
-                <Button variant="destructive" aria-label={t('app.invoices.deleteSelected')}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {t('app.invoices.deleteSelected')}
-                </Button>
-              }
-            />
+            <Button
+              variant="destructive"
+              aria-label={t('app.invoices.deleteSelected')}
+              onClick={() => setDeletingIds(selected)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('app.invoices.deleteSelected')}
+            </Button>
           ) : null}
           {permissions.canCreate ? (
-            <Button onClick={() => router.push('/revenue/invoices/new')}>
+            <Button onClick={() => setCreating(true)}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.invoices.new')}
             </Button>
@@ -303,6 +330,21 @@ export default function InvoiceListPage() {
         </>
       }
     >
+      <InvoiceCreateModal open={creating} onOpenChange={setCreating} />
+      <InvoiceEditModal
+        invoice={editing}
+        show={editing !== null}
+        onClose={() => setEditing(null)}
+      />
+      <InvoiceDetailModal invoice={details} locale={locale} onClose={() => setDetails(null)} />
+      <InvoicePrintModal invoice={previewing} locale={locale} onClose={() => setPreviewing(null)} />
+      <InvoiceDeleteConfirmModal
+        count={deletingIds?.length ?? 0}
+        show={deletingIds !== null}
+        isPending={remove.isPending}
+        onClose={() => setDeletingIds(null)}
+        onConfirm={() => deletingIds && remove.mutate(deletingIds)}
+      />
       <AdminDataView
         data={invoices}
         getItemId={(invoice) => invoice.id}

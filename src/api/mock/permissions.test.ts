@@ -23,16 +23,7 @@ describe('SaaS permission catalogue', () => {
 
     const routes = flattenTrees(children).map((permission) => permission.route);
     expect(routes).toEqual(
-      expect.arrayContaining([
-        'subscriptions',
-        'invoices',
-        'invoices/new',
-        'invoices/:id/edit',
-        'invoices/:id',
-        'tickets',
-        'api-keys',
-        'audit-logs',
-      ]),
+      expect.arrayContaining(['subscriptions', 'invoices', 'tickets', 'api-keys', 'audit-logs']),
     );
   });
 
@@ -57,22 +48,11 @@ describe('SaaS permission catalogue', () => {
     ).toBe(true);
   });
 
-  it('enforces exact actions on hidden invoice routes', () => {
+  it('keeps invoice list actions without separate deep-link routes', () => {
     const adminRoutes = flattenTrees(ADMIN_PERMISSIONS);
     const viewerRoutes = flattenTrees(VIEWER_PERMISSIONS);
 
-    expect(adminRoutes.find((permission) => permission.route === 'invoices/new')).toMatchObject({
-      is_hide: true,
-      required_action: PermissionActionType.CREATE,
-    });
-    expect(
-      adminRoutes.find((permission) => permission.route === 'invoices/:id/edit'),
-    ).toMatchObject({ is_hide: true, required_action: PermissionActionType.UPDATE });
-    expect(adminRoutes.find((permission) => permission.route === 'invoices/:id')).toMatchObject({
-      is_hide: true,
-      required_action: PermissionActionType.READ,
-    });
-
+    expect(adminRoutes.some((permission) => permission.route.startsWith('invoices/'))).toBe(false);
     expect(
       hasPermissionAction(VIEWER_PERMISSIONS, 'app.menu.invoices', PermissionActionType.EXPORT),
     ).toBe(true);
@@ -80,7 +60,7 @@ describe('SaaS permission catalogue', () => {
       hasPermissionAction(VIEWER_PERMISSIONS, 'app.invoices.new', PermissionActionType.CREATE),
     ).toBe(false);
     expect(
-      viewerRoutes.find((permission) => permission.route === 'invoices/:id')?.actions_allowed,
+      viewerRoutes.find((permission) => permission.route === 'invoices')?.actions_allowed,
     ).toEqual([PermissionActionType.READ, PermissionActionType.EXPORT]);
   });
 });

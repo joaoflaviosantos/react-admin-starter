@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import subscriptionService from '@/api/services/domains/subscriptionService';
 import { AdminForm } from '@/components/admin/form';
 import {
   FormFieldInput,
@@ -18,8 +20,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import type { Customer, Subscription, SubscriptionInput } from '#/domain';
+import { modalContentWidthLgClass } from '@/lib/overlay-surface';
+import { appToast } from '@/lib/toast';
+import { cn } from '@/lib/utils';
 
+import type { Customer, Subscription, SubscriptionInput } from '#/domain';
 import { createSubscriptionSchema, type SubscriptionFormValues } from './schema';
 
 const emptySubscription: SubscriptionFormValues = {
@@ -34,24 +39,25 @@ const emptySubscription: SubscriptionFormValues = {
   cancelAtPeriodEnd: false,
 };
 
-type SubscriptionFormDialogProps = {
-  open: boolean;
+type SubscriptionEditModalProps = {
   subscription: Subscription | null;
   customers: Customer[];
-  pending: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (value: SubscriptionInput) => void;
+  show: boolean;
+  onClose: () => void;
 };
 
-export function SubscriptionFormDialog({
-  open,
+export function SubscriptionEditModal({
   subscription,
   customers,
-  pending,
-  onOpenChange,
-  onSubmit,
-}: SubscriptionFormDialogProps) {
+  show,
+  onClose,
+}: SubscriptionEditModalProps) {
   const { t } = useTranslation();
+  const option = (value: string) => ({
+    label: t(`app.common.options.${value}`),
+    value,
+  });
+  const queryClient = useQueryClient();
   const schema = useMemo(() => createSubscriptionSchema(t), [t]);
   const form = useForm<SubscriptionFormValues>({
     resolver: zodResolver(schema),
@@ -59,98 +65,109 @@ export function SubscriptionFormDialog({
   });
 
   useEffect(() => {
-    form.reset(
-      subscription
-        ? { ...subscription, trialEndsAt: subscription.trialEndsAt ?? '' }
-        : emptySubscription,
-    );
-  }, [form, open, subscription]);
+    if (show) {
+      form.reset(
+        subscription
+          ? { ...subscription, trialEndsAt: subscription.trialEndsAt ?? '' }
+          : emptySubscription,
+      );
+    }
+  }, [form, show, subscription]);
 
-  const option = (value: string) => ({
-    label: t(`app.common.options.${value}`),
-    value,
+  const mutation = useMutation({
+    mutationFn: (payload: SubscriptionInput) =>
+      subscriptionService.updateSubscription(subscription?.id ?? '', payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['domains', 'subscriptions'] });
+      appToast.success(t('app.subscriptions.saved'));
+      onClose();
+    },
+    onError: () => appToast.error(t('app.subscriptions.saveError')),
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] sm:max-w-2xl">
+    <Dialog open={show} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className={cn('max-h-[90vh]', modalContentWidthLgClass)}>
         <DialogHeader>
-          <DialogTitle>
-            {t(subscription ? 'app.subscriptions.edit' : 'app.subscriptions.new')}
-          </DialogTitle>
+          <DialogTitle>{t('app.subscriptions.edit')}</DialogTitle>
         </DialogHeader>
         <AdminForm
           form={form}
-          onSubmit={(value) => onSubmit({ ...value, trialEndsAt: value.trialEndsAt || null })}
+          onSubmit={(value) =>
+            mutation.mutate({ ...value, trialEndsAt: value.trialEndsAt || null })
+          }
         >
-          <DialogBody className="grid max-h-[70vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2">
+          <DialogBody className="grid max-h-[65vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2">
             <FormFieldSelect
               control={form.control}
               name="customerId"
               label={t('app.subscriptions.customer')}
-              options={customers.map((customer) => ({ label: customer.name, value: customer.id }))}
-              disabled={pending || Boolean(subscription)}
+              options={customers.map((customer) => ({
+                label: customer.name,
+                value: customer.id,
+              }))}
+              disabled
             />
             <FormFieldSelect
               control={form.control}
               name="plan"
               label={t('app.subscriptions.plan')}
               options={['starter', 'growth', 'scale'].map(option)}
-              disabled={pending}
+              disabled={mutation.isPending}
             />
             <FormFieldSelect
               control={form.control}
               name="status"
               label={t('app.common.fields.status')}
               options={['trialing', 'active', 'past_due'].map(option)}
-              disabled={pending || Boolean(subscription)}
+              disabled
             />
             <FormFieldSelect
               control={form.control}
               name="interval"
               label={t('app.subscriptions.interval')}
               options={['monthly', 'yearly'].map(option)}
-              disabled={pending}
+              disabled={mutation.isPending}
             />
             <FormFieldInput
               control={form.control}
               name="seats"
               type="number"
               label={t('app.subscriptions.seats')}
-              disabled={pending}
+              disabled={mutation.isPending}
             />
             <FormFieldInput
               control={form.control}
               name="unitPriceCents"
               type="number"
               label={t('app.subscriptions.unitPriceMinor')}
-              disabled={pending}
+              disabled={mutation.isPending}
             />
             <FormFieldInput
               control={form.control}
               name="trialEndsAt"
               label={t('app.subscriptions.trialEndsAt')}
-              disabled={pending}
+              disabled={mutation.isPending}
             />
             <FormFieldInput
               control={form.control}
               name="currentPeriodEnd"
               label={t('app.subscriptions.periodEnd')}
-              disabled={pending}
+              disabled={mutation.isPending}
             />
             <FormFieldSwitch
               control={form.control}
               name="cancelAtPeriodEnd"
               label={t('app.subscriptions.cancelAtPeriodEnd')}
-              disabled={pending || Boolean(subscription)}
+              disabled
               className="sm:col-span-2"
             />
           </DialogBody>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" disabled={mutation.isPending} onClick={onClose}>
               {t('app.common.actions.cancel')}
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={mutation.isPending}>
               {t('app.common.actions.save')}
             </Button>
           </DialogFooter>

@@ -11,13 +11,13 @@ import {
 } from '@/components/ui/dialog';
 import type { Customer } from '#/domain';
 
-type CustomerDetailDialogProps = {
+type CustomerDetailModalProps = {
   customer: Customer | null;
   locale: string;
   onClose: () => void;
 };
 
-export function CustomerDetailDialog({ customer, locale, onClose }: CustomerDetailDialogProps) {
+export function CustomerDetailModal({ customer, locale, onClose }: CustomerDetailModalProps) {
   const { t } = useTranslation();
   if (!customer) return null;
   const money = new Intl.NumberFormat(locale, { style: 'currency', currency: 'BRL' }).format(

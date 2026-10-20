@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import customerService, { type CustomerListParams } from '@/api/services/domains/customerService';
-import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
 import {
   AdminDataView,
@@ -27,10 +26,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta } from '@/router/hooks';
-import type { Customer, CustomerInput } from '#/domain';
+import type { Customer } from '#/domain';
 
-import { CustomerDetailDialog } from './customer-detail-dialog';
-import { CustomerFormDialog } from './customer-form-dialog';
+import { CustomerCreateModal } from './customer-create-modal';
+import { CustomerDeleteConfirmModal } from './customer-delete-confirm-modal';
+import { CustomerDetailModal } from './customer-detail-modal';
+import { CustomerEditModal } from './customer-edit-modal';
 
 type CustomerFilters = {
   search: string;
@@ -53,8 +54,10 @@ export default function CustomersPage() {
   const [filters, setFilters] = useState<CustomerFilters>(EMPTY_CUSTOMER_FILTERS);
   const searchForm = useForm<CustomerFilters>({ defaultValues: EMPTY_CUSTOMER_FILTERS });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
-  const [editing, setEditing] = useState<Customer | null | undefined>(undefined);
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Customer | null>(null);
   const [details, setDetails] = useState<Customer | null>(null);
+  const [deleting, setDeleting] = useState<Customer | null>(null);
 
   const query = useQuery({
     queryKey: ['domains', 'customers', filters, pagination],
@@ -68,21 +71,10 @@ export default function CustomersPage() {
       }),
   });
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['domains', 'customers'] });
-  const save = useMutation({
-    mutationFn: (payload: CustomerInput) =>
-      editing
-        ? customerService.updateCustomer(editing.id, payload)
-        : customerService.createCustomer(payload),
-    onSuccess: () => {
-      setEditing(undefined);
-      void invalidate();
-      appToast.success(t('app.customers.saved'));
-    },
-    onError: () => appToast.error(t('app.customers.saveError')),
-  });
   const archive = useMutation({
     mutationFn: (id: string) => customerService.archiveCustomer(id),
     onSuccess: () => {
+      setDeleting(null);
       void invalidate();
       appToast.success(t('app.customers.archived'));
     },
@@ -114,22 +106,14 @@ export default function CustomersPage() {
         </Button>
       ) : null}
       {permissions.canDelete ? (
-        <ConfirmDialog
-          title={t('app.customers.archiveTitle', { name: customer.name })}
-          description={t('app.customers.archiveDescription')}
-          confirmLabel={t('app.customers.archive')}
-          cancelLabel={t('app.common.actions.cancel')}
-          onConfirm={() => archive.mutate(customer.id)}
-          trigger={
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label={t('app.customers.archiveAria', { name: customer.name })}
-            >
-              <Archive className="h-4 w-4" />
-            </Button>
-          }
-        />
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label={t('app.customers.archiveAria', { name: customer.name })}
+          onClick={() => setDeleting(customer)}
+        >
+          <Archive className="h-4 w-4" />
+        </Button>
       ) : null}
     </div>
   );
@@ -258,7 +242,7 @@ export default function CustomersPage() {
             }}
           />
           {permissions.canCreate ? (
-            <Button onClick={() => setEditing(null)}>
+            <Button onClick={() => setCreating(true)}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.customers.new')}
             </Button>
@@ -293,14 +277,20 @@ export default function CustomersPage() {
           />
         }
       />
-      <CustomerFormDialog
-        open={editing !== undefined}
-        customer={editing ?? null}
-        pending={save.isPending}
-        onOpenChange={(open) => !open && setEditing(undefined)}
-        onSubmit={(payload) => save.mutate(payload)}
+      <CustomerCreateModal open={creating} onOpenChange={setCreating} />
+      <CustomerEditModal
+        customer={editing}
+        show={editing !== null}
+        onClose={() => setEditing(null)}
       />
-      <CustomerDetailDialog customer={details} locale={locale} onClose={() => setDetails(null)} />
+      <CustomerDetailModal customer={details} locale={locale} onClose={() => setDetails(null)} />
+      <CustomerDeleteConfirmModal
+        customer={deleting}
+        show={deleting !== null}
+        isPending={archive.isPending}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => deleting && archive.mutate(deleting.id)}
+      />
     </AdminListPage>
   );
 }

@@ -16,7 +16,6 @@ import { useTranslation } from 'react-i18next';
 
 import customerService from '@/api/services/domains/customerService';
 import ticketService, { type TicketListParams } from '@/api/services/domains/ticketService';
-import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
 import {
   AdminDataView,
@@ -37,15 +36,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta } from '@/router/hooks';
-import type {
-  SupportTicket,
-  SupportTicketInput,
-  SupportTicketPatch,
-  SupportTicketStatus,
-} from '#/domain';
+import type { SupportTicket, SupportTicketStatus } from '#/domain';
 
-import { TicketDetailDialog } from './ticket-detail-dialog';
-import { TicketFormDialog } from './ticket-form-dialog';
+import { TicketCreateModal } from './ticket-create-modal';
+import { TicketDeleteConfirmModal } from './ticket-delete-confirm-modal';
+import { TicketDetailModal } from './ticket-detail-modal';
+import { TicketEditModal } from './ticket-edit-modal';
 
 type TicketFilters = {
   search: string;
@@ -71,8 +67,10 @@ export default function TicketsPage() {
   const [filters, setFilters] = useState<TicketFilters>(EMPTY_TICKET_FILTERS);
   const searchForm = useForm<TicketFilters>({ defaultValues: EMPTY_TICKET_FILTERS });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
-  const [editing, setEditing] = useState<SupportTicket | null | undefined>(undefined);
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<SupportTicket | null>(null);
   const [details, setDetails] = useState<SupportTicket | null>(null);
+  const [deleting, setDeleting] = useState<SupportTicket | null>(null);
 
   const query = useQuery({
     queryKey: ['domains', 'tickets', filters, pagination],
@@ -93,18 +91,6 @@ export default function TicketsPage() {
     [customers],
   );
   const invalidate = () => client.invalidateQueries({ queryKey: ['domains', 'tickets'] });
-  const save = useMutation({
-    mutationFn: (payload: SupportTicketInput | SupportTicketPatch) =>
-      editing
-        ? ticketService.updateTicket(editing.id, payload as SupportTicketPatch)
-        : ticketService.createTicket(payload as SupportTicketInput),
-    onSuccess: () => {
-      setEditing(undefined);
-      void invalidate();
-      appToast.success(t('app.tickets.saved'));
-    },
-    onError: () => appToast.error(t('app.tickets.saveError')),
-  });
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: SupportTicketStatus }) =>
       ticketService.changeTicketStatus(id, status),
@@ -125,6 +111,7 @@ export default function TicketsPage() {
   const remove = useMutation({
     mutationFn: ticketService.deleteTicket,
     onSuccess: () => {
+      setDeleting(null);
       void invalidate();
       appToast.success(t('app.tickets.deleted'));
     },
@@ -225,22 +212,14 @@ export default function TicketsPage() {
         </>
       ) : null}
       {permissions.canDelete ? (
-        <ConfirmDialog
-          title={t('app.tickets.deleteTitle', { subject: ticket.subject })}
-          description={t('app.common.confirm.irreversible')}
-          confirmLabel={t('app.common.actions.delete')}
-          cancelLabel={t('app.common.actions.cancel')}
-          onConfirm={() => remove.mutate(ticket.id)}
-          trigger={
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label={t('app.tickets.deleteAria', { subject: ticket.subject })}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          }
-        />
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label={t('app.tickets.deleteAria', { subject: ticket.subject })}
+          onClick={() => setDeleting(ticket)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       ) : null}
     </div>
   );
@@ -367,7 +346,7 @@ export default function TicketsPage() {
             }}
           />
           {permissions.canCreate ? (
-            <Button onClick={() => setEditing(null)}>
+            <Button onClick={() => setCreating(true)}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.tickets.new')}
             </Button>
@@ -402,19 +381,25 @@ export default function TicketsPage() {
           />
         }
       />
-      <TicketFormDialog
-        open={editing !== undefined}
-        ticket={editing ?? null}
+      <TicketCreateModal open={creating} customers={customers} onOpenChange={setCreating} />
+      <TicketEditModal
+        ticket={editing}
         customers={customers}
-        pending={save.isPending}
-        onOpenChange={(open) => !open && setEditing(undefined)}
-        onSubmit={(payload) => save.mutate(payload)}
+        show={editing !== null}
+        onClose={() => setEditing(null)}
       />
-      <TicketDetailDialog
+      <TicketDetailModal
         ticket={details}
         customerName={details ? customerName(details) : ''}
         locale={locale}
         onClose={() => setDetails(null)}
+      />
+      <TicketDeleteConfirmModal
+        ticket={deleting}
+        show={deleting !== null}
+        isPending={remove.isPending}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => deleting && remove.mutate(deleting.id)}
       />
     </AdminListPage>
   );

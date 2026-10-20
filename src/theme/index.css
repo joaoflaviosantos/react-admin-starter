@@ -72,7 +72,7 @@ input[type='password']::-ms-clear {
 
 @media print {
   @page {
-    size: A4;
+    size: auto;
     margin: 12mm;
   }
 
@@ -102,5 +102,23 @@ input[type='password']::-ms-clear {
 
   .invoice-print-hidden {
     display: none !important;
+  }
+
+  .invoice-print-modal,
+  .invoice-print-modal-body {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: none !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .invoice-print-modal-body {
+    padding: 0 !important;
   }
 }

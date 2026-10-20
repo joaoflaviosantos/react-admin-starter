@@ -89,7 +89,7 @@ describe('Customers page', () => {
     );
     expect(screen.getByText('Acme Corp')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Archive Acme Corp' }));
-    const dialog = await screen.findByRole('alertdialog');
+    const dialog = await screen.findByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Archive' }));
     await waitFor(() => expect(mocks.archiveCustomer).toHaveBeenCalledWith('customer-acme'));
   });

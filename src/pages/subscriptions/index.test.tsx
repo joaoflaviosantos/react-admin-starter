@@ -151,7 +151,7 @@ describe('Subscriptions page', () => {
     const view = renderPage();
     await screen.findByText('Acme Corp');
     fireEvent.click(screen.getByRole('button', { name: 'Cancel Acme Corp subscription' }));
-    const cancelDialog = await screen.findByRole('alertdialog');
+    const cancelDialog = await screen.findByRole('dialog');
     fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Cancel subscription' }));
     await waitFor(() => expect(mocks.cancelSubscription).toHaveBeenCalledWith('subscription-acme'));
 
@@ -169,7 +169,7 @@ describe('Subscriptions page', () => {
       name: 'Reactivate Acme Corp subscription',
     });
     fireEvent.click(reactivate);
-    const reactivateDialog = await screen.findByRole('alertdialog');
+    const reactivateDialog = await screen.findByRole('dialog');
     fireEvent.click(within(reactivateDialog).getByRole('button', { name: 'Reactivate' }));
     await waitFor(() =>
       expect(mocks.reactivateSubscription).toHaveBeenCalledWith('subscription-acme'),

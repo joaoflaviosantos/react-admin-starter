@@ -8,7 +8,7 @@ import { loadPageComponent, transformPermissionToMenuRoutes } from './use-permis
 
 describe('permission route page resolution', () => {
   it('resolves the retained invoice list route to a valid lazy page component', async () => {
-    const module = await loadPageComponent('/invoices/list/index.tsx');
+    const module = await loadPageComponent('/invoices/index.tsx');
     expect(typeof module.default).toBe('function');
   }, 15_000);
 
@@ -18,28 +18,18 @@ describe('permission route page resolution', () => {
     );
   });
 
-  it('keeps unauthorized deep links hidden and redirects them to 403', () => {
+  it('keeps unauthorized menu links hidden and redirects them to 403', () => {
     const routes = transformPermissionToMenuRoutes(
       VIEWER_PERMISSIONS,
       flattenTrees(VIEWER_PERMISSIONS),
     );
     const revenue = routes.find((route) => route.path === 'revenue');
-    const createRoute = revenue?.children?.find((route) => route.path === 'invoices/new');
-    const editRoute = revenue?.children?.find((route) => route.path === 'invoices/:id/edit');
-    const previewRoute = revenue?.children?.find((route) => route.path === 'invoices/:id');
     const platformRoute = routes.find((route) => route.path === 'platform');
 
-    expect(createRoute?.meta?.is_hide).toBe(true);
-    expect(createRoute?.element).toMatchObject({
-      type: Navigate,
-      props: { to: '/403', replace: true },
-    });
-    expect(editRoute?.element).toMatchObject({
-      type: Navigate,
-      props: { to: '/403', replace: true },
-    });
-    expect(previewRoute?.meta?.key).toBe('/revenue/invoices/:id');
-    expect(previewRoute?.element).not.toMatchObject({ type: Navigate });
+    expect(revenue?.children?.map((route) => route.path).filter(Boolean)).toEqual([
+      'subscriptions',
+      'invoices',
+    ]);
     expect(platformRoute?.meta?.is_hide).toBe(true);
     expect(
       platformRoute?.children?.find((route) => route.path === 'api-keys')?.element,

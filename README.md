@@ -1,7 +1,10 @@
 <h1 align="center">React Admin Starter</h1>
 
-<p align="center" markdown=1>
-  <img src="https://github.com/user-attachments/assets/6011f496-4987-47b4-b27c-147d410059b3" alt="Stylized admin dashboard window with sidebar and content panels. The React atom logo floating next to it." width="35%" height="auto">
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6011f496-4987-47b4-b27c-147d410059b3" alt="Stylized admin dashboard window with sidebar and content panels. The React atom logo floating next to it." width="80%" height="auto">
+</p>
+
+<p align="center">
   <i>A mock-first React admin starter with shadcn/ui, Tailwind CSS, React Hook Form, Zod, TanStack Table, and Vite — no backend required for the happy path.</i>
 </p>
 

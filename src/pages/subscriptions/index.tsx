@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil, Plus, RotateCcw, XCircle } from 'lucide-react';
+import { Eye, Pencil, Plus, RotateCcw, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,6 @@ import customerService from '@/api/services/domains/customerService';
 import subscriptionService, {
   type SubscriptionListParams,
 } from '@/api/services/domains/subscriptionService';
-import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
 import {
   AdminDataView,
@@ -30,9 +29,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta } from '@/router/hooks';
-import type { Subscription, SubscriptionInput } from '#/domain';
+import type { Subscription } from '#/domain';
 
-import { SubscriptionFormDialog } from './subscription-form-dialog';
+import { SubscriptionCreateModal } from './subscription-create-modal';
+import { SubscriptionDetailModal } from './subscription-detail-modal';
+import { SubscriptionEditModal } from './subscription-edit-modal';
+import { SubscriptionLifecycleConfirmModal } from './subscription-lifecycle-confirm-modal';
 
 type SubscriptionFilters = {
   search: string;
@@ -55,7 +57,13 @@ export default function SubscriptionsPage() {
   const [filters, setFilters] = useState<SubscriptionFilters>(EMPTY_SUBSCRIPTION_FILTERS);
   const searchForm = useForm<SubscriptionFilters>({ defaultValues: EMPTY_SUBSCRIPTION_FILTERS });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
-  const [editing, setEditing] = useState<Subscription | null | undefined>(undefined);
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Subscription | null>(null);
+  const [details, setDetails] = useState<Subscription | null>(null);
+  const [lifecycleTarget, setLifecycleTarget] = useState<{
+    subscription: Subscription;
+    action: 'cancel' | 'reactivate';
+  } | null>(null);
 
   const query = useQuery({
     queryKey: ['domains', 'subscriptions', filters, pagination],
@@ -77,24 +85,13 @@ export default function SubscriptionsPage() {
   );
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ['domains', 'subscriptions'] });
-  const save = useMutation({
-    mutationFn: (payload: SubscriptionInput) =>
-      editing
-        ? subscriptionService.updateSubscription(editing.id, payload)
-        : subscriptionService.createSubscription(payload),
-    onSuccess: () => {
-      setEditing(undefined);
-      void invalidate();
-      appToast.success(t('app.subscriptions.saved'));
-    },
-    onError: () => appToast.error(t('app.subscriptions.saveError')),
-  });
   const lifecycle = useMutation({
     mutationFn: ({ id, action }: { id: string; action: 'cancel' | 'reactivate' }) =>
       action === 'cancel'
         ? subscriptionService.cancelSubscription(id)
         : subscriptionService.reactivateSubscription(id),
     onSuccess: (_, variables) => {
+      setLifecycleTarget(null);
       void invalidate();
       appToast.success(
         t(
@@ -118,32 +115,26 @@ export default function SubscriptionsPage() {
   const actions = (subscription: Subscription) => {
     const name = customerName(subscription);
     const canceled = subscription.status === 'canceled';
-    return permissions.canUpdate ? (
+    return (
       <div className="flex items-center gap-1">
         <Button
           size="icon"
           variant="ghost"
-          aria-label={t('app.subscriptions.editAria', { name })}
-          onClick={() => setEditing(subscription)}
+          aria-label={t('app.subscriptions.viewAria', { name })}
+          onClick={() => setDetails(subscription)}
         >
-          <Pencil className="h-4 w-4" />
+          <Eye className="h-4 w-4" />
         </Button>
-        <ConfirmDialog
-          title={t(
-            canceled ? 'app.subscriptions.reactivateTitle' : 'app.subscriptions.cancelTitle',
-            { name },
-          )}
-          description={t(
-            canceled
-              ? 'app.subscriptions.reactivateDescription'
-              : 'app.subscriptions.cancelDescription',
-          )}
-          confirmLabel={t(canceled ? 'app.subscriptions.reactivate' : 'app.subscriptions.cancel')}
-          cancelLabel={t('app.common.actions.close')}
-          onConfirm={() =>
-            lifecycle.mutate({ id: subscription.id, action: canceled ? 'reactivate' : 'cancel' })
-          }
-          trigger={
+        {permissions.canUpdate ? (
+          <>
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={t('app.subscriptions.editAria', { name })}
+              onClick={() => setEditing(subscription)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
             <Button
               size="icon"
               variant="ghost"
@@ -151,13 +142,19 @@ export default function SubscriptionsPage() {
                 canceled ? 'app.subscriptions.reactivateAria' : 'app.subscriptions.cancelAria',
                 { name },
               )}
+              onClick={() =>
+                setLifecycleTarget({
+                  subscription,
+                  action: canceled ? 'reactivate' : 'cancel',
+                })
+              }
             >
               {canceled ? <RotateCcw className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
             </Button>
-          }
-        />
+          </>
+        ) : null}
       </div>
-    ) : null;
+    );
   };
 
   const columns: ColumnDef<Subscription>[] = [
@@ -293,7 +290,7 @@ export default function SubscriptionsPage() {
             }}
           />
           {permissions.canCreate ? (
-            <Button onClick={() => setEditing(null)}>
+            <Button onClick={() => setCreating(true)}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.subscriptions.new')}
             </Button>
@@ -328,13 +325,32 @@ export default function SubscriptionsPage() {
           />
         }
       />
-      <SubscriptionFormDialog
-        open={editing !== undefined}
-        subscription={editing ?? null}
+      <SubscriptionCreateModal open={creating} customers={customers} onOpenChange={setCreating} />
+      <SubscriptionEditModal
+        subscription={editing}
         customers={customers}
-        pending={save.isPending}
-        onOpenChange={(open) => !open && setEditing(undefined)}
-        onSubmit={(payload) => save.mutate(payload)}
+        show={editing !== null}
+        onClose={() => setEditing(null)}
+      />
+      <SubscriptionDetailModal
+        subscription={details}
+        customerName={details ? customerName(details) : ''}
+        locale={locale}
+        onClose={() => setDetails(null)}
+      />
+      <SubscriptionLifecycleConfirmModal
+        name={lifecycleTarget ? customerName(lifecycleTarget.subscription) : ''}
+        action={lifecycleTarget?.action ?? null}
+        show={lifecycleTarget !== null}
+        isPending={lifecycle.isPending}
+        onClose={() => setLifecycleTarget(null)}
+        onConfirm={() =>
+          lifecycleTarget &&
+          lifecycle.mutate({
+            id: lifecycleTarget.subscription.id,
+            action: lifecycleTarget.action,
+          })
+        }
       />
     </AdminListPage>
   );

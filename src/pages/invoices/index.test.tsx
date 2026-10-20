@@ -35,6 +35,7 @@ const invoice = {
 const mocks = vi.hoisted(() => ({
   getInvoices: vi.fn(),
   deleteInvoices: vi.fn(),
+  sendInvoice: vi.fn(),
   permission: {
     canCreate: true,
     canRead: true,
@@ -44,7 +45,10 @@ const mocks = vi.hoisted(() => ({
   },
   push: vi.fn(),
 }));
-vi.mock('@/api/services/domains/invoiceService', () => ({ default: mocks }));
+vi.mock('@/api/services/domains/invoiceService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/api/services/domains/invoiceService')>();
+  return { default: mocks, calculateInvoiceTotals: actual.calculateInvoiceTotals };
+});
 vi.mock('@/hooks/permissions/use-has-required-permission', () => ({
   useHasRequiredPermission: () => mocks.permission,
 }));
@@ -82,6 +86,11 @@ describe('Invoice list page', () => {
       has_more: false,
     });
     mocks.deleteInvoices.mockResolvedValue({ deleted: [invoice.id] });
+    mocks.sendInvoice.mockResolvedValue({
+      ...invoice,
+      status: 'sent',
+      sentAt: '2026-01-02T12:00:00.000Z',
+    });
   });
   afterEach(cleanup);
 
@@ -108,7 +117,7 @@ describe('Invoice list page', () => {
     );
   });
 
-  it('renders the same ID and actions in table, grid and list with canonical links', async () => {
+  it('renders the same ID and actions in table, grid and list using modals', async () => {
     const view = renderPage();
     await screen.findByText('INV-1');
     expect(screen.getByRole('button', { name: 'Preview INV-1' })).toBeInTheDocument();
@@ -119,16 +128,38 @@ describe('Invoice list page', () => {
     );
     expect(view.container.querySelector('[data-invoice-id="invoice-real"]')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Preview INV-1' }));
-    expect(mocks.push).toHaveBeenCalledWith('/revenue/invoices/invoice-real');
+    const detail = await screen.findByRole('dialog', { name: 'Invoice details' });
+    expect(within(detail).queryByRole('button', { name: 'Print invoice' })).not.toBeInTheDocument();
+    fireEvent.click(within(detail).getAllByRole('button', { name: 'Close' })[0]!);
 
     fireEvent.click(screen.getByRole('button', { name: 'List view' }));
     await waitFor(() =>
       expect(view.container.querySelector('[data-view-mode="list"]')).toBeInTheDocument(),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Edit INV-1' }));
-    expect(mocks.push).toHaveBeenCalledWith('/revenue/invoices/invoice-real/edit');
+    const edit = await screen.findByRole('dialog', { name: 'Edit invoice' });
+    fireEvent.click(within(edit).getByRole('button', { name: 'Cancel' }));
     fireEvent.click(screen.getByRole('button', { name: 'New invoice' }));
-    expect(mocks.push).toHaveBeenCalledWith('/revenue/invoices/new');
+    expect(await screen.findByRole('dialog', { name: 'New invoice' })).toBeInTheDocument();
+  });
+
+  it('previews and prints the invoice document from the row actions', async () => {
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {
+      expect(screen.getByTestId('invoice-print-sheet')).toBeInTheDocument();
+    });
+    renderPage();
+    await screen.findByText('INV-1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Print invoice' }));
+    const preview = await screen.findByRole('dialog', { name: 'Invoice preview' });
+    expect(within(preview).getByTestId('invoice-print-sheet')).toBeInTheDocument();
+    fireEvent.click(within(preview).getByRole('button', { name: 'Print' }));
+    await waitFor(() => expect(print).toHaveBeenCalledTimes(1));
+    fireEvent.click(within(preview).getAllByRole('button', { name: 'Close' })[0]!);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send invoice' }));
+    await waitFor(() => expect(mocks.sendInvoice).toHaveBeenCalledWith('invoice-real'));
+    print.mockRestore();
   });
 
   it('preserves selection across modes and deletes exactly the selected ID after confirmation', async () => {
@@ -140,7 +171,7 @@ describe('Invoice list page', () => {
       expect(screen.getByRole('checkbox', { name: 'Select INV-1' })).toBeChecked(),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }));
-    const alert = await screen.findByRole('alertdialog');
+    const alert = await screen.findByRole('dialog');
     fireEvent.click(within(alert).getByRole('button', { name: 'Delete' }));
     await waitFor(() => expect(mocks.deleteInvoices.mock.calls[0]?.[0]).toEqual(['invoice-real']));
   });
@@ -150,6 +181,8 @@ describe('Invoice list page', () => {
     renderPage();
     await screen.findByText('INV-1');
     expect(screen.getByRole('button', { name: 'Preview INV-1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Print invoice' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Send invoice' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Card grid view' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'New invoice' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Edit INV-1' })).not.toBeInTheDocument();
