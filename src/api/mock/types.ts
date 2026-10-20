@@ -1,5 +1,5 @@
 import type { PermissionWithChildRead } from '#/system/user';
-import type { ApiKey, AuditLog, Customer, Invoice, Subscription, SupportTicket } from '#/examples';
+import type { ApiKey, AuditLog, Customer, Invoice, Subscription, SupportTicket } from '#/domain';
 
 /** Internal mock store record — not exposed via API types. */
 export type MockUserRecord = {
@@ -32,7 +32,7 @@ export type MockRoleRecord = {
   updated_at: string;
 };
 
-export type MockExamplesStore = {
+export type MockDomainStore = {
   customers: Customer[];
   subscriptions: Subscription[];
   invoices: Invoice[];

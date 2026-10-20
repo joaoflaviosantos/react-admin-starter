@@ -11,8 +11,8 @@ import {
   invoicesSeed,
   subscriptionsSeed,
   supportTicketsSeed,
-} from './seed/examples';
-import type { MockExamplesStore, MockRoleRecord, MockUserRecord } from './types';
+} from './seed/domains';
+import type { MockDomainStore, MockRoleRecord, MockUserRecord } from './types';
 
 /**
  * In-memory mock store. Demo credentials:
@@ -22,7 +22,7 @@ import type { MockExamplesStore, MockRoleRecord, MockUserRecord } from './types'
 export type MockStore = {
   users: MockUserRecord[];
   roles: MockRoleRecord[];
-  examples: MockExamplesStore;
+  domains: MockDomainStore;
 };
 
 function hydrateUser(user: Omit<MockUserRecord, 'permissions'>): MockUserRecord {
@@ -40,7 +40,7 @@ function cloneSeed(): MockStore {
   return {
     users,
     roles,
-    examples: {
+    domains: {
       customers: structuredClone(customersSeed),
       subscriptions: structuredClone(subscriptionsSeed),
       invoices: structuredClone(invoicesSeed),

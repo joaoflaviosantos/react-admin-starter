@@ -5,13 +5,17 @@ import { flattenTrees } from '@/utils/tree';
 
 import { PermissionActionType } from '#/enum';
 
-function examplesChildren(permissions: typeof ADMIN_PERMISSIONS) {
-  return permissions.find((permission) => permission.route === 'examples')?.children ?? [];
+function resourceChildren(permissions: typeof ADMIN_PERMISSIONS) {
+  return (
+    permissions
+      .find((permission) => permission.route === 'workbench')
+      ?.children?.filter((permission) => permission.route !== 'overview') ?? []
+  );
 }
 
-describe('SaaS Examples permission catalogue', () => {
+describe('SaaS permission catalogue', () => {
   it('gives admins the Customers, Revenue, Support and Platform subtrees', () => {
-    const children = examplesChildren(ADMIN_PERMISSIONS);
+    const children = resourceChildren(ADMIN_PERMISSIONS);
     expect(children.map((permission) => permission.route)).toEqual([
       'customers',
       'revenue',
@@ -35,7 +39,7 @@ describe('SaaS Examples permission catalogue', () => {
   });
 
   it('gives viewers readable Customers, Revenue and Support while hiding Platform', () => {
-    const children = examplesChildren(VIEWER_PERMISSIONS);
+    const children = resourceChildren(VIEWER_PERMISSIONS);
     expect(
       children.filter((permission) => !permission.is_hide).map((permission) => permission.route),
     ).toEqual(['customers', 'revenue', 'support']);
@@ -74,12 +78,12 @@ describe('SaaS Examples permission catalogue', () => {
     expect(
       hasPermissionAction(
         VIEWER_PERMISSIONS,
-        'examples.menu.invoices',
+        'app.menu.invoices',
         PermissionActionType.EXPORT,
       ),
     ).toBe(true);
     expect(
-      hasPermissionAction(VIEWER_PERMISSIONS, 'examples.invoices.new', PermissionActionType.CREATE),
+      hasPermissionAction(VIEWER_PERMISSIONS, 'app.invoices.new', PermissionActionType.CREATE),
     ).toBe(false);
     expect(
       viewerRoutes.find((permission) => permission.route === 'invoices/:id')?.actions_allowed,

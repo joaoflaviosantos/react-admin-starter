@@ -47,55 +47,55 @@ describe('mock store', () => {
   });
 
   it('seeds the retained invoice domain with deterministic values and restores session state', () => {
-    const examples = getState().examples;
+    const domains = getState().domains;
 
-    expect(examples.invoices).toHaveLength(2);
-    expect(examples.invoices[0]?.total).toBe(125000);
+    expect(domains.invoices).toHaveLength(2);
+    expect(domains.invoices[0]?.total).toBe(125000);
 
-    examples.invoices[0]!.total = 1;
+    domains.invoices[0]!.total = 1;
 
     resetToSeed();
 
-    expect(getState().examples.invoices[0]?.total).toBe(125000);
+    expect(getState().domains.invoices[0]?.total).toBe(125000);
   });
 
   it('seeds every SaaS domain with deterministic relational data', () => {
-    const { examples } = getState();
-    const customerIds = new Set(examples.customers.map((customer) => customer.id));
+    const { domains } = getState();
+    const customerIds = new Set(domains.customers.map((customer) => customer.id));
 
-    expect(examples.customers).toHaveLength(6);
-    expect(examples.subscriptions).toHaveLength(6);
-    expect(examples.supportTickets).toHaveLength(5);
-    expect(examples.apiKeys).toHaveLength(3);
-    expect(examples.auditLogs).toHaveLength(6);
-    expect(examples.subscriptions.every((item) => customerIds.has(item.customerId))).toBe(true);
-    expect(examples.supportTickets.every((item) => customerIds.has(item.customerId))).toBe(true);
-    expect(examples.customers.map((item) => item.mrrCents)).toEqual([
+    expect(domains.customers).toHaveLength(6);
+    expect(domains.subscriptions).toHaveLength(6);
+    expect(domains.supportTickets).toHaveLength(5);
+    expect(domains.apiKeys).toHaveLength(3);
+    expect(domains.auditLogs).toHaveLength(6);
+    expect(domains.subscriptions.every((item) => customerIds.has(item.customerId))).toBe(true);
+    expect(domains.supportTickets.every((item) => customerIds.has(item.customerId))).toBe(true);
+    expect(domains.customers.map((item) => item.mrrCents)).toEqual([
       12900, 49900, 149900, 49900, 12900, 149900,
     ]);
   });
 
   it('restores a deep clone of every SaaS seed after nested mutations', () => {
-    const initial = structuredClone(getState().examples);
+    const initial = structuredClone(getState().domains);
 
-    getState().examples.customers[0]!.name = 'Mutated customer';
-    getState().examples.apiKeys[0]!.scopes.push('audit:read');
-    getState().examples.auditLogs[0]!.metadata.customerName = 'Mutated metadata';
-    getState().examples.invoices[0]!.items[0]!.description = 'Mutated item';
+    getState().domains.customers[0]!.name = 'Mutated customer';
+    getState().domains.apiKeys[0]!.scopes.push('audit:read');
+    getState().domains.auditLogs[0]!.metadata.customerName = 'Mutated metadata';
+    getState().domains.invoices[0]!.items[0]!.description = 'Mutated item';
 
     resetToSeed();
 
-    expect(getState().examples).toEqual(initial);
-    expect(getState().examples).not.toBe(initial);
-    expect(getState().examples.apiKeys[0]!.scopes).not.toBe(initial.apiKeys[0]!.scopes);
-    expect(getState().examples.auditLogs[0]!.metadata).not.toBe(initial.auditLogs[0]!.metadata);
+    expect(getState().domains).toEqual(initial);
+    expect(getState().domains).not.toBe(initial);
+    expect(getState().domains.apiKeys[0]!.scopes).not.toBe(initial.apiKeys[0]!.scopes);
+    expect(getState().domains.auditLogs[0]!.metadata).not.toBe(initial.auditLogs[0]!.metadata);
   });
 
   it('never persists a full API key secret in the mock store', () => {
-    const serialized = JSON.stringify(getState().examples.apiKeys);
+    const serialized = JSON.stringify(getState().domains.apiKeys);
 
     expect(serialized).not.toContain('secret');
-    expect(Object.keys(getState().examples.apiKeys[0] ?? {})).toEqual([
+    expect(Object.keys(getState().domains.apiKeys[0] ?? {})).toEqual([
       'id',
       'name',
       'prefix',

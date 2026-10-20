@@ -29,17 +29,17 @@ function menuPermission(
   };
 }
 
-const EXAMPLE_READ_ACTIONS = [PermissionActionType.READ];
-const EXAMPLE_MANAGE_ACTIONS = [
+const RESOURCE_READ_ACTIONS = [PermissionActionType.READ];
+const RESOURCE_MANAGE_ACTIONS = [
   PermissionActionType.CREATE,
   PermissionActionType.READ,
   PermissionActionType.UPDATE,
   PermissionActionType.DELETE,
 ];
-const INVOICE_MANAGE_ACTIONS = [...EXAMPLE_MANAGE_ACTIONS, PermissionActionType.EXPORT];
+const INVOICE_MANAGE_ACTIONS = [...RESOURCE_MANAGE_ACTIONS, PermissionActionType.EXPORT];
 const INVOICE_VIEW_ACTIONS = [PermissionActionType.READ, PermissionActionType.EXPORT];
 
-function exampleMenuPermission(
+function resourceMenuPermission(
   id: string,
   label: string,
   route: string,
@@ -50,60 +50,60 @@ function exampleMenuPermission(
   return menuPermission(id, label, route, actions, { component, ...overrides });
 }
 
-function examplePermissions(isAdmin: boolean): PermissionWithChildRead {
-  const actions = isAdmin ? EXAMPLE_MANAGE_ACTIONS : EXAMPLE_READ_ACTIONS;
+function resourcePermissions(isAdmin: boolean, parentId: string): PermissionWithChildRead[] {
+  const actions = isAdmin ? RESOURCE_MANAGE_ACTIONS : RESOURCE_READ_ACTIONS;
   const invoiceActions = isAdmin ? INVOICE_MANAGE_ACTIONS : INVOICE_VIEW_ACTIONS;
   const revenueChildren = [
-    exampleMenuPermission(
-      'perm-examples-subscriptions',
-      'examples.menu.subscriptions',
+    resourceMenuPermission(
+      'perm-app-subscriptions',
+      'app.menu.subscriptions',
       'subscriptions',
-      '/examples/subscriptions/index.tsx',
+      '/subscriptions/index.tsx',
       actions,
-      { parent_id: 'perm-examples-revenue', order: '0', icon: 'mdi:repeat' },
+      { parent_id: 'perm-app-revenue', order: '0', icon: 'mdi:repeat' },
     ),
-    exampleMenuPermission(
-      'perm-examples-invoices',
-      'examples.menu.invoices',
+    resourceMenuPermission(
+      'perm-app-invoices',
+      'app.menu.invoices',
       'invoices',
-      '/examples/invoices/list/index.tsx',
+      '/invoices/list/index.tsx',
       invoiceActions,
-      { parent_id: 'perm-examples-revenue', order: '1', icon: 'mdi:file-document-outline' },
+      { parent_id: 'perm-app-revenue', order: '1', icon: 'mdi:file-document-outline' },
     ),
-    exampleMenuPermission(
-      'perm-examples-invoices-new',
-      'examples.invoices.new',
+    resourceMenuPermission(
+      'perm-app-invoices-new',
+      'app.invoices.new',
       'invoices/new',
-      '/examples/invoices/editor/index.tsx',
+      '/invoices/editor/index.tsx',
       invoiceActions,
       {
-        parent_id: 'perm-examples-revenue',
+        parent_id: 'perm-app-revenue',
         order: '2',
         is_hide: true,
         required_action: PermissionActionType.CREATE,
       },
     ),
-    exampleMenuPermission(
-      'perm-examples-invoices-edit',
-      'examples.invoices.edit',
+    resourceMenuPermission(
+      'perm-app-invoices-edit',
+      'app.invoices.edit',
       'invoices/:id/edit',
-      '/examples/invoices/editor/index.tsx',
+      '/invoices/editor/index.tsx',
       invoiceActions,
       {
-        parent_id: 'perm-examples-revenue',
+        parent_id: 'perm-app-revenue',
         order: '3',
         is_hide: true,
         required_action: PermissionActionType.UPDATE,
       },
     ),
-    exampleMenuPermission(
-      'perm-examples-invoices-preview',
-      'examples.invoices.preview',
+    resourceMenuPermission(
+      'perm-app-invoices-preview',
+      'app.invoices.preview',
       'invoices/:id',
-      '/examples/invoices/preview/index.tsx',
+      '/invoices/preview/index.tsx',
       invoiceActions,
       {
-        parent_id: 'perm-examples-revenue',
+        parent_id: 'perm-app-revenue',
         order: '4',
         is_hide: true,
         required_action: PermissionActionType.READ,
@@ -111,119 +111,121 @@ function examplePermissions(isAdmin: boolean): PermissionWithChildRead {
     ),
   ];
 
-  return {
-    id: 'perm-examples',
-    created_at: MOCK_TIMESTAMP,
-    updated_at: MOCK_TIMESTAMP,
-    parent_id: null,
-    is_active: true,
-    label: 'examples.menu.index',
-    type: PermissionType.CATALOGUE,
-    status: BasicStatus.ENABLE,
-    route: 'examples',
-    order: '2',
-    name: 'examples',
-    module_name: 'examples',
-    icon: 'mdi:application-brackets-outline',
-    children: [
-      exampleMenuPermission(
-        'perm-examples-customers',
-        'examples.menu.customers',
-        'customers',
-        '/examples/customers/index.tsx',
-        actions,
-        { parent_id: 'perm-examples', order: '0', icon: 'mdi:office-building-outline' },
-      ),
+  return [
+    resourceMenuPermission(
+      'perm-app-customers',
+      'app.menu.customers',
+      'customers',
+      '/customers/index.tsx',
+      actions,
+      { parent_id: parentId, order: '1', icon: 'mdi:office-building-outline' },
+    ),
+    {
+      id: 'perm-app-revenue',
+      created_at: MOCK_TIMESTAMP,
+      updated_at: MOCK_TIMESTAMP,
+      parent_id: parentId,
+      is_active: true,
+      label: 'app.menu.revenue',
+      type: PermissionType.CATALOGUE,
+      status: BasicStatus.ENABLE,
+      route: 'revenue',
+      order: '2',
+      name: 'app-revenue',
+      module_name: 'app',
+      icon: 'mdi:cash-multiple',
+      actions_allowed: actions,
+      children: revenueChildren,
+    },
+    {
+      id: 'perm-app-support',
+      created_at: MOCK_TIMESTAMP,
+      updated_at: MOCK_TIMESTAMP,
+      parent_id: parentId,
+      is_active: true,
+      label: 'app.menu.support',
+      type: PermissionType.CATALOGUE,
+      status: BasicStatus.ENABLE,
+      route: 'support',
+      order: '3',
+      name: 'app-support',
+      module_name: 'app',
+      icon: 'mdi:lifebuoy',
+      actions_allowed: actions,
+      children: [
+        resourceMenuPermission(
+          'perm-app-tickets',
+          'app.menu.tickets',
+          'tickets',
+          '/tickets/index.tsx',
+          actions,
+          { parent_id: 'perm-app-support', order: '0' },
+        ),
+      ],
+    },
+    {
+      id: 'perm-app-platform',
+      created_at: MOCK_TIMESTAMP,
+      updated_at: MOCK_TIMESTAMP,
+      parent_id: parentId,
+      is_active: true,
+      label: 'app.menu.platform',
+      type: PermissionType.CATALOGUE,
+      status: BasicStatus.ENABLE,
+      route: 'platform',
+      order: '4',
+      name: 'app-platform',
+      module_name: 'app',
+      icon: 'mdi:shield-key-outline',
+      actions_allowed: isAdmin ? RESOURCE_READ_ACTIONS : [],
+      is_hide: !isAdmin,
+      children: [
+        resourceMenuPermission(
+          'perm-app-api-keys',
+          'app.menu.apiKeys',
+          'api-keys',
+          '/api-keys/index.tsx',
+          isAdmin ? RESOURCE_MANAGE_ACTIONS : [],
+          {
+            parent_id: 'perm-app-platform',
+            order: '0',
+            is_hide: !isAdmin,
+            required_action: PermissionActionType.READ,
+          },
+        ),
+        resourceMenuPermission(
+          'perm-app-audit-logs',
+          'app.menu.auditLogs',
+          'audit-logs',
+          '/audit-logs/index.tsx',
+          isAdmin ? RESOURCE_READ_ACTIONS : [],
+          {
+            parent_id: 'perm-app-platform',
+            order: '1',
+            is_hide: !isAdmin,
+            required_action: PermissionActionType.READ,
+          },
+        ),
+      ],
+    },
+  ];
+}
+
+function workbenchChildren(isAdmin: boolean): PermissionWithChildRead[] {
+  return [
+    menuPermission(
+      'perm-workbench-overview',
+      'sys.menu.overview',
+      'overview',
+      [PermissionActionType.READ],
       {
-        id: 'perm-examples-revenue',
-        created_at: MOCK_TIMESTAMP,
-        updated_at: MOCK_TIMESTAMP,
-        parent_id: 'perm-examples',
-        is_active: true,
-        label: 'examples.menu.revenue',
-        type: PermissionType.CATALOGUE,
-        status: BasicStatus.ENABLE,
-        route: 'revenue',
-        order: '1',
-        name: 'examples-revenue',
-        module_name: 'examples',
-        icon: 'mdi:cash-multiple',
-        actions_allowed: actions,
-        children: revenueChildren,
+        parent_id: 'perm-workbench',
+        order: '0',
+        component: '/workbench/overview/index.tsx',
       },
-      {
-        id: 'perm-examples-support',
-        created_at: MOCK_TIMESTAMP,
-        updated_at: MOCK_TIMESTAMP,
-        parent_id: 'perm-examples',
-        is_active: true,
-        label: 'examples.menu.support',
-        type: PermissionType.CATALOGUE,
-        status: BasicStatus.ENABLE,
-        route: 'support',
-        order: '2',
-        name: 'examples-support',
-        module_name: 'examples',
-        icon: 'mdi:lifebuoy',
-        actions_allowed: actions,
-        children: [
-          exampleMenuPermission(
-            'perm-examples-tickets',
-            'examples.menu.tickets',
-            'tickets',
-            '/examples/tickets/index.tsx',
-            actions,
-            { parent_id: 'perm-examples-support', order: '0' },
-          ),
-        ],
-      },
-      {
-        id: 'perm-examples-platform',
-        created_at: MOCK_TIMESTAMP,
-        updated_at: MOCK_TIMESTAMP,
-        parent_id: 'perm-examples',
-        is_active: true,
-        label: 'examples.menu.platform',
-        type: PermissionType.CATALOGUE,
-        status: BasicStatus.ENABLE,
-        route: 'platform',
-        order: '3',
-        name: 'examples-platform',
-        module_name: 'examples',
-        icon: 'mdi:shield-key-outline',
-        actions_allowed: isAdmin ? EXAMPLE_READ_ACTIONS : [],
-        is_hide: !isAdmin,
-        children: [
-          exampleMenuPermission(
-            'perm-examples-api-keys',
-            'examples.menu.apiKeys',
-            'api-keys',
-            '/examples/api-keys/index.tsx',
-            isAdmin ? EXAMPLE_MANAGE_ACTIONS : [],
-            {
-              parent_id: 'perm-examples-platform',
-              order: '0',
-              is_hide: !isAdmin,
-              required_action: PermissionActionType.READ,
-            },
-          ),
-          exampleMenuPermission(
-            'perm-examples-audit-logs',
-            'examples.menu.auditLogs',
-            'audit-logs',
-            '/examples/audit-logs/index.tsx',
-            isAdmin ? EXAMPLE_READ_ACTIONS : [],
-            {
-              parent_id: 'perm-examples-platform',
-              order: '1',
-              is_hide: !isAdmin,
-              required_action: PermissionActionType.READ,
-            },
-          ),
-        ],
-      },
-    ],
-  };
+    ),
+    ...resourcePermissions(isAdmin, 'perm-workbench'),
+  ];
 }
 
 export const ADMIN_PERMISSIONS: PermissionWithChildRead[] = [
@@ -241,19 +243,7 @@ export const ADMIN_PERMISSIONS: PermissionWithChildRead[] = [
     name: 'workbench',
     module_name: 'system',
     icon: 'mdi:view-dashboard-outline',
-    children: [
-      menuPermission(
-        'perm-workbench-overview',
-        'sys.menu.overview',
-        'overview',
-        [PermissionActionType.READ],
-        {
-          parent_id: 'perm-workbench',
-          order: '0',
-          component: '/workbench/overview/index.tsx',
-        },
-      ),
-    ],
+    children: workbenchChildren(true),
   },
   {
     id: 'perm-management',
@@ -312,7 +302,6 @@ export const ADMIN_PERMISSIONS: PermissionWithChildRead[] = [
       ),
     ],
   },
-  examplePermissions(true),
 ];
 
 export const VIEWER_PERMISSIONS: PermissionWithChildRead[] = [
@@ -330,19 +319,7 @@ export const VIEWER_PERMISSIONS: PermissionWithChildRead[] = [
     name: 'workbench',
     module_name: 'system',
     icon: 'mdi:view-dashboard-outline',
-    children: [
-      menuPermission(
-        'perm-workbench-overview',
-        'sys.menu.overview',
-        'overview',
-        [PermissionActionType.READ],
-        {
-          parent_id: 'perm-workbench',
-          order: '0',
-          component: '/workbench/overview/index.tsx',
-        },
-      ),
-    ],
+    children: workbenchChildren(false),
   },
   {
     id: 'perm-management-viewer',
@@ -373,7 +350,6 @@ export const VIEWER_PERMISSIONS: PermissionWithChildRead[] = [
       ),
     ],
   },
-  examplePermissions(false),
 ];
 
 export function permissionsForRole(roleName: string): PermissionWithChildRead[] {

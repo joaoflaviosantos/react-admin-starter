@@ -261,9 +261,8 @@
       }
     }
   },
-  "examples": {
+  "app": {
     "menu": {
-      "index": "Examples",
       "customers": "Customers",
       "revenue": "Revenue",
       "subscriptions": "Subscriptions",

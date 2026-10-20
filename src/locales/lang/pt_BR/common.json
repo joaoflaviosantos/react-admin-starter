@@ -261,9 +261,8 @@
       }
     }
   },
-  "examples": {
+  "app": {
     "menu": {
-      "index": "Exemplos",
       "customers": "Clientes",
       "revenue": "Receita",
       "subscriptions": "Assinaturas",

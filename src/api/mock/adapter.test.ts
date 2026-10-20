@@ -174,9 +174,9 @@ describe('mock axios adapter', () => {
     });
   });
 
-  it('delegates recognized Examples routes and requires a Bearer token', () => {
+  it('delegates recognized Domain routes and requires a Bearer token', () => {
     const response = handleMockRequest({
-      url: '/v1/examples/revenue/invoices',
+      url: '/v1/revenue/invoices',
       method: 'get',
       headers: {},
     } as never);
@@ -184,11 +184,11 @@ describe('mock axios adapter', () => {
     expect(response).toEqual({ status: 401, data: { detail: 'User not authenticated.' } });
   });
 
-  it('rejects Examples mutations from viewers before a domain handler changes state', async () => {
+  it('rejects Domain mutations from viewers before a domain handler changes state', async () => {
     await signInAsViewer();
 
     const error = await apiClient
-      .post({ url: '/v1/examples/revenue/invoices', data: { number: 'INV-BLOCKED' } })
+      .post({ url: '/v1/revenue/invoices', data: { number: 'INV-BLOCKED' } })
       .catch((err: unknown) => err);
 
     expect(error).toBeInstanceOf(AxiosError);
@@ -197,21 +197,21 @@ describe('mock axios adapter', () => {
     });
   });
 
-  it('returns a consistent 404 shape for an unimplemented Examples endpoint', async () => {
+  it('returns a consistent 404 shape for an unimplemented Domain endpoint', async () => {
     await signInAsAdmin();
 
-    const error = await apiClient.get({ url: '/v1/examples/unknown' }).catch((err: unknown) => err);
+    const error = await apiClient.get({ url: '/v1/unknown' }).catch((err: unknown) => err);
 
     expect(error).toBeInstanceOf(AxiosError);
     expect(error).toMatchObject({
-      response: { status: 404, data: { detail: 'No mock handler for GET /v1/examples/unknown' } },
+      response: { status: 404, data: { detail: 'No mock handler for GET /v1/unknown' } },
     });
   });
 
   it('registers only the revised SaaS domains', async () => {
-    const { examplesDomainHandlers } = await import('./handlers/examples/domains');
+    const { domainHandlers } = await import('./handlers/domains/domains');
 
-    expect(examplesDomainHandlers.map((domain) => domain.name)).toEqual([
+    expect(domainHandlers.map((domain) => domain.name)).toEqual([
       'customers',
       'subscriptions',
       'invoices',
@@ -223,22 +223,22 @@ describe('mock axios adapter', () => {
   });
 
   it('enforces domain-specific permission actions before dispatching a mutation', () => {
-    const before = structuredClone(getState().examples);
+    const before = structuredClone(getState().domains);
     const response = handleMockRequest({
-      url: '/v1/examples/revenue/invoices',
+      url: '/v1/revenue/invoices',
       method: 'post',
       data: { number: 'INV-BYPASS' },
       headers: { Authorization: 'Bearer mock-token-user-viewer' },
     } as never);
 
     expect(response).toEqual({ status: 403, data: { detail: 'Insufficient permissions.' } });
-    expect(getState().examples).toEqual(before);
+    expect(getState().domains).toEqual(before);
   });
 
   it('distinguishes inaccessible domains, unsupported methods and invalid bodies', () => {
     expect(
       handleMockRequest({
-        url: '/v1/examples/platform/api-keys',
+        url: '/v1/platform/api-keys',
         method: 'get',
         headers: { Authorization: 'Bearer mock-token-user-viewer' },
       } as never),
@@ -246,7 +246,7 @@ describe('mock axios adapter', () => {
 
     expect(
       handleMockRequest({
-        url: '/v1/examples/platform/audit-logs',
+        url: '/v1/platform/audit-logs',
         method: 'post',
         headers: { Authorization: 'Bearer mock-token-user-admin' },
       } as never),
@@ -254,7 +254,7 @@ describe('mock axios adapter', () => {
 
     expect(
       handleMockRequest({
-        url: '/v1/examples/revenue/invoices',
+        url: '/v1/revenue/invoices',
         method: 'post',
         data: '{malformed',
         headers: { Authorization: 'Bearer mock-token-user-admin' },

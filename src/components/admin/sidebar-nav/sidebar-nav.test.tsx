@@ -25,15 +25,15 @@ const menuItems: AdminMenuItem[] = [
 
 const nestedMenuItems: AdminMenuItem[] = [
   {
-    key: '/examples',
-    label: 'Exemplos',
+    key: '/workbench',
+    label: 'Workbench',
     children: [
       {
-        key: '/examples/revenue',
+        key: '/workbench/revenue',
         label: 'Receita',
         children: [
-          { key: '/examples/revenue/subscriptions', label: 'Assinaturas' },
-          { key: '/examples/revenue/invoices', label: 'Faturas' },
+          { key: '/workbench/revenue/subscriptions', label: 'Assinaturas' },
+          { key: '/workbench/revenue/invoices', label: 'Faturas' },
         ],
       },
     ],
@@ -101,21 +101,21 @@ describe('AdminNavMenu nested catalogues', () => {
     render(
       <AdminNavMenu
         items={nestedMenuItems}
-        selectedKey="/examples/revenue/invoices"
-        openKeys={['/examples', '/examples/revenue']}
+        selectedKey="/workbench/revenue/invoices"
+        openKeys={['/workbench', '/workbench/revenue']}
         onOpenChange={vi.fn()}
         onSelect={onSelect}
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Exemplos' })).toHaveClass('text-primary');
+    expect(screen.getByRole('button', { name: 'Workbench' })).toHaveClass('text-primary');
     expect(screen.getByRole('button', { name: 'Receita' })).toHaveClass('text-primary');
 
     await user.click(screen.getByRole('button', { name: 'Faturas' }));
 
-    expect(onSelect).toHaveBeenCalledWith('/examples/revenue/invoices');
-    expect(onSelect).not.toHaveBeenCalledWith('/examples');
-    expect(onSelect).not.toHaveBeenCalledWith('/examples/revenue');
+    expect(onSelect).toHaveBeenCalledWith('/workbench/revenue/invoices');
+    expect(onSelect).not.toHaveBeenCalledWith('/workbench');
+    expect(onSelect).not.toHaveBeenCalledWith('/workbench/revenue');
   });
 
   it('opens a third-level item from the mini hover menu', async () => {
@@ -125,7 +125,7 @@ describe('AdminNavMenu nested catalogues', () => {
     render(
       <AdminNavMenu
         items={nestedMenuItems}
-        selectedKey="/examples/revenue/invoices"
+        selectedKey="/workbench/revenue/invoices"
         openKeys={[]}
         onOpenChange={vi.fn()}
         onSelect={onSelect}
@@ -133,11 +133,11 @@ describe('AdminNavMenu nested catalogues', () => {
       />,
     );
 
-    await user.hover(screen.getByRole('button', { name: 'Exemplos' }));
+    await user.hover(screen.getByRole('button', { name: 'Workbench' }));
     await user.hover(await screen.findByRole('menuitem', { name: 'Receita' }));
     await user.click(await screen.findByRole('menuitem', { name: 'Faturas' }));
 
-    expect(onSelect).toHaveBeenCalledWith('/examples/revenue/invoices');
+    expect(onSelect).toHaveBeenCalledWith('/workbench/revenue/invoices');
   });
 
   it('opens and selects a third-level item from the horizontal hover menu', async () => {
@@ -147,7 +147,7 @@ describe('AdminNavMenu nested catalogues', () => {
     render(
       <AdminNavMenu
         items={nestedMenuItems}
-        selectedKey="/examples/revenue/invoices"
+        selectedKey="/workbench/revenue/invoices"
         openKeys={[]}
         onOpenChange={vi.fn()}
         onSelect={onSelect}
@@ -155,10 +155,10 @@ describe('AdminNavMenu nested catalogues', () => {
       />,
     );
 
-    await user.hover(screen.getByRole('button', { name: 'Exemplos' }));
+    await user.hover(screen.getByRole('button', { name: 'Workbench' }));
     await user.hover(await screen.findByRole('menuitem', { name: 'Receita' }));
     await user.click(await screen.findByRole('menuitem', { name: 'Faturas' }));
 
-    expect(onSelect).toHaveBeenCalledWith('/examples/revenue/invoices');
+    expect(onSelect).toHaveBeenCalledWith('/workbench/revenue/invoices');
   });
 });

@@ -4,13 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { DashboardResponse } from '#/examples';
+import type { DashboardResponse } from '#/domain';
 
 import OverviewPage from './index';
 
 const { getDashboard } = vi.hoisted(() => ({ getDashboard: vi.fn() }));
 
-vi.mock('@/api/services/examples/dashboardService', () => ({
+vi.mock('@/api/services/domains/dashboardService', () => ({
   default: { getDashboard },
 }));
 

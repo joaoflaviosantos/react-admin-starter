@@ -13,23 +13,23 @@ const mocks = vi.hoisted(() => ({
   closeDrawer: vi.fn(),
   navProps: vi.fn(),
   matches: [
-    { pathname: '/examples' },
-    { pathname: '/examples/revenue' },
-    { pathname: '/examples/revenue/invoices' },
+    { pathname: '/workbench' },
+    { pathname: '/workbench/revenue' },
+    { pathname: '/workbench/revenue/invoices' },
   ],
 }));
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mocks.navigate,
   useMatches: () => mocks.matches,
-  useLocation: () => ({ pathname: '/examples/revenue/invoices' }),
+  useLocation: () => ({ pathname: '/workbench/revenue/invoices' }),
 }));
 vi.mock('@/components/admin/sidebar-nav', () => ({
   AdminNavMenu: (props: Record<string, unknown>) => {
     mocks.navProps(props);
     return (
       <button
-        onClick={() => (props.onSelect as (key: string) => void)('/examples/revenue/invoices')}
+        onClick={() => (props.onSelect as (key: string) => void)('/workbench/revenue/invoices')}
       >
         Select invoices
       </button>
@@ -42,9 +42,9 @@ vi.mock('@/components/scrollbar', () => ({
   default: ({ children }: { children: ReactNode }) => children,
 }));
 vi.mock('@/router/hooks', () => ({
-  useFlattenedRoutes: () => [{ key: '/examples/revenue/invoices' }],
+  useFlattenedRoutes: () => [{ key: '/workbench/revenue/invoices' }],
   usePermissionRoutes: () => [],
-  useRouteToMenuFn: () => () => [{ key: '/examples', label: 'Examples' }],
+  useRouteToMenuFn: () => () => [{ key: '/workbench', label: 'Workbench' }],
 }));
 vi.mock('@/store/settingStore', () => ({
   useSettings: () => ({
@@ -55,7 +55,7 @@ vi.mock('@/store/settingStore', () => ({
 }));
 vi.mock('@/theme/hooks', () => ({ useTheme: () => ({ colorPrimary: '#000' }) }));
 
-describe('Examples navigation shells', () => {
+describe('Workbench navigation shells', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.layout = ThemeLayout.Vertical;
@@ -66,7 +66,7 @@ describe('Examples navigation shells', () => {
     render(<Nav />);
     expect(mocks.navProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        selectedKey: '/examples/revenue/invoices',
+        selectedKey: '/workbench/revenue/invoices',
         collapsed: false,
       }),
     );
@@ -77,7 +77,7 @@ describe('Examples navigation shells', () => {
     render(<Nav />);
     expect(mocks.navProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        selectedKey: '/examples/revenue/invoices',
+        selectedKey: '/workbench/revenue/invoices',
         collapsed: true,
       }),
     );
@@ -88,12 +88,12 @@ describe('Examples navigation shells', () => {
     render(<Nav closeSideBarDrawer={mocks.closeDrawer} />);
     expect(mocks.navProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        selectedKey: '/examples/revenue/invoices',
+        selectedKey: '/workbench/revenue/invoices',
         collapsed: false,
       }),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Select invoices' }));
-    expect(mocks.navigate).toHaveBeenCalledWith('/examples/revenue/invoices');
+    expect(mocks.navigate).toHaveBeenCalledWith('/workbench/revenue/invoices');
     expect(mocks.closeDrawer).toHaveBeenCalledTimes(1);
   });
 
@@ -101,7 +101,7 @@ describe('Examples navigation shells', () => {
     render(<NavHorizontal />);
     expect(mocks.navProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        selectedKey: '/examples/revenue/invoices',
+        selectedKey: '/workbench/revenue/invoices',
         mode: 'horizontal',
       }),
     );

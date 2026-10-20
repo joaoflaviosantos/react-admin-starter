@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
-import dashboardService from '@/api/services/examples/dashboardService';
+import dashboardService from '@/api/services/domains/dashboardService';
 import { NativeChart } from '@/components/admin/chart';
 import { AdminPage, AdminPageHeader } from '@/components/admin/page';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -16,7 +16,7 @@ import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-p
 import { useTheme } from '@/theme/hooks';
 import { useUserInfo } from '@/store/userStore';
 import { ThemeMode } from '#/enum';
-import type { DashboardPeriod, DashboardResponse } from '#/examples';
+import type { DashboardPeriod, DashboardResponse } from '#/domain';
 
 const periods: DashboardPeriod[] = ['30d', '90d', '12m'];
 const defaultPeriod: DashboardPeriod = '12m';
@@ -101,7 +101,7 @@ function dashboardOptions(data: DashboardResponse, t: (key: string) => string, d
     tooltip: { trigger: 'axis' },
     legend: {
       textStyle: { color: textColor },
-      data: [t('examples.dashboard.revenueMrr'), t('examples.dashboard.mrrShort')],
+      data: [t('app.dashboard.revenueMrr'), t('app.dashboard.mrrShort')],
     },
     grid: { left: 8, right: 8, bottom: 8, top: 28, containLabel: true },
     xAxis: {
@@ -116,12 +116,12 @@ function dashboardOptions(data: DashboardResponse, t: (key: string) => string, d
     },
     series: [
       {
-        name: t('examples.dashboard.revenueMrr'),
+        name: t('app.dashboard.revenueMrr'),
         type: 'bar',
         data: data.revenueMrr.map((point) => point.revenueCents / 100),
       },
       {
-        name: t('examples.dashboard.mrrShort'),
+        name: t('app.dashboard.mrrShort'),
         type: 'line',
         smooth: true,
         data: data.revenueMrr.map((point) => point.mrrCents / 100),
@@ -138,7 +138,7 @@ function dashboardOptions(data: DashboardResponse, t: (key: string) => string, d
         avoidLabelOverlap: true,
         label: { show: false },
         data: data.planDistribution.map((item) => ({
-          name: t(`examples.common.options.${item.plan}`),
+          name: t(`app.common.options.${item.plan}`),
           value: item.count,
         })),
       },
@@ -155,7 +155,7 @@ function dashboardOptions(data: DashboardResponse, t: (key: string) => string, d
     },
     yAxis: {
       type: 'category',
-      data: data.acquisition.map((item) => t(`examples.common.options.${item.source}`)),
+      data: data.acquisition.map((item) => t(`app.common.options.${item.source}`)),
       axisLabel: { color: textColor },
     },
     series: [{ type: 'bar', data: data.acquisition.map((item) => item.count), barMaxWidth: 24 }],
@@ -187,7 +187,7 @@ export default function OverviewPage() {
     next.set('period', nextPeriod);
     setSearchParams(next);
   };
-  const comparison = t('examples.dashboard.change');
+  const comparison = t('app.dashboard.change');
   const date = (value: string) =>
     new Intl.DateTimeFormat(i18n.language === 'pt_BR' ? 'pt-BR' : 'en-US', {
       dateStyle: 'medium',
@@ -197,20 +197,20 @@ export default function OverviewPage() {
   return (
     <AdminPage>
       <AdminPageHeader
-        title={t('examples.dashboard.title')}
-        description={`${t('examples.dashboard.description')} · ${userInfo.name ?? 'User'}`}
+        title={t('app.dashboard.title')}
+        description={`${t('app.dashboard.description')} · ${userInfo.name ?? 'User'}`}
         actions={
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{t('examples.dashboard.periodLabel')}</span>
+            <span>{t('app.dashboard.periodLabel')}</span>
             <select
               className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-              aria-label={t('examples.dashboard.periodLabel')}
+              aria-label={t('app.dashboard.periodLabel')}
               value={period}
               onChange={(event) => setPeriod(event.target.value as DashboardPeriod)}
             >
               {periods.map((value) => (
                 <option key={value} value={value}>
-                  {t(`examples.dashboard.period${value}`)}
+                  {t(`app.dashboard.period${value}`)}
                 </option>
               ))}
             </select>
@@ -221,84 +221,84 @@ export default function OverviewPage() {
         <DashboardLoading />
       ) : query.error || !data ? (
         <Alert variant="destructive">
-          <AlertDescription>{t('examples.dashboard.loadError')}</AlertDescription>
+          <AlertDescription>{t('app.dashboard.loadError')}</AlertDescription>
         </Alert>
       ) : (
         <div className="space-y-4" data-testid="dashboard-content">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <KpiCard
               icon={DollarSign}
-              label={t('examples.dashboard.mrr')}
+              label={t('app.dashboard.mrr')}
               value={formatMoney(data.kpis.mrr.value, i18n.language)}
               comparison={`${data.kpis.mrr.changePercent}% ${comparison}`}
             />
             <KpiCard
               icon={CreditCard}
-              label={t('examples.dashboard.activeSubscriptions')}
+              label={t('app.dashboard.activeSubscriptions')}
               value={formatNumber(data.kpis.activeSubscriptions.value, i18n.language)}
               comparison={`${data.kpis.activeSubscriptions.changePercent}% ${comparison}`}
             />
             <KpiCard
               icon={Users}
-              label={t('examples.dashboard.trialConversion')}
+              label={t('app.dashboard.trialConversion')}
               value={`${data.kpis.trialConversion.value}%`}
               comparison={`${data.kpis.trialConversion.changePercent}% ${comparison}`}
             />
             <KpiCard
               icon={BarChart3}
-              label={t('examples.dashboard.churn')}
+              label={t('app.dashboard.churn')}
               value={`${data.kpis.churn.value}%`}
               comparison={`${data.kpis.churn.changePercent}% ${comparison}`}
             />
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
-            <ChartCard title={t('examples.dashboard.revenueMrr')}>
+            <ChartCard title={t('app.dashboard.revenueMrr')}>
               <NativeChart
-                title={t('examples.dashboard.revenueMrr')}
+                title={t('app.dashboard.revenueMrr')}
                 option={options!.revenueOption}
                 state={chartState(data.sectionStates.revenueMrr.status)}
                 stateMessage={
                   data.sectionStates.revenueMrr.status === 'error'
-                    ? t('examples.dashboard.loadError')
-                    : t('examples.dashboard.empty')
+                    ? t('app.dashboard.loadError')
+                    : t('app.dashboard.empty')
                 }
                 theme={themeMode === ThemeMode.Dark ? 'dark' : 'light'}
-                ariaLabel={t('examples.dashboard.revenueMrr')}
+                ariaLabel={t('app.dashboard.revenueMrr')}
               />
             </ChartCard>
-            <ChartCard title={t('examples.dashboard.plans')}>
+            <ChartCard title={t('app.dashboard.plans')}>
               <NativeChart
-                title={t('examples.dashboard.plans')}
+                title={t('app.dashboard.plans')}
                 option={options!.plansOption}
                 state={chartState(data.sectionStates.plans.status)}
                 stateMessage={
                   data.sectionStates.plans.status === 'error'
-                    ? t('examples.dashboard.loadError')
-                    : t('examples.dashboard.empty')
+                    ? t('app.dashboard.loadError')
+                    : t('app.dashboard.empty')
                 }
                 theme={themeMode === ThemeMode.Dark ? 'dark' : 'light'}
-                ariaLabel={t('examples.dashboard.plans')}
+                ariaLabel={t('app.dashboard.plans')}
               />
             </ChartCard>
-            <ChartCard title={t('examples.dashboard.acquisition')}>
+            <ChartCard title={t('app.dashboard.acquisition')}>
               <NativeChart
-                title={t('examples.dashboard.acquisition')}
+                title={t('app.dashboard.acquisition')}
                 option={options!.acquisitionOption}
                 state={chartState(data.sectionStates.acquisition.status)}
                 stateMessage={
                   data.sectionStates.acquisition.status === 'error'
-                    ? t('examples.dashboard.loadError')
-                    : t('examples.dashboard.empty')
+                    ? t('app.dashboard.loadError')
+                    : t('app.dashboard.empty')
                 }
                 theme={themeMode === ThemeMode.Dark ? 'dark' : 'light'}
-                ariaLabel={t('examples.dashboard.acquisition')}
+                ariaLabel={t('app.dashboard.acquisition')}
                 height={280}
               />
             </ChartCard>
-            <ChartCard title={t('examples.dashboard.riskAccounts')}>
-              <div className="space-y-3" aria-label={t('examples.dashboard.riskAccounts')}>
+            <ChartCard title={t('app.dashboard.riskAccounts')}>
+              <div className="space-y-3" aria-label={t('app.dashboard.riskAccounts')}>
                 {data.sectionStates.riskAccounts.status === 'error' ? (
-                  <p className="text-sm text-destructive">{t('examples.dashboard.loadError')}</p>
+                  <p className="text-sm text-destructive">{t('app.dashboard.loadError')}</p>
                 ) : data.riskAccounts.length ? (
                   data.riskAccounts.map((account) => (
                     <div
@@ -308,14 +308,14 @@ export default function OverviewPage() {
                       <div className="min-w-0">
                         <p className="truncate font-medium">{account.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {t('examples.dashboard.riskReason')}
+                          {t('app.dashboard.riskReason')}
                         </p>
                       </div>
                       <Badge variant="destructive">{account.healthScore}</Badge>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">{t('examples.dashboard.empty')}</p>
+                  <p className="text-sm text-muted-foreground">{t('app.dashboard.empty')}</p>
                 )}
               </div>
             </ChartCard>
@@ -324,12 +324,12 @@ export default function OverviewPage() {
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Activity className="h-4 w-4 text-primary" />
-                {t('examples.dashboard.recentActivity')}
+                {t('app.dashboard.recentActivity')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {data.sectionStates.recentActivity.status === 'error' ? (
-                <p className="text-sm text-destructive">{t('examples.dashboard.loadError')}</p>
+                <p className="text-sm text-destructive">{t('app.dashboard.loadError')}</p>
               ) : data.recentActivity.length ? (
                 <div className="space-y-3">
                   {data.recentActivity.map((event) => (
@@ -350,7 +350,7 @@ export default function OverviewPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">{t('examples.dashboard.empty')}</p>
+                <p className="text-sm text-muted-foreground">{t('app.dashboard.empty')}</p>
               )}
             </CardContent>
           </Card>
