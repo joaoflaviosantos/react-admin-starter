@@ -84,7 +84,7 @@ export function transformPermissionToMenuRoutes(
     if (frame_src) appRoute.meta!.frame_src = frame_src;
 
     if (!isAuthorized) {
-      appRoute.element = <Navigate to="/403" replace />;
+      appRoute.element = <Navigate to="/error/403" replace />;
       return appRoute;
     }
 

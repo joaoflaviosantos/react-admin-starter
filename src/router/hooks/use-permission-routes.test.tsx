@@ -6,11 +6,22 @@ import { flattenTrees } from '@/utils/tree';
 
 import { loadPageComponent, transformPermissionToMenuRoutes } from './use-permission-routes';
 
+const appPagePaths = [
+  '/operations/customers/index.tsx',
+  '/operations/subscriptions/index.tsx',
+  '/operations/invoices/index.tsx',
+  '/support/tickets/index.tsx',
+  '/platform/api-keys/index.tsx',
+  '/platform/audit-logs/index.tsx',
+];
+
 describe('permission route page resolution', () => {
-  it('resolves the retained invoice list route to a valid lazy page component', async () => {
-    const module = await loadPageComponent('/invoices/index.tsx');
-    expect(typeof module.default).toBe('function');
-  }, 15_000);
+  it('resolves every normalized page folder to a valid lazy page component', async () => {
+    const modules = await Promise.all(appPagePaths.map((path) => loadPageComponent(path)));
+    for (const module of modules) {
+      expect(typeof module.default).toBe('function');
+    }
+  }, 30_000);
 
   it('rejects a missing page with a diagnostic error instead of returning an invalid lazy ctor', async () => {
     await expect(loadPageComponent('/missing/index.tsx')).rejects.toThrow(
@@ -23,10 +34,11 @@ describe('permission route page resolution', () => {
       VIEWER_PERMISSIONS,
       flattenTrees(VIEWER_PERMISSIONS),
     );
-    const revenue = routes.find((route) => route.path === 'revenue');
+    const operations = routes.find((route) => route.path === 'operations');
     const platformRoute = routes.find((route) => route.path === 'platform');
 
-    expect(revenue?.children?.map((route) => route.path).filter(Boolean)).toEqual([
+    expect(operations?.children?.map((route) => route.path).filter(Boolean)).toEqual([
+      'customers',
       'subscriptions',
       'invoices',
     ]);
@@ -35,7 +47,7 @@ describe('permission route page resolution', () => {
       platformRoute?.children?.find((route) => route.path === 'api-keys')?.element,
     ).toMatchObject({
       type: Navigate,
-      props: { to: '/403', replace: true },
+      props: { to: '/error/403', replace: true },
     });
   });
 });

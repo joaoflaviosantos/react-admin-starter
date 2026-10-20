@@ -4,12 +4,12 @@ import { Navigate, RouteObject, RouterProvider, createBrowserRouter } from 'reac
 import { CircleLoading } from '@/components/loading';
 import DashboardLayout from '@/layouts/dashboard';
 import SimpleLayout from '@/layouts/simple';
-import LoginPage from '@/pages/sys/login';
+import LoginPage from '@/pages/login';
 import AuthGuard from '@/router/components/auth-guard';
 import { usePermissionRoutes } from '@/router/hooks';
 
-const Page404 = lazy(() => import('@/pages/sys/error/404'));
-const Page403 = lazy(() => import('@/pages/sys/error/403'));
+const Page404 = lazy(() => import('@/pages/error/404'));
+const Page403 = lazy(() => import('@/pages/error/403'));
 
 const HOMEPAGE = import.meta.env.VITE_APP_HOMEPAGE ?? '/workbench/overview';
 
@@ -39,7 +39,7 @@ function AppRoutes() {
           ],
         },
         {
-          path: '/403',
+          path: '/error/403',
           element: (
             <AuthGuard>
               <SimpleLayout>
@@ -51,7 +51,7 @@ function AppRoutes() {
           ),
         },
         {
-          path: '/404',
+          path: '/error/404',
           element: (
             <AuthGuard>
               <SimpleLayout>
@@ -64,7 +64,7 @@ function AppRoutes() {
         },
         {
           path: '*',
-          element: <Navigate to="/404" replace />,
+          element: <Navigate to="/error/404" replace />,
         },
       ]),
     [permissionRoutes],

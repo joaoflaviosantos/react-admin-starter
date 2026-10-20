@@ -53,50 +53,50 @@ function resourceMenuPermission(
 function resourcePermissions(isAdmin: boolean): PermissionWithChildRead[] {
   const actions = isAdmin ? RESOURCE_MANAGE_ACTIONS : RESOURCE_READ_ACTIONS;
   const invoiceActions = isAdmin ? INVOICE_MANAGE_ACTIONS : INVOICE_VIEW_ACTIONS;
-  const revenueChildren = [
+  const operationsChildren = [
+    resourceMenuPermission(
+      'perm-app-customers',
+      'app.menu.customers',
+      'customers',
+      '/operations/customers/index.tsx',
+      actions,
+      { parent_id: 'perm-app-operations', order: '0', icon: 'mdi:office-building-outline' },
+    ),
     resourceMenuPermission(
       'perm-app-subscriptions',
       'app.menu.subscriptions',
       'subscriptions',
-      '/subscriptions/index.tsx',
+      '/operations/subscriptions/index.tsx',
       actions,
-      { parent_id: 'perm-app-revenue', order: '0', icon: 'mdi:repeat' },
+      { parent_id: 'perm-app-operations', order: '1', icon: 'mdi:repeat' },
     ),
     resourceMenuPermission(
       'perm-app-invoices',
       'app.menu.invoices',
       'invoices',
-      '/invoices/index.tsx',
+      '/operations/invoices/index.tsx',
       invoiceActions,
-      { parent_id: 'perm-app-revenue', order: '1', icon: 'mdi:file-document-outline' },
+      { parent_id: 'perm-app-operations', order: '2', icon: 'mdi:file-document-outline' },
     ),
   ];
 
   return [
-    resourceMenuPermission(
-      'perm-app-customers',
-      'app.menu.customers',
-      'customers',
-      '/customers/index.tsx',
-      actions,
-      { order: '1', icon: 'mdi:office-building-outline' },
-    ),
     {
-      id: 'perm-app-revenue',
+      id: 'perm-app-operations',
       created_at: MOCK_TIMESTAMP,
       updated_at: MOCK_TIMESTAMP,
       parent_id: null,
       is_active: true,
-      label: 'app.menu.revenue',
+      label: 'app.menu.operations',
       type: PermissionType.CATALOGUE,
       status: BasicStatus.ENABLE,
-      route: 'revenue',
+      route: 'operations',
       order: '2',
-      name: 'app-revenue',
+      name: 'app-operations',
       module_name: 'app',
-      icon: 'mdi:cash-multiple',
+      icon: 'mdi:briefcase-outline',
       actions_allowed: actions,
-      children: revenueChildren,
+      children: operationsChildren,
     },
     {
       id: 'perm-app-support',
@@ -118,7 +118,7 @@ function resourcePermissions(isAdmin: boolean): PermissionWithChildRead[] {
           'perm-app-tickets',
           'app.menu.tickets',
           'tickets',
-          '/tickets/index.tsx',
+          '/support/tickets/index.tsx',
           actions,
           { parent_id: 'perm-app-support', order: '0' },
         ),
@@ -145,7 +145,7 @@ function resourcePermissions(isAdmin: boolean): PermissionWithChildRead[] {
           'perm-app-api-keys',
           'app.menu.apiKeys',
           'api-keys',
-          '/api-keys/index.tsx',
+          '/platform/api-keys/index.tsx',
           isAdmin ? RESOURCE_MANAGE_ACTIONS : [],
           {
             parent_id: 'perm-app-platform',
@@ -158,7 +158,7 @@ function resourcePermissions(isAdmin: boolean): PermissionWithChildRead[] {
           'perm-app-audit-logs',
           'app.menu.auditLogs',
           'audit-logs',
-          '/audit-logs/index.tsx',
+          '/platform/audit-logs/index.tsx',
           isAdmin ? RESOURCE_READ_ACTIONS : [],
           {
             parent_id: 'perm-app-platform',

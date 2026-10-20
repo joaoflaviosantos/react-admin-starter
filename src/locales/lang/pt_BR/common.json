@@ -266,7 +266,7 @@
   "app": {
     "menu": {
       "customers": "Clientes",
-      "revenue": "Receita",
+      "operations": "Operações",
       "subscriptions": "Assinaturas",
       "invoices": "Faturas",
       "support": "Suporte",

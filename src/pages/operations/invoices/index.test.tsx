@@ -76,7 +76,7 @@ vi.mock('@/router/hooks', () => ({
   useRouter: () => ({ push: mocks.push }),
 }));
 
-const renderPage = (route = '/revenue/invoices') =>
+const renderPage = (route = '/operations/invoices') =>
   render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider
@@ -192,7 +192,7 @@ describe('Invoice list page', () => {
   });
 
   it('preserves selection across modes and deletes exactly the selected ID after confirmation', async () => {
-    renderPage('/revenue/invoices?view=grid&status=draft');
+    renderPage('/operations/invoices?view=grid&status=draft');
     const checkbox = await screen.findByRole('checkbox', { name: 'Select INV-1' });
     fireEvent.click(checkbox);
     fireEvent.click(screen.getByRole('button', { name: 'List view' }));

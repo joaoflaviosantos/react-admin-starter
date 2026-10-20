@@ -8,7 +8,9 @@ import ptBR from './lang/pt_BR/common.json';
 
 const sources = import.meta.glob(
   [
-    '../pages/{api-keys,audit-logs,customers,invoices,subscriptions,tickets}/**/*.tsx',
+    '../pages/operations/**/*.tsx',
+    '../pages/platform/**/*.tsx',
+    '../pages/support/**/*.tsx',
     '../pages/workbench/overview/index.tsx',
     '!../pages/**/*.test.tsx',
   ],
@@ -35,7 +37,7 @@ function LanguageProbe() {
 const removedNamespaces = ['chat', 'mailbox', 'tasks', 'notes', 'scrum', 'contacts', 'calendar'];
 const requiredVisibleKeys = [
   'app.menu.customers',
-  'app.menu.revenue',
+  'app.menu.operations',
   'app.menu.subscriptions',
   'app.menu.invoices',
   'app.menu.support',

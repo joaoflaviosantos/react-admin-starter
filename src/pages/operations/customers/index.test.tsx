@@ -40,7 +40,7 @@ vi.mock('@/router/hooks', () => ({
   useMatchRouteMeta: () => ({ label: 'app.menu.customers' }),
 }));
 
-const renderPage = (route = '/customers') =>
+const renderPage = (route = '/operations/customers') =>
   render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider
@@ -69,7 +69,7 @@ describe('Customers page', () => {
   afterEach(cleanup);
 
   it('keeps the same record and authorized actions in table, card and list modes', async () => {
-    const view = renderPage('/customers?status=active');
+    const view = renderPage('/operations/customers?status=active');
     expect(await screen.findByText('Acme Corp')).toBeInTheDocument();
     expect(view.container.querySelector('[data-view-mode="table"]')).toBeInTheDocument();
     for (const action of ['View Acme Corp', 'Edit Acme Corp', 'Archive Acme Corp']) {
@@ -96,7 +96,7 @@ describe('Customers page', () => {
 
   it('passes search and domain filters to the shared query while preserving the view parameter', async () => {
     const user = userEvent.setup();
-    renderPage('/customers?view=grid&campaign=fall');
+    renderPage('/operations/customers?view=grid&campaign=fall');
     await screen.findByText('Acme Corp');
     await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'acme');
     await user.click(screen.getByRole('combobox', { name: 'Status' }));

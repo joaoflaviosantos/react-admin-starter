@@ -59,7 +59,7 @@ vi.mock('@/router/hooks', () => ({
   useMatchRouteMeta: () => ({ label: 'app.menu.subscriptions' }),
 }));
 
-const renderPage = (route = '/revenue/subscriptions') =>
+const renderPage = (route = '/operations/subscriptions') =>
   render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider
@@ -129,7 +129,7 @@ describe('Subscriptions page', () => {
 
   it('passes plan and status filters and resets pagination', async () => {
     const user = userEvent.setup();
-    renderPage('/revenue/subscriptions?view=list');
+    renderPage('/operations/subscriptions?view=list');
     await screen.findByText('Acme Corp');
     await user.click(screen.getByRole('combobox', { name: 'Plan' }));
     await user.click(await screen.findByRole('option', { name: 'Starter' }));

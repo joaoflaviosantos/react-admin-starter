@@ -30,7 +30,7 @@ export function useMatchRouteMeta() {
       }
       setMatchRouteMeta({ ...currentRouteMeta });
     } else if (pathname.startsWith('/management')) {
-      replace('/403');
+      replace('/error/403');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matches]);

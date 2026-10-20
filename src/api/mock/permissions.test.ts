@@ -12,26 +12,37 @@ function resourceChildren(permissions: typeof ADMIN_PERMISSIONS) {
 }
 
 describe('SaaS permission catalogue', () => {
-  it('gives admins the Customers, Revenue, Support and Platform subtrees', () => {
+  it('gives admins the Operations, Support and Platform subtrees', () => {
     const children = resourceChildren(ADMIN_PERMISSIONS);
     expect(children.map((permission) => permission.route)).toEqual([
-      'customers',
-      'revenue',
+      'operations',
       'support',
       'platform',
     ]);
 
     const routes = flattenTrees(children).map((permission) => permission.route);
     expect(routes).toEqual(
-      expect.arrayContaining(['subscriptions', 'invoices', 'tickets', 'api-keys', 'audit-logs']),
+      expect.arrayContaining([
+        'customers',
+        'subscriptions',
+        'invoices',
+        'tickets',
+        'api-keys',
+        'audit-logs',
+      ]),
     );
+    expect(children[0].children?.map((permission) => permission.route)).toEqual([
+      'customers',
+      'subscriptions',
+      'invoices',
+    ]);
   });
 
-  it('gives viewers readable Customers, Revenue and Support while hiding Platform', () => {
+  it('gives viewers readable Operations and Support while hiding Platform', () => {
     const children = resourceChildren(VIEWER_PERMISSIONS);
     expect(
       children.filter((permission) => !permission.is_hide).map((permission) => permission.route),
-    ).toEqual(['customers', 'revenue', 'support']);
+    ).toEqual(['operations', 'support']);
     expect(children.find((permission) => permission.route === 'platform')).toMatchObject({
       is_hide: true,
       actions_allowed: [],

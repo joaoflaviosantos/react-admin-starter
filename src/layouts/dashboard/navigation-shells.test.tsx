@@ -14,22 +14,22 @@ const mocks = vi.hoisted(() => ({
   navProps: vi.fn(),
   matches: [
     { pathname: '/workbench' },
-    { pathname: '/workbench/revenue' },
-    { pathname: '/workbench/revenue/invoices' },
+    { pathname: '/workbench/operations' },
+    { pathname: '/workbench/operations/invoices' },
   ],
 }));
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mocks.navigate,
   useMatches: () => mocks.matches,
-  useLocation: () => ({ pathname: '/workbench/revenue/invoices' }),
+  useLocation: () => ({ pathname: '/workbench/operations/invoices' }),
 }));
 vi.mock('@/components/admin/sidebar-nav', () => ({
   AdminNavMenu: (props: Record<string, unknown>) => {
     mocks.navProps(props);
     return (
       <button
-        onClick={() => (props.onSelect as (key: string) => void)('/workbench/revenue/invoices')}
+        onClick={() => (props.onSelect as (key: string) => void)('/workbench/operations/invoices')}
       >
         Select invoices
       </button>
@@ -42,7 +42,7 @@ vi.mock('@/components/scrollbar', () => ({
   default: ({ children }: { children: ReactNode }) => children,
 }));
 vi.mock('@/router/hooks', () => ({
-  useFlattenedRoutes: () => [{ key: '/workbench/revenue/invoices' }],
+  useFlattenedRoutes: () => [{ key: '/workbench/operations/invoices' }],
   usePermissionRoutes: () => [],
   useRouteToMenuFn: () => () => [{ key: '/workbench', label: 'Workbench' }],
 }));
@@ -66,7 +66,7 @@ describe('Workbench navigation shells', () => {
     render(<Nav />);
     expect(mocks.navProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        selectedKey: '/workbench/revenue/invoices',
+        selectedKey: '/workbench/operations/invoices',
         collapsed: false,
       }),
     );
@@ -77,7 +77,7 @@ describe('Workbench navigation shells', () => {
     render(<Nav />);
     expect(mocks.navProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        selectedKey: '/workbench/revenue/invoices',
+        selectedKey: '/workbench/operations/invoices',
         collapsed: true,
       }),
     );
@@ -88,12 +88,12 @@ describe('Workbench navigation shells', () => {
     render(<Nav closeSideBarDrawer={mocks.closeDrawer} />);
     expect(mocks.navProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        selectedKey: '/workbench/revenue/invoices',
+        selectedKey: '/workbench/operations/invoices',
         collapsed: false,
       }),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Select invoices' }));
-    expect(mocks.navigate).toHaveBeenCalledWith('/workbench/revenue/invoices');
+    expect(mocks.navigate).toHaveBeenCalledWith('/workbench/operations/invoices');
     expect(mocks.closeDrawer).toHaveBeenCalledTimes(1);
   });
 
@@ -101,7 +101,7 @@ describe('Workbench navigation shells', () => {
     render(<NavHorizontal />);
     expect(mocks.navProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        selectedKey: '/workbench/revenue/invoices',
+        selectedKey: '/workbench/operations/invoices',
         mode: 'horizontal',
       }),
     );
