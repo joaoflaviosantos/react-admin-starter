@@ -52,7 +52,7 @@ vi.mock('@/router/hooks', () => ({
   useRouter: () => ({ push: mocks.push }),
 }));
 
-const renderPage = (route = '/workbench/revenue/invoices') =>
+const renderPage = (route = '/revenue/invoices') =>
   render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider
@@ -120,20 +120,20 @@ describe('Invoice list page', () => {
     );
     expect(view.container.querySelector('[data-invoice-id="invoice-real"]')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Preview INV-1' }));
-    expect(mocks.push).toHaveBeenCalledWith('/workbench/revenue/invoices/invoice-real');
+    expect(mocks.push).toHaveBeenCalledWith('/revenue/invoices/invoice-real');
 
     fireEvent.click(screen.getByRole('button', { name: 'List view' }));
     await waitFor(() =>
       expect(view.container.querySelector('[data-view-mode="list"]')).toBeInTheDocument(),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Edit INV-1' }));
-    expect(mocks.push).toHaveBeenCalledWith('/workbench/revenue/invoices/invoice-real/edit');
+    expect(mocks.push).toHaveBeenCalledWith('/revenue/invoices/invoice-real/edit');
     fireEvent.click(screen.getByRole('button', { name: 'New invoice' }));
-    expect(mocks.push).toHaveBeenCalledWith('/workbench/revenue/invoices/new');
+    expect(mocks.push).toHaveBeenCalledWith('/revenue/invoices/new');
   });
 
   it('preserves selection across modes and deletes exactly the selected ID after confirmation', async () => {
-    renderPage('/workbench/revenue/invoices?view=grid&status=draft');
+    renderPage('/revenue/invoices?view=grid&status=draft');
     const checkbox = await screen.findByRole('checkbox', { name: 'Select INV-1' });
     fireEvent.click(checkbox);
     fireEvent.click(screen.getByRole('button', { name: 'List view' }));

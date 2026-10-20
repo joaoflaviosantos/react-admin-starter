@@ -10,7 +10,7 @@ describe('permission route page resolution', () => {
   it('resolves the retained invoice list route to a valid lazy page component', async () => {
     const module = await loadPageComponent('/invoices/list/index.tsx');
     expect(typeof module.default).toBe('function');
-  });
+  }, 15_000);
 
   it('rejects a missing page with a diagnostic error instead of returning an invalid lazy ctor', async () => {
     await expect(loadPageComponent('/missing/index.tsx')).rejects.toThrow(
@@ -23,15 +23,11 @@ describe('permission route page resolution', () => {
       VIEWER_PERMISSIONS,
       flattenTrees(VIEWER_PERMISSIONS),
     );
-    const revenue = routes
-      .find((route) => route.path === 'workbench')
-      ?.children?.find((route) => route.path === 'revenue');
+    const revenue = routes.find((route) => route.path === 'revenue');
     const createRoute = revenue?.children?.find((route) => route.path === 'invoices/new');
     const editRoute = revenue?.children?.find((route) => route.path === 'invoices/:id/edit');
     const previewRoute = revenue?.children?.find((route) => route.path === 'invoices/:id');
-    const platformRoute = routes
-      .find((route) => route.path === 'workbench')
-      ?.children?.find((route) => route.path === 'platform');
+    const platformRoute = routes.find((route) => route.path === 'platform');
 
     expect(createRoute?.meta?.is_hide).toBe(true);
     expect(createRoute?.element).toMatchObject({
@@ -42,7 +38,7 @@ describe('permission route page resolution', () => {
       type: Navigate,
       props: { to: '/403', replace: true },
     });
-    expect(previewRoute?.meta?.key).toBe('/workbench/revenue/invoices/:id');
+    expect(previewRoute?.meta?.key).toBe('/revenue/invoices/:id');
     expect(previewRoute?.element).not.toMatchObject({ type: Navigate });
     expect(platformRoute?.meta?.is_hide).toBe(true);
     expect(

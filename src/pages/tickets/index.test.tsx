@@ -59,7 +59,7 @@ vi.mock('@/router/hooks', () => ({
   useMatchRouteMeta: () => ({ label: 'app.menu.tickets' }),
 }));
 
-const renderPage = (route = '/workbench/support/tickets') =>
+const renderPage = (route = '/support/tickets') =>
   render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider
@@ -131,7 +131,7 @@ describe('Support tickets page', () => {
   });
 
   it('shows operational counts and passes search, status, priority and SLA filters', async () => {
-    renderPage('/workbench/support/tickets?view=list');
+    renderPage('/support/tickets?view=list');
     await screen.findByText('Payment retry is not reflected');
     expect(screen.getByTestId('tickets-count-overdue')).toHaveTextContent('1');
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search tickets' }), {

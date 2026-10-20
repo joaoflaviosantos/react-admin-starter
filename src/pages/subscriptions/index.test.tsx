@@ -58,7 +58,7 @@ vi.mock('@/router/hooks', () => ({
   useMatchRouteMeta: () => ({ label: 'app.menu.subscriptions' }),
 }));
 
-const renderPage = (route = '/workbench/revenue/subscriptions') =>
+const renderPage = (route = '/revenue/subscriptions') =>
   render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider
@@ -128,7 +128,7 @@ describe('Subscriptions page', () => {
   });
 
   it('passes plan, status and interval filters and resets pagination', async () => {
-    renderPage('/workbench/revenue/subscriptions?view=list');
+    renderPage('/revenue/subscriptions?view=list');
     await screen.findByText('Acme Corp');
     fireEvent.change(screen.getByRole('combobox', { name: 'Plan' }), {
       target: { value: 'starter' },

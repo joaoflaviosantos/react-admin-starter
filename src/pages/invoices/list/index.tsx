@@ -67,7 +67,7 @@ export default function InvoiceListPage() {
         size="icon"
         variant="ghost"
         aria-label={t('app.invoices.viewAria', { number: invoice.number })}
-        onClick={() => router.push(`/workbench/revenue/invoices/${invoice.id}`)}
+        onClick={() => router.push(`/revenue/invoices/${invoice.id}`)}
       >
         <Eye className="h-4 w-4" />
       </Button>
@@ -76,7 +76,7 @@ export default function InvoiceListPage() {
           size="icon"
           variant="ghost"
           aria-label={t('app.invoices.editAria', { number: invoice.number })}
-          onClick={() => router.push(`/workbench/revenue/invoices/${invoice.id}/edit`)}
+          onClick={() => router.push(`/revenue/invoices/${invoice.id}/edit`)}
         >
           <Pencil className="h-4 w-4" />
         </Button>
@@ -200,7 +200,7 @@ export default function InvoiceListPage() {
         description={t('app.invoices.description')}
         actions={
           permissions.canCreate ? (
-            <Button onClick={() => router.push('/workbench/revenue/invoices/new')}>
+            <Button onClick={() => router.push('/revenue/invoices/new')}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.invoices.new')}
             </Button>

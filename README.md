@@ -95,12 +95,12 @@ Tests exercise the **mock Axios adapter**, Zustand stores, RBAC hooks, admin UI 
 
 ### Domain data and mock reset
 
-The **Workbench** catalogue demonstrates a B2B SaaS operating model: Customers, Revenue
-(Subscriptions and Invoices), Support (Tickets), and Platform (API Keys and Audit Logs).
-Admin accounts can run the available mutations; viewer accounts can browse the business data in
-read-only mode while platform administration remains admin-only. Each list demonstrates the shared
-table, card-grid, and list presentation modes, and Invoices also exercises the third-level menu at
-`Workbench > Revenue > Invoices > List/New invoice`.
+The **Workbench** area and its sibling top-level modules demonstrate a B2B SaaS operating model:
+Customers, Revenue (Subscriptions and Invoices), Support (Tickets), and Platform (API Keys and
+Audit Logs). Admin accounts can run the available mutations; viewer accounts can browse the
+business data in read-only mode while platform administration remains admin-only. Each list
+demonstrates the shared table, card-grid, and list presentation modes, and Invoices also exercises
+the nested menu at `Revenue > Invoices > List/New invoice`.
 
 All domain data lives in the in-memory mock store. Changes remain available while the application
 is running and reset to the bundled seed data whenever the page is fully reloaded or the dev server

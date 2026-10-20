@@ -147,7 +147,7 @@ describe('Invoice editor page', () => {
         }),
       ),
     );
-    expect(mocks.push).toHaveBeenCalledWith('/workbench/revenue/invoices/invoice-created');
+    expect(mocks.push).toHaveBeenCalledWith('/revenue/invoices/invoice-created');
   });
 
   it('loads an existing invoice and persists edits using its real ID', async () => {

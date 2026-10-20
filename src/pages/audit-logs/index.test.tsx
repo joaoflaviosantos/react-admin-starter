@@ -28,7 +28,7 @@ vi.mock('@/router/hooks', () => ({
   useMatchRouteMeta: () => ({ label: 'app.menu.auditLogs' }),
 }));
 
-const renderPage = (route = '/workbench/platform/audit-logs') =>
+const renderPage = (route = '/platform/audit-logs') =>
   render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider
@@ -53,7 +53,7 @@ describe('Audit logs page', () => {
   afterEach(cleanup);
 
   it('shows the same event in all three read-only modes and applies filters', async () => {
-    const view = renderPage('/workbench/platform/audit-logs?view=grid&tenant=demo');
+    const view = renderPage('/platform/audit-logs?view=grid&tenant=demo');
     expect(await screen.findByText(event.summary)).toBeInTheDocument();
     expect(view.container.querySelector('[data-view-mode="grid"]')).toBeInTheDocument();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search audit events' }), {

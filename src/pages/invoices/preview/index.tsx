@@ -75,7 +75,7 @@ export default function InvoicePreviewPage() {
           <Button
             variant="outline"
             disabled={!permissions.canUpdate}
-            onClick={() => router.push(`/workbench/revenue/invoices/${invoice.id}/edit`)}
+            onClick={() => router.push(`/revenue/invoices/${invoice.id}/edit`)}
           >
             <Pencil className="mr-2 h-4 w-4" />
             {t('app.invoices.edit')}

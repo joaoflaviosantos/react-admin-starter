@@ -6,10 +6,8 @@ import { flattenTrees } from '@/utils/tree';
 import { PermissionActionType } from '#/enum';
 
 function resourceChildren(permissions: typeof ADMIN_PERMISSIONS) {
-  return (
-    permissions
-      .find((permission) => permission.route === 'workbench')
-      ?.children?.filter((permission) => permission.route !== 'overview') ?? []
+  return permissions.filter(
+    (permission) => permission.route !== 'workbench' && permission.route !== 'management',
   );
 }
 

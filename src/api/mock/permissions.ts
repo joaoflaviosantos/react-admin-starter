@@ -50,7 +50,7 @@ function resourceMenuPermission(
   return menuPermission(id, label, route, actions, { component, ...overrides });
 }
 
-function resourcePermissions(isAdmin: boolean, parentId: string): PermissionWithChildRead[] {
+function resourcePermissions(isAdmin: boolean): PermissionWithChildRead[] {
   const actions = isAdmin ? RESOURCE_MANAGE_ACTIONS : RESOURCE_READ_ACTIONS;
   const invoiceActions = isAdmin ? INVOICE_MANAGE_ACTIONS : INVOICE_VIEW_ACTIONS;
   const revenueChildren = [
@@ -118,13 +118,13 @@ function resourcePermissions(isAdmin: boolean, parentId: string): PermissionWith
       'customers',
       '/customers/index.tsx',
       actions,
-      { parent_id: parentId, order: '1', icon: 'mdi:office-building-outline' },
+      { order: '1', icon: 'mdi:office-building-outline' },
     ),
     {
       id: 'perm-app-revenue',
       created_at: MOCK_TIMESTAMP,
       updated_at: MOCK_TIMESTAMP,
-      parent_id: parentId,
+      parent_id: null,
       is_active: true,
       label: 'app.menu.revenue',
       type: PermissionType.CATALOGUE,
@@ -141,7 +141,7 @@ function resourcePermissions(isAdmin: boolean, parentId: string): PermissionWith
       id: 'perm-app-support',
       created_at: MOCK_TIMESTAMP,
       updated_at: MOCK_TIMESTAMP,
-      parent_id: parentId,
+      parent_id: null,
       is_active: true,
       label: 'app.menu.support',
       type: PermissionType.CATALOGUE,
@@ -167,7 +167,7 @@ function resourcePermissions(isAdmin: boolean, parentId: string): PermissionWith
       id: 'perm-app-platform',
       created_at: MOCK_TIMESTAMP,
       updated_at: MOCK_TIMESTAMP,
-      parent_id: parentId,
+      parent_id: null,
       is_active: true,
       label: 'app.menu.platform',
       type: PermissionType.CATALOGUE,
@@ -211,7 +211,7 @@ function resourcePermissions(isAdmin: boolean, parentId: string): PermissionWith
   ];
 }
 
-function workbenchChildren(isAdmin: boolean): PermissionWithChildRead[] {
+function workbenchChildren(): PermissionWithChildRead[] {
   return [
     menuPermission(
       'perm-workbench-overview',
@@ -224,7 +224,6 @@ function workbenchChildren(isAdmin: boolean): PermissionWithChildRead[] {
         component: '/workbench/overview/index.tsx',
       },
     ),
-    ...resourcePermissions(isAdmin, 'perm-workbench'),
   ];
 }
 
@@ -243,8 +242,9 @@ export const ADMIN_PERMISSIONS: PermissionWithChildRead[] = [
     name: 'workbench',
     module_name: 'system',
     icon: 'mdi:view-dashboard-outline',
-    children: workbenchChildren(true),
+    children: workbenchChildren(),
   },
+  ...resourcePermissions(true),
   {
     id: 'perm-management',
     created_at: MOCK_TIMESTAMP,
@@ -255,7 +255,7 @@ export const ADMIN_PERMISSIONS: PermissionWithChildRead[] = [
     type: PermissionType.CATALOGUE,
     status: BasicStatus.ENABLE,
     route: 'management',
-    order: '1',
+    order: '5',
     name: 'management',
     module_name: 'system',
     icon: 'mdi:cog-outline',
@@ -319,8 +319,9 @@ export const VIEWER_PERMISSIONS: PermissionWithChildRead[] = [
     name: 'workbench',
     module_name: 'system',
     icon: 'mdi:view-dashboard-outline',
-    children: workbenchChildren(false),
+    children: workbenchChildren(),
   },
+  ...resourcePermissions(false),
   {
     id: 'perm-management-viewer',
     created_at: MOCK_TIMESTAMP,
@@ -331,7 +332,7 @@ export const VIEWER_PERMISSIONS: PermissionWithChildRead[] = [
     type: PermissionType.CATALOGUE,
     status: BasicStatus.ENABLE,
     route: 'management',
-    order: '1',
+    order: '5',
     name: 'management',
     module_name: 'system',
     children: [

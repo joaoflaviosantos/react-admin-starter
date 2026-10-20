@@ -17,8 +17,10 @@ describe('App menu translations', () => {
     ['pt_BR', ptBR],
     ['en_US', enUS],
   ])('translates every app permission label in %s', (_locale, dictionary) => {
-    const workbench = ADMIN_PERMISSIONS.find((permission) => permission.route === 'workbench');
-    const labels = flattenTrees(workbench?.children ?? [])
+    const resources = ADMIN_PERMISSIONS.filter(
+      (permission) => permission.route !== 'workbench' && permission.route !== 'management',
+    );
+    const labels = flattenTrees(resources)
       .filter((permission) => permission.label.startsWith('app.'))
       .map((permission) => permission.label);
 
@@ -29,8 +31,10 @@ describe('App menu translations', () => {
   });
 
   it('uses registered Iconify icons for the app catalogues', () => {
-    const workbench = ADMIN_PERMISSIONS.find((permission) => permission.route === 'workbench');
-    const catalogues = flattenTrees(workbench?.children ?? []).filter((permission) =>
+    const resources = ADMIN_PERMISSIONS.filter(
+      (permission) => permission.route !== 'workbench' && permission.route !== 'management',
+    );
+    const catalogues = flattenTrees(resources).filter((permission) =>
       permission.children?.some((child) => child.label.startsWith('app.')),
     );
 

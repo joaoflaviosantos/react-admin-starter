@@ -104,7 +104,7 @@ export default function InvoiceEditorPage() {
     onSuccess: (saved) => {
       void queryClient.invalidateQueries({ queryKey: ['domains', 'invoices'] });
       appToast.success(t('app.invoices.saved'));
-      router.push(`/workbench/revenue/invoices/${saved.id}`);
+      router.push(`/revenue/invoices/${saved.id}`);
     },
     onError: (error) => appToast.error(t('app.invoices.saveError'), error.message),
   });

@@ -30,7 +30,7 @@ vi.mock('@/router/hooks', () => ({
   useMatchRouteMeta: () => ({ label: 'app.menu.apiKeys' }),
 }));
 
-const renderPage = (route = '/workbench/platform/api-keys') =>
+const renderPage = (route = '/platform/api-keys') =>
   render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider
@@ -58,7 +58,7 @@ describe('API keys page', () => {
   afterEach(cleanup);
 
   it('keeps the same key and revoke action in table, grid and list modes', async () => {
-    const view = renderPage('/workbench/platform/api-keys?view=table&tenant=demo');
+    const view = renderPage('/platform/api-keys?view=table&tenant=demo');
     expect(await screen.findByText('Production integration')).toBeInTheDocument();
     expect(view.container.querySelector('[data-view-mode="table"]')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Card grid view' }));
