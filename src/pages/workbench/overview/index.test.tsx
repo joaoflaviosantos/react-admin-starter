@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { DashboardResponse } from '#/domain';
 
@@ -81,6 +81,7 @@ describe('Workbench overview', () => {
     getDashboard.mockReset();
     getDashboard.mockResolvedValue(response);
   });
+  afterEach(cleanup);
 
   it('renders KPIs, three charts and actionable sections from the dashboard response', async () => {
     renderPage();
@@ -91,11 +92,23 @@ describe('Workbench overview', () => {
     expect(getDashboard).toHaveBeenCalledWith('12m');
   });
 
-  it('changes the period using the single dashboard query key', async () => {
+  it('changes and resets the period from the floating filter drawer', async () => {
+    const user = userEvent.setup();
     getDashboard.mockImplementation(async (period: string) => ({ ...response, period }));
     renderPage();
     await screen.findByTestId('dashboard-content');
-    await userEvent.selectOptions(screen.getAllByRole('combobox', { name: 'Period' })[0], '90d');
+
+    await user.click(screen.getByRole('button', { name: 'Filters' }));
+    const filters = await screen.findByRole('dialog', { name: 'Filters' });
+    expect(within(filters).getByRole('combobox', { name: 'Period' })).toHaveTextContent(
+      '12 months',
+    );
+    await user.click(within(filters).getByRole('combobox', { name: 'Period' }));
+    await user.click(await screen.findByRole('option', { name: '90 days' }));
+    expect(within(filters).getByRole('combobox', { name: 'Period' })).toHaveTextContent('90 days');
     await waitFor(() => expect(getDashboard).toHaveBeenLastCalledWith('90d'));
+
+    await user.click(within(filters).getByRole('button', { name: 'Reset' }));
+    await waitFor(() => expect(getDashboard).toHaveBeenLastCalledWith('12m'));
   });
 });

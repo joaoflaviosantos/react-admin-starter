@@ -36,7 +36,7 @@ describe('NativeChart', () => {
     );
     await waitFor(() =>
       expect(chart.setOption).toHaveBeenCalledWith(
-        { series: [{ type: 'bar', data: [1] }] },
+        { backgroundColor: 'transparent', series: [{ type: 'bar', data: [1] }] },
         { notMerge: true },
       ),
     );

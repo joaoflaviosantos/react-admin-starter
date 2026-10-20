@@ -23,6 +23,11 @@ const stateLabel: Record<Exclude<NativeChartState, 'ready'>, string> = {
   error: 'Unable to load chart',
 };
 
+const withTransparentBackground = (option: EChartsOption): EChartsOption => ({
+  ...option,
+  backgroundColor: 'transparent',
+});
+
 export function NativeChart({
   option,
   title,
@@ -44,7 +49,7 @@ export function NativeChart({
 
     const chart = echarts.init(container, theme, { renderer: 'canvas' });
     chartRef.current = chart;
-    chart.setOption(optionRef.current, { notMerge: true });
+    chart.setOption(withTransparentBackground(optionRef.current), { notMerge: true });
 
     const resize = () => chart.resize();
     if (typeof ResizeObserver !== 'undefined') {
@@ -66,7 +71,9 @@ export function NativeChart({
   }, [state, theme]);
 
   useEffect(() => {
-    if (state === 'ready') chartRef.current?.setOption(option, { notMerge: true });
+    if (state === 'ready') {
+      chartRef.current?.setOption(withTransparentBackground(option), { notMerge: true });
+    }
   }, [option, state]);
 
   if (state !== 'ready') {

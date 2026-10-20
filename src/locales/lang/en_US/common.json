@@ -45,6 +45,8 @@
     "cancelText": "Cancel",
     "closeText": "Close",
     "clearText": "Clear",
+    "filtersText": "Filters",
+    "resetText": "Reset",
     "searchText": "Search",
     "detailText": "Details",
     "updateText": "Edit",

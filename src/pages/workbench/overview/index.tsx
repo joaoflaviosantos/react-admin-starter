@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { EChartsOption } from 'echarts';
 import { Activity, AlertTriangle, BarChart3, CreditCard, DollarSign, Users } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
@@ -17,8 +17,12 @@ import { useTheme } from '@/theme/hooks';
 import { ThemeMode } from '#/enum';
 import type { DashboardPeriod, DashboardResponse } from '#/domain';
 
-const periods: DashboardPeriod[] = ['30d', '90d', '12m'];
-const defaultPeriod: DashboardPeriod = '12m';
+import {
+  DashboardFilterButton,
+  DashboardFilters,
+  dashboardPeriods,
+  defaultDashboardPeriod,
+} from './filters';
 
 function formatMoney(value: number, language: string) {
   return new Intl.NumberFormat(language === 'pt_BR' ? 'pt-BR' : 'en-US', {
@@ -99,10 +103,12 @@ function dashboardOptions(data: DashboardResponse, t: (key: string) => string, d
     color: ['#2563eb', '#14b8a6'],
     tooltip: { trigger: 'axis' },
     legend: {
+      bottom: 0,
+      left: 'center',
       textStyle: { color: textColor },
       data: [t('app.dashboard.revenueMrr'), t('app.dashboard.mrrShort')],
     },
-    grid: { left: 8, right: 8, bottom: 8, top: 28, containLabel: true },
+    grid: { left: 8, right: 8, bottom: 40, top: 28, containLabel: true },
     xAxis: {
       type: 'category',
       data: data.revenueMrr.map((point) => point.label),
@@ -166,10 +172,12 @@ export default function OverviewPage() {
   const { t, i18n } = useTranslation();
   const { themeMode } = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const requestedPeriod = searchParams.get('period');
-  const period: DashboardPeriod = periods.includes(requestedPeriod as DashboardPeriod)
+  const period: DashboardPeriod = dashboardPeriods.includes(requestedPeriod as DashboardPeriod)
     ? (requestedPeriod as DashboardPeriod)
-    : defaultPeriod;
+    : defaultDashboardPeriod;
+  const activeFilterCount = period === defaultDashboardPeriod ? 0 : 1;
   useHasRequiredPermission('sys.menu.overview');
   const query = useQuery({
     queryKey: ['workbench', 'dashboard', period],
@@ -185,6 +193,11 @@ export default function OverviewPage() {
     next.set('period', nextPeriod);
     setSearchParams(next);
   };
+  const resetFilters = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('period');
+    setSearchParams(next);
+  };
   const comparison = t('app.dashboard.change');
   const date = (value: string) =>
     new Intl.DateTimeFormat(i18n.language === 'pt_BR' ? 'pt-BR' : 'en-US', {
@@ -194,23 +207,6 @@ export default function OverviewPage() {
 
   return (
     <AdminPage>
-      <div className="flex justify-end">
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{t('app.dashboard.periodLabel')}</span>
-          <select
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-            aria-label={t('app.dashboard.periodLabel')}
-            value={period}
-            onChange={(event) => setPeriod(event.target.value as DashboardPeriod)}
-          >
-            {periods.map((value) => (
-              <option key={value} value={value}>
-                {t(`app.dashboard.period${value}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
       {query.isLoading ? (
         <DashboardLoading />
       ) : query.error || !data ? (
@@ -290,7 +286,10 @@ export default function OverviewPage() {
               />
             </ChartCard>
             <ChartCard title={t('app.dashboard.riskAccounts')}>
-              <div className="space-y-3" aria-label={t('app.dashboard.riskAccounts')}>
+              <div
+                className="h-[280px] space-y-3 overflow-y-auto pr-2"
+                aria-label={t('app.dashboard.riskAccounts')}
+              >
                 {data.sectionStates.riskAccounts.status === 'error' ? (
                   <p className="text-sm text-destructive">{t('app.dashboard.loadError')}</p>
                 ) : data.riskAccounts.length ? (
@@ -325,7 +324,7 @@ export default function OverviewPage() {
               {data.sectionStates.recentActivity.status === 'error' ? (
                 <p className="text-sm text-destructive">{t('app.dashboard.loadError')}</p>
               ) : data.recentActivity.length ? (
-                <div className="space-y-3">
+                <div className="max-h-80 space-y-3 overflow-y-auto pr-2">
                   {data.recentActivity.map((event) => (
                     <div
                       key={event.id}
@@ -350,6 +349,17 @@ export default function OverviewPage() {
           </Card>
         </div>
       )}
+      <DashboardFilterButton
+        activeFilterCount={activeFilterCount}
+        onClick={() => setFiltersOpen(true)}
+      />
+      <DashboardFilters
+        open={filtersOpen}
+        period={period}
+        onOpenChange={setFiltersOpen}
+        onPeriodChange={setPeriod}
+        onReset={resetFilters}
+      />
     </AdminPage>
   );
 }
