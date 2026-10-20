@@ -15,6 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/admin/form/form-field';
+import { DividerProject } from '@/components/divider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -82,72 +83,84 @@ export function TicketCreateModal({ open, customers, onOpenChange }: TicketCreat
         <DialogHeader>
           <DialogTitle>{t('app.tickets.new')}</DialogTitle>
         </DialogHeader>
-        <AdminForm form={form} onSubmit={(value) => mutation.mutate({ ...value, status: 'open' })}>
-          <DialogBody className="grid max-h-[65vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2">
-            <FormFieldSelect
-              control={form.control}
-              name="customerId"
-              label={t('app.tickets.customer')}
-              options={customers.map((customer) => ({
-                label: customer.name,
-                value: customer.id,
-              }))}
-              disabled={mutation.isPending}
-            />
-            <FormFieldInput
-              control={form.control}
-              name="subject"
-              label={t('app.tickets.subject')}
-              disabled={mutation.isPending}
-            />
-            <FormFieldInput
-              control={form.control}
-              name="requesterEmail"
-              type="email"
-              label={t('app.tickets.requester')}
-              disabled={mutation.isPending}
-            />
-            <FormFieldSelect
-              control={form.control}
-              name="priority"
-              label={t('app.tickets.priority')}
-              options={['low', 'medium', 'high', 'urgent'].map((value) => ({
-                label: option(value),
-                value,
-              }))}
-              disabled={mutation.isPending}
-            />
-            <FormFieldInput
-              control={form.control}
-              name="assignee"
-              label={t('app.tickets.assignee')}
-              disabled={mutation.isPending}
-            />
-            <FormFieldInput
-              control={form.control}
-              name="slaDueAt"
-              type="datetime-local"
-              label={t('app.tickets.sla')}
-              disabled={mutation.isPending}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-2">
-                  <FormLabel>{t('app.tickets.descriptionField')}</FormLabel>
-                  <FormControl>
-                    <textarea
-                      aria-label={t('app.tickets.descriptionField')}
-                      className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      disabled={mutation.isPending}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <AdminForm
+          form={form}
+          onSubmit={(value) => mutation.mutate({ ...value, status: 'open' })}
+          className="flex flex-col"
+        >
+          <DialogBody className="max-h-[65vh] space-y-4 overflow-y-auto">
+            <DividerProject>{t('app.tickets.sections.request')}</DividerProject>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormFieldSelect
+                control={form.control}
+                name="customerId"
+                label={t('app.tickets.customer')}
+                options={customers.map((customer) => ({
+                  label: customer.name,
+                  value: customer.id,
+                }))}
+                disabled={mutation.isPending}
+              />
+              <FormFieldInput
+                control={form.control}
+                name="subject"
+                label={t('app.tickets.subject')}
+                disabled={mutation.isPending}
+              />
+              <FormFieldInput
+                control={form.control}
+                name="requesterEmail"
+                type="email"
+                label={t('app.tickets.requester')}
+                className="sm:col-span-2"
+                disabled={mutation.isPending}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>{t('app.tickets.descriptionField')}</FormLabel>
+                    <FormControl>
+                      <textarea
+                        aria-label={t('app.tickets.descriptionField')}
+                        className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        disabled={mutation.isPending}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <DividerProject>{t('app.tickets.sections.handling')}</DividerProject>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormFieldSelect
+                control={form.control}
+                name="priority"
+                label={t('app.tickets.priority')}
+                options={['low', 'medium', 'high', 'urgent'].map((value) => ({
+                  label: option(value),
+                  value,
+                }))}
+                disabled={mutation.isPending}
+              />
+              <FormFieldInput
+                control={form.control}
+                name="assignee"
+                label={t('app.tickets.assignee')}
+                disabled={mutation.isPending}
+              />
+              <FormFieldInput
+                control={form.control}
+                name="slaDueAt"
+                type="datetime-local"
+                label={t('app.tickets.sla')}
+                className="sm:col-span-2"
+                disabled={mutation.isPending}
+              />
+            </div>
           </DialogBody>
           <DialogFooter>
             <Button

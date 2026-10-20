@@ -5,11 +5,11 @@ import { useSettings } from '@/store/settingStore';
 
 import { ThemeMode } from '#/enum';
 
-export interface DividerScheFlowProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface DividerProjectProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
-export function DividerScheFlow({ children, className, style, ...props }: DividerScheFlowProps) {
+export function DividerProject({ children, className, style, ...props }: DividerProjectProps) {
   const { themeMode } = useSettings();
   const isDark = themeMode === ThemeMode.Dark;
   const lineClassName = 'border-foreground/45';
@@ -45,4 +45,4 @@ export function DividerScheFlow({ children, className, style, ...props }: Divide
   );
 }
 
-DividerScheFlow.displayName = 'DividerScheFlow';
+DividerProject.displayName = 'DividerProject';

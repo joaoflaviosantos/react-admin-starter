@@ -11,6 +11,7 @@ import {
   FormFieldSelect,
   FormFieldSwitch,
 } from '@/components/admin/form/form-field';
+import { DividerProject } from '@/components/divider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -34,10 +35,12 @@ const emptySubscription: SubscriptionFormValues = {
   interval: 'monthly',
   seats: 5,
   unitPriceCents: 12900,
-  trialEndsAt: null,
-  currentPeriodEnd: '2026-10-31T23:59:59.000Z',
+  trialEndsAt: '',
+  currentPeriodEnd: '2026-10-31T23:59',
   cancelAtPeriodEnd: false,
 };
+
+const toIsoDateTime = (value: string) => new Date(`${value.slice(0, 16)}:00Z`).toISOString();
 
 type SubscriptionCreateModalProps = {
   open: boolean;
@@ -90,74 +93,87 @@ export function SubscriptionCreateModal({
         <AdminForm
           form={form}
           onSubmit={(value) =>
-            mutation.mutate({ ...value, trialEndsAt: value.trialEndsAt || null })
+            mutation.mutate({
+              ...value,
+              trialEndsAt: value.trialEndsAt ? toIsoDateTime(value.trialEndsAt) : null,
+              currentPeriodEnd: toIsoDateTime(value.currentPeriodEnd),
+            })
           }
+          className="flex flex-col"
         >
-          <DialogBody className="grid max-h-[65vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2">
-            <FormFieldSelect
-              control={form.control}
-              name="customerId"
-              label={t('app.subscriptions.customer')}
-              options={customers.map((customer) => ({
-                label: customer.name,
-                value: customer.id,
-              }))}
-              disabled={mutation.isPending}
-            />
-            <FormFieldSelect
-              control={form.control}
-              name="plan"
-              label={t('app.subscriptions.plan')}
-              options={['starter', 'growth', 'scale'].map(option)}
-              disabled={mutation.isPending}
-            />
-            <FormFieldSelect
-              control={form.control}
-              name="status"
-              label={t('app.common.fields.status')}
-              options={['trialing', 'active', 'past_due'].map(option)}
-              disabled={mutation.isPending}
-            />
-            <FormFieldSelect
-              control={form.control}
-              name="interval"
-              label={t('app.subscriptions.interval')}
-              options={['monthly', 'yearly'].map(option)}
-              disabled={mutation.isPending}
-            />
-            <FormFieldInput
-              control={form.control}
-              name="seats"
-              type="number"
-              label={t('app.subscriptions.seats')}
-              disabled={mutation.isPending}
-            />
-            <FormFieldInput
-              control={form.control}
-              name="unitPriceCents"
-              type="number"
-              label={t('app.subscriptions.unitPriceMinor')}
-              disabled={mutation.isPending}
-            />
-            <FormFieldInput
-              control={form.control}
-              name="trialEndsAt"
-              label={t('app.subscriptions.trialEndsAt')}
-              disabled={mutation.isPending}
-            />
-            <FormFieldInput
-              control={form.control}
-              name="currentPeriodEnd"
-              label={t('app.subscriptions.periodEnd')}
-              disabled={mutation.isPending}
-            />
-            <FormFieldSwitch
-              control={form.control}
-              name="cancelAtPeriodEnd"
-              label={t('app.subscriptions.cancelAtPeriodEnd')}
-              disabled={mutation.isPending}
-              className="sm:col-span-2"
-            />
+          <DialogBody className="max-h-[65vh] space-y-4 overflow-y-auto">
+            <DividerProject>{t('app.subscriptions.sections.plan')}</DividerProject>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormFieldSelect
+                control={form.control}
+                name="customerId"
+                label={t('app.subscriptions.customer')}
+                options={customers.map((customer) => ({
+                  label: customer.name,
+                  value: customer.id,
+                }))}
+                disabled={mutation.isPending}
+              />
+              <FormFieldSelect
+                control={form.control}
+                name="plan"
+                label={t('app.subscriptions.plan')}
+                options={['starter', 'growth', 'scale'].map(option)}
+                disabled={mutation.isPending}
+              />
+              <FormFieldSelect
+                control={form.control}
+                name="status"
+                label={t('app.common.fields.status')}
+                options={['trialing', 'active', 'past_due'].map(option)}
+                disabled={mutation.isPending}
+              />
+              <FormFieldSelect
+                control={form.control}
+                name="interval"
+                label={t('app.subscriptions.interval')}
+                options={['monthly', 'yearly'].map(option)}
+                disabled={mutation.isPending}
+              />
+            </div>
+            <DividerProject>{t('app.subscriptions.sections.billing')}</DividerProject>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormFieldInput
+                control={form.control}
+                name="seats"
+                type="number"
+                label={t('app.subscriptions.seats')}
+                disabled={mutation.isPending}
+              />
+              <FormFieldInput
+                control={form.control}
+                name="unitPriceCents"
+                type="number"
+                label={t('app.subscriptions.unitPriceMinor')}
+                disabled={mutation.isPending}
+              />
+              <FormFieldInput
+                control={form.control}
+                name="trialEndsAt"
+                type="datetime-local"
+                label={t('app.subscriptions.trialEndsAt')}
+                disabled={mutation.isPending}
+              />
+              <FormFieldInput
+                control={form.control}
+                name="currentPeriodEnd"
+                type="datetime-local"
+                label={t('app.subscriptions.periodEnd')}
+                disabled={mutation.isPending}
+              />
+              <FormFieldSwitch
+                control={form.control}
+                name="cancelAtPeriodEnd"
+                label={t('app.subscriptions.cancelAtPeriodEnd')}
+                disabled={mutation.isPending}
+                className="sm:col-span-2"
+              />
+            </div>
           </DialogBody>
           <DialogFooter>
             <Button

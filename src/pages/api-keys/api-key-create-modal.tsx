@@ -2,11 +2,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { KeyRound } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import apiKeyService from '@/api/services/domains/apiKeyService';
+import { AdminForm } from '@/components/admin/form';
+import {
+  FormControl,
+  FormField,
+  FormFieldInput,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/admin/form/form-field';
+import { DividerProject } from '@/components/divider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,7 +27,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { modalContentWidthClass } from '@/lib/overlay-surface';
+import { modalContentWidthLgClass } from '@/lib/overlay-surface';
 import { appToast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 
@@ -83,27 +93,31 @@ export function ApiKeyCreateModal({ open, onOpenChange, onCreated }: ApiKeyCreat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(modalContentWidthClass)}>
+      <DialogContent className={cn(modalContentWidthLgClass)}>
         <DialogHeader>
           <DialogTitle>{t('app.apiKeys.new')}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit((payload) => mutation.mutate(payload))}>
+        <AdminForm
+          form={form}
+          onSubmit={(payload) => mutation.mutate(payload)}
+          className="flex flex-col"
+        >
           <DialogBody className="space-y-4">
-            <label className="block space-y-1 text-sm font-medium" htmlFor="api-key-name">
-              <span>{t('app.apiKeys.name')}</span>
-              <Input id="api-key-name" disabled={mutation.isPending} {...form.register('name')} />
-              {form.formState.errors.name ? (
-                <span className="text-xs text-destructive">
-                  {form.formState.errors.name.message}
-                </span>
-              ) : null}
-            </label>
-            <fieldset className="space-y-2">
-              <legend className="text-sm font-medium">{t('app.apiKeys.scopes')}</legend>
-              <Controller
-                name="scopes"
-                control={form.control}
-                render={({ field }) => (
+            <DividerProject>{t('app.apiKeys.sections.key')}</DividerProject>
+            <FormFieldInput
+              control={form.control}
+              name="name"
+              label={t('app.apiKeys.name')}
+              disabled={mutation.isPending}
+            />
+
+            <DividerProject>{t('app.apiKeys.sections.access')}</DividerProject>
+            <FormField
+              control={form.control}
+              name="scopes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('app.apiKeys.scopes')}</FormLabel>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {scopes.map((scope) => {
                       const checked = field.value.includes(scope);
@@ -131,28 +145,28 @@ export function ApiKeyCreateModal({ open, onOpenChange, onCreated }: ApiKeyCreat
                       );
                     })}
                   </div>
-                )}
-              />
-              {form.formState.errors.scopes ? (
-                <span className="text-xs text-destructive">
-                  {form.formState.errors.scopes.message}
-                </span>
-              ) : null}
-            </fieldset>
-            <label className="block space-y-1 text-sm font-medium" htmlFor="api-key-expires">
-              <span>{t('app.apiKeys.expiresAt')}</span>
-              <Input
-                id="api-key-expires"
-                type="date"
-                disabled={mutation.isPending}
-                {...form.register('expiresAt', { setValueAs: (value) => value || null })}
-              />
-              {form.formState.errors.expiresAt ? (
-                <span className="text-xs text-destructive">
-                  {form.formState.errors.expiresAt.message}
-                </span>
-              ) : null}
-            </label>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="expiresAt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('app.apiKeys.expiresAt')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      disabled={mutation.isPending}
+                      value={field.value ?? ''}
+                      onChange={(event) => field.onChange(event.target.value || null)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </DialogBody>
           <DialogFooter>
             <Button
@@ -168,7 +182,7 @@ export function ApiKeyCreateModal({ open, onOpenChange, onCreated }: ApiKeyCreat
               {t('app.common.actions.create')}
             </Button>
           </DialogFooter>
-        </form>
+        </AdminForm>
       </DialogContent>
     </Dialog>
   );

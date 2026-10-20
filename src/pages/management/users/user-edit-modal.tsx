@@ -11,7 +11,7 @@ import {
   FormFieldSelect,
   FormFieldSwitch,
 } from '@/components/admin/form/form-field';
-import { DividerScheFlow } from '@/components/divider';
+import { DividerProject } from '@/components/divider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -105,7 +105,7 @@ export function UserEditModal({ user, show, onClose }: UserEditModalProps) {
         </DialogHeader>
         <AdminForm form={form} onSubmit={handleSubmit} className="flex flex-col">
           <DialogBody className="space-y-4">
-            <DividerScheFlow>{t('management.users.forms.basicData.index')}</DividerScheFlow>
+            <DividerProject>{t('management.users.forms.basicData.index')}</DividerProject>
             <FormFieldInput
               control={form.control}
               name="email"
@@ -125,7 +125,7 @@ export function UserEditModal({ user, show, onClose }: UserEditModalProps) {
               options={LANGUAGE_OPTIONS}
               disabled={mutation.isPending}
             />
-            <DividerScheFlow>{t('management.users.forms.securityData.index')}</DividerScheFlow>
+            <DividerProject>{t('management.users.forms.securityData.index')}</DividerProject>
             <FormFieldSwitch
               control={form.control}
               name="is_active"

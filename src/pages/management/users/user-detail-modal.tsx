@@ -10,7 +10,7 @@ import {
   descriptionsScheFlowLabelStyle,
   useDescriptionsScheFlowLayout,
 } from '@/components/admin/descriptions';
-import { DividerScheFlow } from '@/components/divider';
+import { DividerProject } from '@/components/divider';
 import { CircleLoading } from '@/components/loading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -73,7 +73,7 @@ export function UserDetailModal({ userId, show, onClose }: UserDetailModalProps)
             </div>
           ) : (
             <div className="space-y-4">
-              <DividerScheFlow>{t('management.users.forms.basicData.index')}</DividerScheFlow>
+              <DividerProject>{t('management.users.forms.basicData.index')}</DividerProject>
               <Descriptions
                 bordered
                 layout={layout}

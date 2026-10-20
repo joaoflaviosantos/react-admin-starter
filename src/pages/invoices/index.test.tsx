@@ -32,8 +32,24 @@ const invoice = {
   status: 'draft',
 } satisfies Invoice;
 
+const customer = {
+  id: 'customer-acme',
+  created_at: '2026-01-01T00:00:00.000Z',
+  updated_at: '2026-01-01T00:00:00.000Z',
+  name: 'Acme Corp',
+  contactName: 'Marina Costa',
+  email: 'marina@acme.test',
+  industry: 'Technology',
+  source: 'organic',
+  status: 'active',
+  plan: 'starter',
+  mrrCents: 12900,
+  healthScore: 92,
+};
+
 const mocks = vi.hoisted(() => ({
   getInvoices: vi.fn(),
+  getCustomers: vi.fn(),
   deleteInvoices: vi.fn(),
   sendInvoice: vi.fn(),
   permission: {
@@ -49,6 +65,9 @@ vi.mock('@/api/services/domains/invoiceService', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/services/domains/invoiceService')>();
   return { default: mocks, calculateInvoiceTotals: actual.calculateInvoiceTotals };
 });
+vi.mock('@/api/services/domains/customerService', () => ({
+  default: { getCustomers: mocks.getCustomers },
+}));
 vi.mock('@/hooks/permissions/use-has-required-permission', () => ({
   useHasRequiredPermission: () => mocks.permission,
 }));
@@ -83,6 +102,13 @@ describe('Invoice list page', () => {
       total_count: 1,
       page: 1,
       items_per_page: 10,
+      has_more: false,
+    });
+    mocks.getCustomers.mockResolvedValue({
+      data: [customer],
+      total_count: 1,
+      page: 1,
+      items_per_page: 100,
       has_more: false,
     });
     mocks.deleteInvoices.mockResolvedValue({ deleted: [invoice.id] });
@@ -140,7 +166,10 @@ describe('Invoice list page', () => {
     const edit = await screen.findByRole('dialog', { name: 'Edit invoice' });
     fireEvent.click(within(edit).getByRole('button', { name: 'Cancel' }));
     fireEvent.click(screen.getByRole('button', { name: 'New invoice' }));
-    expect(await screen.findByRole('dialog', { name: 'New invoice' })).toBeInTheDocument();
+    const create = await screen.findByRole('dialog', { name: 'New invoice' });
+    const customerSelect = within(create).getByRole('combobox', { name: 'Customer' });
+    fireEvent.click(customerSelect);
+    expect(await screen.findByRole('option', { name: 'Acme Corp' })).toBeInTheDocument();
   });
 
   it('previews and prints the invoice document from the row actions', async () => {

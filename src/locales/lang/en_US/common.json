@@ -356,6 +356,10 @@
     "customers": {
       "title": "Customers",
       "description": "Manage customer health, revenue and product adoption.",
+      "sections": {
+        "profile": "Customer profile",
+        "commercial": "Commercial data"
+      },
       "listTitle": "Customer listing",
       "new": "New customer",
       "edit": "Edit customer",
@@ -389,6 +393,10 @@
     "subscriptions": {
       "title": "Subscriptions",
       "description": "Manage recurring plans, seats and lifecycle.",
+      "sections": {
+        "plan": "Plan data",
+        "billing": "Billing and lifecycle"
+      },
       "listTitle": "Subscription listing",
       "new": "New subscription",
       "edit": "Edit subscription",
@@ -428,6 +436,10 @@
     "tickets": {
       "title": "Support tickets",
       "description": "Track customer requests, ownership and SLA.",
+      "sections": {
+        "request": "Request data",
+        "handling": "Handling"
+      },
       "listTitle": "Ticket listing",
       "new": "New ticket",
       "edit": "Edit ticket",
@@ -472,6 +484,10 @@
     "apiKeys": {
       "title": "API keys",
       "description": "Create and revoke credentials for platform integrations.",
+      "sections": {
+        "key": "Key data",
+        "access": "Access and expiration"
+      },
       "listTitle": "API key listing",
       "new": "New API key",
       "details": "API key details",
@@ -517,6 +533,10 @@
     "auditLogs": {
       "title": "Audit logs",
       "description": "Review security-sensitive activity across the workspace.",
+      "sections": {
+        "event": "Event data",
+        "request": "Request context"
+      },
       "listTitle": "Audit log listing",
       "details": "Event details",
       "loading": "Loading audit logs…",

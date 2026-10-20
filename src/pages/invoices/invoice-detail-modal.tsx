@@ -1,5 +1,13 @@
 import { useTranslation } from 'react-i18next';
 
+import {
+  Descriptions,
+  descriptionsScheFlowBadgeContentStyle,
+  descriptionsScheFlowContentStyle,
+  descriptionsScheFlowLabelStyle,
+  useDescriptionsScheFlowLayout,
+} from '@/components/admin/descriptions';
+import { DividerProject } from '@/components/divider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,6 +18,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { modalContentWidthLgClass } from '@/lib/overlay-surface';
+import { cn } from '@/lib/utils';
 
 import type { Invoice } from '#/domain';
 
@@ -21,6 +31,7 @@ type InvoiceDetailModalProps = {
 
 export function InvoiceDetailModal({ invoice, locale, onClose }: InvoiceDetailModalProps) {
   const { t } = useTranslation();
+  const layout = useDescriptionsScheFlowLayout();
   if (!invoice) return null;
   const option = (value: string) => t(`app.common.options.${value}`);
   const money = (minor: number, currency: string) =>
@@ -30,48 +41,114 @@ export function InvoiceDetailModal({ invoice, locale, onClose }: InvoiceDetailMo
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className={cn(modalContentWidthLgClass)}>
         <DialogHeader>
           <DialogTitle>{t('app.invoices.invoiceDetails')}</DialogTitle>
         </DialogHeader>
-        <DialogBody className="space-y-5">
-          <div>
-            <h3 className="font-semibold">{invoice.number}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{invoice.label}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
+        <DialogBody className="space-y-4">
+          <DividerProject>{t('app.invoices.invoiceDetails')}</DividerProject>
+          <Descriptions
+            bordered
+            layout={layout}
+            size="small"
+            column={2}
+            labelStyle={descriptionsScheFlowLabelStyle}
+            contentStyle={descriptionsScheFlowContentStyle}
+          >
+            <Descriptions.Item label={t('app.invoices.number')}>{invoice.number}</Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.label')}>{invoice.label}</Descriptions.Item>
+            <Descriptions.Item
+              label={t('app.common.fields.status')}
+              contentStyle={descriptionsScheFlowBadgeContentStyle}
+            >
               <Badge variant={invoice.status === 'sent' ? 'default' : 'secondary'}>
                 {option(invoice.status)}
               </Badge>
+            </Descriptions.Item>
+            <Descriptions.Item
+              label={t('app.invoices.total')}
+              contentStyle={descriptionsScheFlowBadgeContentStyle}
+            >
               <Badge variant="outline">{money(invoice.total, invoice.currency)}</Badge>
-            </div>
-          </div>
-          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {[
-              [t('app.invoices.customer'), invoice.customer],
-              [t('app.common.fields.email'), invoice.customerEmail],
-              [t('app.invoices.issueDate'), date(invoice.issueDate)],
-              [t('app.invoices.dueDate'), date(invoice.dueDate)],
-              [t('app.invoices.paymentMethod'), invoice.paymentMethod],
-              [t('app.invoices.currency'), invoice.currency],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <dt className="text-xs font-medium uppercase text-muted-foreground">{label}</dt>
-                <dd className="mt-1 text-sm font-medium">{value}</dd>
-              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.customer')}>
+              {invoice.customer}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.common.fields.email')}>
+              {invoice.customerEmail}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.issueDate')}>
+              {date(invoice.issueDate)}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.dueDate')}>
+              {date(invoice.dueDate)}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.paymentMethod')}>
+              {invoice.paymentMethod}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.currency')}>
+              {invoice.currency}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.billing')} span={2}>
+              <span className="whitespace-pre-line">{invoice.billing}</span>
+            </Descriptions.Item>
+            {invoice.notes ? (
+              <Descriptions.Item label={t('app.invoices.notes')} span={2}>
+                <span className="whitespace-pre-line">{invoice.notes}</span>
+              </Descriptions.Item>
+            ) : null}
+          </Descriptions>
+
+          <DividerProject>{t('app.invoices.items')}</DividerProject>
+          <Descriptions
+            bordered
+            layout={layout}
+            size="small"
+            column={2}
+            labelStyle={descriptionsScheFlowLabelStyle}
+            contentStyle={descriptionsScheFlowContentStyle}
+          >
+            {invoice.items.map((item) => (
+              <Descriptions.Item key={item.id} label={item.description} span={2}>
+                <span className="flex justify-between gap-4">
+                  <span>
+                    {item.quantity} × {money(item.unitPrice, invoice.currency)}
+                  </span>
+                  <span className="font-medium">{money(item.lineTotal, invoice.currency)}</span>
+                </span>
+              </Descriptions.Item>
             ))}
-          </dl>
-          {invoice.notes ? (
-            <div>
-              <h3 className="text-xs font-medium uppercase text-muted-foreground">
-                {t('app.invoices.notes')}
-              </h3>
-              <p className="mt-1 whitespace-pre-line text-sm">{invoice.notes}</p>
-            </div>
-          ) : null}
+          </Descriptions>
+
+          <DividerProject>{t('app.invoices.totals')}</DividerProject>
+          <Descriptions
+            bordered
+            layout={layout}
+            size="small"
+            column={2}
+            labelStyle={descriptionsScheFlowLabelStyle}
+            contentStyle={descriptionsScheFlowContentStyle}
+          >
+            <Descriptions.Item label={t('app.invoices.subtotal')}>
+              {money(invoice.subtotal, invoice.currency)}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.tax')}>
+              {money(invoice.taxAmount, invoice.currency)}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.discount')}>
+              {money(invoice.discountAmount, invoice.currency)}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.shippingMinor')}>
+              {money(invoice.shippingAmount, invoice.currency)}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('app.invoices.total')} span={2}>
+              <span className="font-semibold">{money(invoice.total, invoice.currency)}</span>
+            </Descriptions.Item>
+          </Descriptions>
         </DialogBody>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            {t('app.common.actions.close')}
+          <Button type="button" onClick={onClose}>
+            {t('common.closeText')}
           </Button>
         </DialogFooter>
       </DialogContent>

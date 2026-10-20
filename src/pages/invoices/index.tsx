@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye, Pencil, Plus, Printer, Send, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import customerService from '@/api/services/domains/customerService';
 import invoiceService, { type InvoiceListParams } from '@/api/services/domains/invoiceService';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
 import {
@@ -78,6 +79,11 @@ export default function InvoiceListPage() {
         items_per_page: pagination.pageSize,
       }),
   });
+  const customerQuery = useQuery({
+    queryKey: ['domains', 'customers', 'invoice-options'],
+    queryFn: () => customerService.getCustomers({ page: 1, items_per_page: 100 }),
+  });
+  const customers = useMemo(() => customerQuery.data?.data ?? [], [customerQuery.data?.data]);
   const remove = useMutation({
     mutationFn: invoiceService.deleteInvoices,
     onSuccess: () => {
@@ -330,9 +336,10 @@ export default function InvoiceListPage() {
         </>
       }
     >
-      <InvoiceCreateModal open={creating} onOpenChange={setCreating} />
+      <InvoiceCreateModal open={creating} customers={customers} onOpenChange={setCreating} />
       <InvoiceEditModal
         invoice={editing}
+        customers={customers}
         show={editing !== null}
         onClose={() => setEditing(null)}
       />

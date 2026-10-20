@@ -8,7 +8,7 @@ import roleService from '@/api/services/system/roleService';
 import userService from '@/api/services/system/userService';
 import { AdminForm } from '@/components/admin/form';
 import { FormFieldInput, FormFieldSelect } from '@/components/admin/form/form-field';
-import { DividerScheFlow } from '@/components/divider';
+import { DividerProject } from '@/components/divider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -104,7 +104,7 @@ export function UserCreateModal({
         </DialogHeader>
         <AdminForm form={form} onSubmit={handleSubmit} className="flex flex-col">
           <DialogBody className="space-y-4">
-            <DividerScheFlow>{t('management.users.forms.basicData.index')}</DividerScheFlow>
+            <DividerProject>{t('management.users.forms.basicData.index')}</DividerProject>
             <FormFieldInput
               control={form.control}
               name="email"
@@ -117,7 +117,7 @@ export function UserCreateModal({
               label={t('management.users.forms.basicData.name')}
               disabled={mutation.isPending}
             />
-            <DividerScheFlow>{t('management.users.forms.securityData.index')}</DividerScheFlow>
+            <DividerProject>{t('management.users.forms.securityData.index')}</DividerProject>
             <FormFieldSelect
               control={form.control}
               name="role_id"

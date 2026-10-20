@@ -13,7 +13,7 @@ import {
 } from '@/components/admin/descriptions';
 import { PermissionActionBadge } from '@/components/admin/permission-action-badge';
 import { StatusBadge } from '@/components/admin/status-badge';
-import { DividerScheFlow } from '@/components/divider';
+import { DividerProject } from '@/components/divider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -96,7 +96,7 @@ export function RoleDetailModal({ role, show, onClose }: RoleDetailModalProps) {
         </DialogHeader>
         {role ? (
           <DialogBody className="space-y-4">
-            <DividerScheFlow>{t('management.roles.forms.basicData.title')}</DividerScheFlow>
+            <DividerProject>{t('management.roles.forms.basicData.title')}</DividerProject>
             <Descriptions
               bordered
               layout={layout}
@@ -132,7 +132,7 @@ export function RoleDetailModal({ role, show, onClose }: RoleDetailModalProps) {
               </Descriptions.Item>
             </Descriptions>
 
-            <DividerScheFlow>{t('management.roles.forms.permissions.title')}</DividerScheFlow>
+            <DividerProject>{t('management.roles.forms.permissions.title')}</DividerProject>
             <AdminTable
               columns={permissionColumns}
               data={permissionRows}
