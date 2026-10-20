@@ -107,9 +107,9 @@ describe('Domain Invoices mock handler', () => {
     ).toEqual({ deleted: ['invoice-1001'] });
     expect(getState().domains.invoices.map((item) => item.id)).toEqual(['invoice-1002']);
     const before = structuredClone(getState().domains);
-    expect(
-      request('/v1/revenue/invoices/bulk-delete', 'post', { ids: ['missing'] }).status,
-    ).toBe(404);
+    expect(request('/v1/revenue/invoices/bulk-delete', 'post', { ids: ['missing'] }).status).toBe(
+      404,
+    );
     expect(getState().domains).toEqual(before);
     expect(getState().domains.auditLogs.some((item) => item.action === 'invoice.deleted')).toBe(
       true,
@@ -117,9 +117,7 @@ describe('Domain Invoices mock handler', () => {
   });
 
   it('returns 401, 403 and 404 consistently', () => {
-    expect(request('/v1/revenue/invoices', 'get', undefined, undefined, {}).status).toBe(
-      401,
-    );
+    expect(request('/v1/revenue/invoices', 'get', undefined, undefined, {}).status).toBe(401);
     expect(request('/v1/revenue/invoices/missing').status).toBe(404);
     expect(request('/v1/invoices').status).toBe(404);
 

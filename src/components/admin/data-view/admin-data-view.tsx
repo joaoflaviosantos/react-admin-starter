@@ -38,6 +38,7 @@ export type AdminDataViewProps<T> = {
   pagination?: ReactNode;
   isLoading?: boolean;
   error?: unknown;
+  showToggle?: boolean;
   labels: AdminDataViewLabels;
   className?: string;
 };
@@ -55,6 +56,7 @@ export function AdminDataView<T>({
   pagination,
   isLoading = false,
   error,
+  showToggle = true,
   labels,
   className,
 }: AdminDataViewProps<T>) {
@@ -134,14 +136,18 @@ export function AdminDataView<T>({
 
   return (
     <section className={cn('space-y-4', className)}>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="min-w-0 flex-1">{toolbar}</div>
-        <DataViewToggle
-          mode={mode}
-          onChange={setMode}
-          labels={{ table: labels.table, grid: labels.grid, list: labels.list }}
-        />
-      </div>
+      {toolbar || showToggle ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-0 flex-1">{toolbar}</div>
+          {showToggle ? (
+            <DataViewToggle
+              mode={mode}
+              onChange={setMode}
+              labels={{ table: labels.table, grid: labels.grid, list: labels.list }}
+            />
+          ) : null}
+        </div>
+      ) : null}
       {content}
       {!isLoading && !error && data.length > 0 ? pagination : null}
     </section>

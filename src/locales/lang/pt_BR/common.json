@@ -355,6 +355,7 @@
     "customers": {
       "title": "Clientes",
       "description": "Gerencie saúde, receita e adoção do produto pelos clientes.",
+      "listTitle": "Listagem de clientes",
       "new": "Novo cliente",
       "edit": "Editar cliente",
       "details": "Detalhes do cliente",
@@ -387,6 +388,7 @@
     "subscriptions": {
       "title": "Assinaturas",
       "description": "Gerencie planos recorrentes, licenças e ciclo de vida.",
+      "listTitle": "Listagem de assinaturas",
       "new": "Nova assinatura",
       "edit": "Editar assinatura",
       "loading": "Carregando assinaturas…",
@@ -423,6 +425,7 @@
     "tickets": {
       "title": "Tickets de suporte",
       "description": "Acompanhe solicitações, responsáveis e SLA.",
+      "listTitle": "Listagem de tickets",
       "new": "Novo ticket",
       "edit": "Editar ticket",
       "details": "Detalhes do ticket",
@@ -466,6 +469,7 @@
     "apiKeys": {
       "title": "Chaves de API",
       "description": "Crie e revogue credenciais para integrações da plataforma.",
+      "listTitle": "Listagem de chaves de API",
       "new": "Nova chave de API",
       "loading": "Carregando chaves de API…",
       "empty": "Nenhuma chave de API encontrada.",
@@ -509,6 +513,7 @@
     "auditLogs": {
       "title": "Auditoria",
       "description": "Revise atividades sensíveis à segurança no workspace.",
+      "listTitle": "Listagem de auditoria",
       "details": "Detalhes do evento",
       "loading": "Carregando auditoria…",
       "empty": "Nenhum evento de auditoria encontrado.",

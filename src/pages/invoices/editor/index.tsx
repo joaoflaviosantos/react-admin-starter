@@ -131,9 +131,7 @@ export default function InvoiceEditorPage() {
         <h1 className="text-2xl font-semibold">
           {t(invoiceId ? 'app.invoices.edit' : 'app.invoices.new')}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {t('app.invoices.minorUnitsDescription')}
-        </p>
+        <p className="text-sm text-muted-foreground">{t('app.invoices.minorUnitsDescription')}</p>
       </div>
       <AdminForm form={form} onSubmit={submit} className="space-y-4">
         <Card>

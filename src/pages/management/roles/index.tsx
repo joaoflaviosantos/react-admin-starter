@@ -1,16 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import roleService, { SystemRoleAPISearchFormFieldType } from '@/api/services/system/roleService';
-import { AdminTable } from '@/components/admin/data-table';
-import { StatusBadge } from '@/components/admin/status-badge';
+import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
+import {
+  AdminDataView,
+  DataViewToggle,
+  useAdminDataViewMode,
+  type AdminDataViewItemContext,
+} from '@/components/admin/data-view';
 import { AdminForm, AdminSearchPanel } from '@/components/admin/form';
 import { SearchFieldInput, SearchFieldSelect } from '@/components/admin/form/search-field';
-import { AdminPage } from '@/components/admin/page';
+import { AdminListPage } from '@/components/admin/page';
+import { StatusBadge } from '@/components/admin/status-badge';
 import TableActions from '@/components/admin/table-actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -34,6 +40,7 @@ const EMPTY_ROLE_SEARCH: RoleSearchFormValues = {
 export default function ManagementSystemRolesPage() {
   const { t } = useTranslation();
   const tableHeight = useDynamicComponentStringHeight();
+  const { mode, setMode } = useAdminDataViewMode();
   const currentRouteMeta = useMatchRouteMeta();
   const { canCreate } = useHasRequiredPermission(currentRouteMeta?.label);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
@@ -81,6 +88,26 @@ export default function ManagementSystemRolesPage() {
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
+  const openDetail = useCallback(
+    (id: string) => {
+      const role = data?.data?.find((item) => item.id === id) ?? null;
+      setSelectedRole(role);
+    },
+    [data?.data],
+  );
+
+  const actions = useCallback(
+    (role: RoleRead) => (
+      <TableActions
+        permissionLabel={currentRouteMeta?.label}
+        record={role}
+        isFetching={isFetching}
+        onDetail={openDetail}
+      />
+    ),
+    [currentRouteMeta?.label, isFetching, openDetail],
+  );
+
   const columns: ColumnDef<RoleRead>[] = useMemo(
     () => [
       {
@@ -110,26 +137,37 @@ export default function ManagementSystemRolesPage() {
         header: () => (
           <div className="text-center">{t('management.common.tableColumns.action')}</div>
         ),
-        cell: ({ row }) => (
-          <TableActions
-            permissionLabel={currentRouteMeta?.label}
-            record={row.original}
-            isFetching={isFetching}
-            onDetail={(id) => {
-              const role = data?.data?.find((item) => item.id === id) ?? null;
-              setSelectedRole(role);
-            }}
-          />
-        ),
+        cell: ({ row }) => actions(row.original),
       },
     ],
-    [t, currentRouteMeta?.label, data?.data, isFetching],
+    [actions, t],
+  );
+
+  const summary = (role: RoleRead, context: AdminDataViewItemContext, compact = false) => (
+    <Card className={compact ? 'shadow-none' : undefined}>
+      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 pb-2">
+        <div className="min-w-0">
+          <CardTitle className="truncate text-base">
+            <Badge variant="secondary">{role.label || role.name}</Badge>
+          </CardTitle>
+        </div>
+        {context.actions}
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        <p className="text-muted-foreground">{role.description}</p>
+        <StatusBadge
+          active={role.is_active ?? false}
+          activeLabel={t('common.active')}
+          inactiveLabel={t('common.inactive')}
+        />
+      </CardContent>
+    </Card>
   );
 
   return (
-    <AdminPage className="flex flex-col gap-4">
-      <Card className="shadow-sm">
-        <CardContent className="pt-6">
+    <>
+      <AdminListPage
+        filters={
           <AdminForm form={searchForm} onSubmit={onSearch}>
             <AdminSearchPanel
               isLoading={isFetching}
@@ -157,44 +195,66 @@ export default function ManagementSystemRolesPage() {
               />
             </AdminSearchPanel>
           </AdminForm>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-sm font-semibold">{t('management.roles.listTitle')}</CardTitle>
-          <Button
-            disabled={!canCreate || isFetching}
-            title={!canCreate ? t('common.noCreatePermission') : t('common.newText')}
-            onClick={() => appToast.info(t('management.roles.createComingSoon'))}
-          >
-            {t('common.newText')}
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <AdminTable
-            columns={columns}
-            data={data?.data ?? []}
-            isLoading={isFetching}
-            rowKey="id"
-            scrollHeight={tableHeight}
-            pagination={{
-              pageIndex: data?.page ?? pagination.page,
-              pageSize: data?.items_per_page ?? pagination.pageSize,
-              totalCount: data?.total_count ?? 0,
-              onPaginationChange: (pageIndex, pageSize) => {
+        }
+        listTitle={t('management.roles.listTitle')}
+        listActions={
+          <>
+            <DataViewToggle
+              mode={mode}
+              onChange={setMode}
+              labels={{
+                table: t('app.dataView.table'),
+                grid: t('app.dataView.grid'),
+                list: t('app.dataView.list'),
+              }}
+            />
+            <Button
+              disabled={!canCreate || isFetching}
+              title={!canCreate ? t('common.noCreatePermission') : t('common.newText')}
+              onClick={() => appToast.info(t('management.roles.createComingSoon'))}
+            >
+              {t('common.newText')}
+            </Button>
+          </>
+        }
+      >
+        <AdminDataView
+          data={data?.data ?? []}
+          getItemId={(role) => role.id}
+          isLoading={isFetching}
+          showToggle={false}
+          renderActions={actions}
+          labels={{
+            table: t('app.dataView.table'),
+            grid: t('app.dataView.grid'),
+            list: t('app.dataView.list'),
+            loading: t('app.dataView.loading'),
+            empty: t('common.noData'),
+            error: t('app.dataView.error'),
+          }}
+          renderTable={({ data: rows }) => (
+            <AdminTable columns={columns} data={rows} rowKey="id" scrollHeight={tableHeight} />
+          )}
+          renderGridItem={(role, context) => summary(role, context)}
+          renderListItem={(role, context) => summary(role, context, true)}
+          pagination={
+            <AdminTablePagination
+              pageIndex={data?.page ?? pagination.page}
+              pageSize={data?.items_per_page ?? pagination.pageSize}
+              totalCount={data?.total_count ?? 0}
+              onPaginationChange={(pageIndex, pageSize) => {
                 setPagination({ page: pageIndex, pageSize });
-              },
-            }}
-          />
-        </CardContent>
-      </Card>
+              }}
+            />
+          }
+        />
+      </AdminListPage>
 
       <RoleDetailModal
         role={selectedRole}
         show={selectedRole !== null}
         onClose={() => setSelectedRole(null)}
       />
-    </AdminPage>
+    </>
   );
 }

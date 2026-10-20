@@ -74,11 +74,7 @@ describe('SaaS permission catalogue', () => {
     });
 
     expect(
-      hasPermissionAction(
-        VIEWER_PERMISSIONS,
-        'app.menu.invoices',
-        PermissionActionType.EXPORT,
-      ),
+      hasPermissionAction(VIEWER_PERMISSIONS, 'app.menu.invoices', PermissionActionType.EXPORT),
     ).toBe(true);
     expect(
       hasPermissionAction(VIEWER_PERMISSIONS, 'app.invoices.new', PermissionActionType.CREATE),

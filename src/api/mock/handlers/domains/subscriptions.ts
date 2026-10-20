@@ -34,12 +34,7 @@ function validSubscription(value: SubscriptionInput): boolean {
   );
 }
 
-export const handleSubscriptionsRequest: DomainHandler = ({
-  config,
-  method,
-  pathname,
-  user,
-}) => {
+export const handleSubscriptionsRequest: DomainHandler = ({ config, method, pathname, user }) => {
   const store = getState().domains;
   const subscriptions = store.subscriptions;
   const baseUrl = '/v1/revenue/subscriptions';

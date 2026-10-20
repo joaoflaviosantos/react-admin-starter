@@ -10,8 +10,13 @@ import subscriptionService, {
 } from '@/api/services/domains/subscriptionService';
 import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
-import { AdminDataView, type AdminDataViewItemContext } from '@/components/admin/data-view';
-import { AdminPage, AdminPageHeader } from '@/components/admin/page';
+import {
+  AdminDataView,
+  DataViewToggle,
+  useAdminDataViewMode,
+  type AdminDataViewItemContext,
+} from '@/components/admin/data-view';
+import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +35,7 @@ export default function SubscriptionsPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'pt_BR' ? 'pt-BR' : 'en-US';
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
+  const { mode, setMode } = useAdminDataViewMode();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<
@@ -112,9 +118,7 @@ export default function SubscriptionsPage() {
         </Button>
         <ConfirmDialog
           title={t(
-            canceled
-              ? 'app.subscriptions.reactivateTitle'
-              : 'app.subscriptions.cancelTitle',
+            canceled ? 'app.subscriptions.reactivateTitle' : 'app.subscriptions.cancelTitle',
             { name },
           )}
           description={t(
@@ -122,9 +126,7 @@ export default function SubscriptionsPage() {
               ? 'app.subscriptions.reactivateDescription'
               : 'app.subscriptions.cancelDescription',
           )}
-          confirmLabel={t(
-            canceled ? 'app.subscriptions.reactivate' : 'app.subscriptions.cancel',
-          )}
+          confirmLabel={t(canceled ? 'app.subscriptions.reactivate' : 'app.subscriptions.cancel')}
           cancelLabel={t('app.common.actions.close')}
           onConfirm={() =>
             lifecycle.mutate({ id: subscription.id, action: canceled ? 'reactivate' : 'cancel' })
@@ -134,9 +136,7 @@ export default function SubscriptionsPage() {
               size="icon"
               variant="ghost"
               aria-label={t(
-                canceled
-                  ? 'app.subscriptions.reactivateAria'
-                  : 'app.subscriptions.cancelAria',
+                canceled ? 'app.subscriptions.reactivateAria' : 'app.subscriptions.cancelAria',
                 { name },
               )}
             >
@@ -226,36 +226,85 @@ export default function SubscriptionsPage() {
   const counts = query.data?.counts;
 
   return (
-    <AdminPage>
-      <AdminPageHeader
-        title={t('app.subscriptions.title')}
-        description={t('app.subscriptions.description')}
-        actions={
-          permissions.canCreate ? (
+    <AdminListPage
+      stats={
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {(['all', 'active', 'trialing', 'past_due', 'canceled'] as const).map((status) => (
+            <Card key={status}>
+              <CardContent className="p-4">
+                <p className="text-xs font-medium uppercase text-muted-foreground">
+                  {option(status)}
+                </p>
+                <p className="mt-1 text-2xl font-semibold">{counts?.[status] ?? 0}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      }
+      filters={
+        <div className="flex flex-wrap gap-2">
+          <Input
+            className="min-w-52 flex-1"
+            type="search"
+            aria-label={t('app.subscriptions.searchAria')}
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPagination((current) => ({ ...current, page: 1 }));
+            }}
+          />
+          {(['status', 'plan', 'interval'] as const).map((name) => (
+            <select
+              key={name}
+              aria-label={t(
+                name === 'status' ? 'app.common.fields.status' : `app.subscriptions.${name}`,
+              )}
+              className={filterClass}
+              value={filters[name]}
+              onChange={(event) => updateFilter(name, event.target.value)}
+            >
+              <option value="">{t('app.common.states.all')}</option>
+              {(name === 'status'
+                ? ['trialing', 'active', 'past_due', 'canceled']
+                : name === 'plan'
+                  ? ['starter', 'growth', 'scale']
+                  : ['monthly', 'yearly']
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {option(value)}
+                </option>
+              ))}
+            </select>
+          ))}
+        </div>
+      }
+      listTitle={t('app.subscriptions.listTitle')}
+      listActions={
+        <>
+          <DataViewToggle
+            mode={mode}
+            onChange={setMode}
+            labels={{
+              table: t('app.dataView.table'),
+              grid: t('app.dataView.grid'),
+              list: t('app.dataView.list'),
+            }}
+          />
+          {permissions.canCreate ? (
             <Button onClick={() => setEditing(null)}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.subscriptions.new')}
             </Button>
-          ) : undefined
-        }
-      />
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
-        {(['all', 'active', 'trialing', 'past_due', 'canceled'] as const).map((status) => (
-          <Card key={status}>
-            <CardContent className="p-4">
-              <p className="text-xs font-medium uppercase text-muted-foreground">
-                {option(status)}
-              </p>
-              <p className="mt-1 text-2xl font-semibold">{counts?.[status] ?? 0}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+          ) : null}
+        </>
+      }
+    >
       <AdminDataView
         data={subscriptions}
         getItemId={(subscription) => subscription.id}
         isLoading={query.isLoading}
         error={query.error}
+        showToggle={false}
         renderActions={actions}
         labels={{
           table: t('app.dataView.table'),
@@ -265,45 +314,6 @@ export default function SubscriptionsPage() {
           empty: t('app.subscriptions.empty'),
           error: t('app.subscriptions.loadError'),
         }}
-        toolbar={
-          <div className="flex flex-wrap gap-2">
-            <Input
-              className="min-w-52 flex-1"
-              type="search"
-              aria-label={t('app.subscriptions.searchAria')}
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPagination((current) => ({ ...current, page: 1 }));
-              }}
-            />
-            {(['status', 'plan', 'interval'] as const).map((name) => (
-              <select
-                key={name}
-                aria-label={t(
-                  name === 'status'
-                    ? 'app.common.fields.status'
-                    : `app.subscriptions.${name}`,
-                )}
-                className={filterClass}
-                value={filters[name]}
-                onChange={(event) => updateFilter(name, event.target.value)}
-              >
-                <option value="">{t('app.common.states.all')}</option>
-                {(name === 'status'
-                  ? ['trialing', 'active', 'past_due', 'canceled']
-                  : name === 'plan'
-                    ? ['starter', 'growth', 'scale']
-                    : ['monthly', 'yearly']
-                ).map((value) => (
-                  <option key={value} value={value}>
-                    {option(value)}
-                  </option>
-                ))}
-              </select>
-            ))}
-          </div>
-        }
         renderTable={({ data }) => <AdminTable columns={columns} data={data} rowKey="id" />}
         renderGridItem={(subscription, context) => summary(subscription, context)}
         renderListItem={(subscription, context) => summary(subscription, context, true)}
@@ -324,6 +334,6 @@ export default function SubscriptionsPage() {
         onOpenChange={(open) => !open && setEditing(undefined)}
         onSubmit={(payload) => save.mutate(payload)}
       />
-    </AdminPage>
+    </AdminListPage>
   );
 }

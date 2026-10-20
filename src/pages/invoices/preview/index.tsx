@@ -67,9 +67,7 @@ export default function InvoicePreviewPage() {
       <div className="invoice-print-hidden flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{t('app.invoices.previewTitle')}</h1>
-          <p className="text-sm text-muted-foreground">
-            {t('app.invoices.previewDescription')}
-          </p>
+          <p className="text-sm text-muted-foreground">{t('app.invoices.previewDescription')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button

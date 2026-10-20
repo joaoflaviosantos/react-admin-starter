@@ -17,8 +17,13 @@ import customerService from '@/api/services/domains/customerService';
 import ticketService, { type TicketListParams } from '@/api/services/domains/ticketService';
 import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
-import { AdminDataView, type AdminDataViewItemContext } from '@/components/admin/data-view';
-import { AdminPage, AdminPageHeader } from '@/components/admin/page';
+import {
+  AdminDataView,
+  DataViewToggle,
+  useAdminDataViewMode,
+  type AdminDataViewItemContext,
+} from '@/components/admin/data-view';
+import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +50,7 @@ export default function TicketsPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'pt_BR' ? 'pt-BR' : 'en-US';
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
+  const { mode, setMode } = useAdminDataViewMode();
   const client = useQueryClient();
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Pick<TicketListParams, 'status' | 'priority' | 'sla'>>({
@@ -295,40 +301,96 @@ export default function TicketsPage() {
   const counts = query.data?.counts;
 
   return (
-    <AdminPage>
-      <AdminPageHeader
-        title={t('app.tickets.title')}
-        description={t('app.tickets.description')}
-        actions={
-          permissions.canCreate ? (
+    <AdminListPage
+      stats={
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+          {(['all', 'open', 'in_progress', 'waiting', 'resolved', 'overdue'] as const).map(
+            (status) => (
+              <Card key={status}>
+                <CardContent className="p-4">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">
+                    {option(status)}
+                  </p>
+                  <p
+                    className="mt-1 text-2xl font-semibold"
+                    data-testid={`tickets-count-${status}`}
+                  >
+                    {counts?.[status] ?? 0}
+                  </p>
+                </CardContent>
+              </Card>
+            ),
+          )}
+        </div>
+      }
+      filters={
+        <div className="flex flex-wrap gap-2">
+          <Input
+            className="min-w-52 flex-1"
+            type="search"
+            aria-label={t('app.tickets.searchAria')}
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPagination((current) => ({ ...current, page: 1 }));
+            }}
+          />
+          {(['status', 'priority', 'sla'] as const).map((name) => (
+            <select
+              key={name}
+              className={filterClass}
+              aria-label={t(
+                name === 'status'
+                  ? 'app.common.fields.status'
+                  : name === 'priority'
+                    ? 'app.tickets.priority'
+                    : 'app.tickets.slaStatus',
+              )}
+              value={filters[name]}
+              onChange={(event) => updateFilter(name, event.target.value)}
+            >
+              <option value="">{t('app.common.states.all')}</option>
+              {(name === 'status'
+                ? ['open', 'in_progress', 'waiting', 'resolved']
+                : name === 'priority'
+                  ? ['low', 'medium', 'high', 'urgent']
+                  : ['overdue', 'on_track']
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {option(value)}
+                </option>
+              ))}
+            </select>
+          ))}
+        </div>
+      }
+      listTitle={t('app.tickets.listTitle')}
+      listActions={
+        <>
+          <DataViewToggle
+            mode={mode}
+            onChange={setMode}
+            labels={{
+              table: t('app.dataView.table'),
+              grid: t('app.dataView.grid'),
+              list: t('app.dataView.list'),
+            }}
+          />
+          {permissions.canCreate ? (
             <Button onClick={() => setEditing(null)}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.tickets.new')}
             </Button>
-          ) : undefined
-        }
-      />
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-6">
-        {(['all', 'open', 'in_progress', 'waiting', 'resolved', 'overdue'] as const).map(
-          (status) => (
-            <Card key={status}>
-              <CardContent className="p-4">
-                <p className="text-xs font-medium uppercase text-muted-foreground">
-                  {option(status)}
-                </p>
-                <p className="mt-1 text-2xl font-semibold" data-testid={`tickets-count-${status}`}>
-                  {counts?.[status] ?? 0}
-                </p>
-              </CardContent>
-            </Card>
-          ),
-        )}
-      </div>
+          ) : null}
+        </>
+      }
+    >
       <AdminDataView
         data={tickets}
         getItemId={(ticket) => ticket.id}
         isLoading={query.isLoading}
         error={query.error}
+        showToggle={false}
         renderActions={actions}
         labels={{
           table: t('app.dataView.table'),
@@ -338,47 +400,6 @@ export default function TicketsPage() {
           empty: t('app.tickets.empty'),
           error: t('app.tickets.loadError'),
         }}
-        toolbar={
-          <div className="flex flex-wrap gap-2">
-            <Input
-              className="min-w-52 flex-1"
-              type="search"
-              aria-label={t('app.tickets.searchAria')}
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPagination((current) => ({ ...current, page: 1 }));
-              }}
-            />
-            {(['status', 'priority', 'sla'] as const).map((name) => (
-              <select
-                key={name}
-                className={filterClass}
-                aria-label={t(
-                  name === 'status'
-                    ? 'app.common.fields.status'
-                    : name === 'priority'
-                      ? 'app.tickets.priority'
-                      : 'app.tickets.slaStatus',
-                )}
-                value={filters[name]}
-                onChange={(event) => updateFilter(name, event.target.value)}
-              >
-                <option value="">{t('app.common.states.all')}</option>
-                {(name === 'status'
-                  ? ['open', 'in_progress', 'waiting', 'resolved']
-                  : name === 'priority'
-                    ? ['low', 'medium', 'high', 'urgent']
-                    : ['overdue', 'on_track']
-                ).map((value) => (
-                  <option key={value} value={value}>
-                    {option(value)}
-                  </option>
-                ))}
-              </select>
-            ))}
-          </div>
-        }
         renderTable={({ data }) => <AdminTable columns={columns} data={data} rowKey="id" />}
         renderGridItem={(ticket, context) => summary(ticket, context)}
         renderListItem={(ticket, context) => summary(ticket, context, true)}
@@ -405,6 +426,6 @@ export default function TicketsPage() {
         locale={locale}
         onClose={() => setDetails(null)}
       />
-    </AdminPage>
+    </AdminListPage>
   );
 }

@@ -10,8 +10,13 @@ import { z } from 'zod';
 import apiKeyService, { type ApiKeyListParams } from '@/api/services/domains/apiKeyService';
 import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
-import { AdminDataView, type AdminDataViewItemContext } from '@/components/admin/data-view';
-import { AdminPage, AdminPageHeader } from '@/components/admin/page';
+import {
+  AdminDataView,
+  DataViewToggle,
+  useAdminDataViewMode,
+  type AdminDataViewItemContext,
+} from '@/components/admin/data-view';
+import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -206,6 +211,7 @@ export default function ApiKeysPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'pt_BR' ? 'pt-BR' : 'en-US';
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
+  const { mode, setMode } = useAdminDataViewMode();
   const client = useQueryClient();
   const [filters, setFilters] = useState<ApiKeyListParams>({ search: '', status: '' });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
@@ -329,24 +335,55 @@ export default function ApiKeysPage() {
     setPagination((current) => ({ ...current, page: 1 }));
   };
   return (
-    <AdminPage>
-      <AdminPageHeader
-        title={t('app.apiKeys.title')}
-        description={t('app.apiKeys.description')}
-        actions={
-          permissions.canCreate ? (
+    <AdminListPage
+      filters={
+        <div className="flex flex-wrap gap-2">
+          <Input
+            className="min-w-52 flex-1"
+            type="search"
+            aria-label={t('app.apiKeys.searchAria')}
+            value={filters.search}
+            onChange={(event) => updateFilter('search', event.target.value)}
+          />
+          <select
+            className={filterClass}
+            aria-label={t('app.apiKeys.statusAria')}
+            value={filters.status}
+            onChange={(event) => updateFilter('status', event.target.value)}
+          >
+            <option value="">{t('app.common.states.all')}</option>
+            <option value="active">{t('app.apiKeys.active')}</option>
+            <option value="revoked">{t('app.apiKeys.revoked')}</option>
+          </select>
+        </div>
+      }
+      listTitle={t('app.apiKeys.listTitle')}
+      listActions={
+        <>
+          <DataViewToggle
+            mode={mode}
+            onChange={setMode}
+            labels={{
+              table: t('app.dataView.table'),
+              grid: t('app.dataView.grid'),
+              list: t('app.dataView.list'),
+            }}
+          />
+          {permissions.canCreate ? (
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.apiKeys.new')}
             </Button>
-          ) : undefined
-        }
-      />
+          ) : null}
+        </>
+      }
+    >
       <AdminDataView
         data={keys}
         getItemId={(key) => key.id}
         isLoading={query.isLoading}
         error={query.error}
+        showToggle={false}
         renderActions={actions}
         labels={{
           table: t('app.dataView.table'),
@@ -356,27 +393,6 @@ export default function ApiKeysPage() {
           empty: t('app.apiKeys.empty'),
           error: t('app.apiKeys.loadError'),
         }}
-        toolbar={
-          <div className="flex flex-wrap gap-2">
-            <Input
-              className="min-w-52 flex-1"
-              type="search"
-              aria-label={t('app.apiKeys.searchAria')}
-              value={filters.search}
-              onChange={(event) => updateFilter('search', event.target.value)}
-            />
-            <select
-              className={filterClass}
-              aria-label={t('app.apiKeys.statusAria')}
-              value={filters.status}
-              onChange={(event) => updateFilter('status', event.target.value)}
-            >
-              <option value="">{t('app.common.states.all')}</option>
-              <option value="active">{t('app.apiKeys.active')}</option>
-              <option value="revoked">{t('app.apiKeys.revoked')}</option>
-            </select>
-          </div>
-        }
         renderTable={({ data }) => <AdminTable columns={columns} data={data} rowKey="id" />}
         renderGridItem={(key, context) => summary(key, context)}
         renderListItem={(key, context) => summary(key, context, true)}
@@ -396,6 +412,6 @@ export default function ApiKeysPage() {
         onSubmit={(payload) => create.mutate(payload)}
       />
       <SecretDialog secret={secret} onClose={() => setSecret(null)} />
-    </AdminPage>
+    </AdminListPage>
   );
 }

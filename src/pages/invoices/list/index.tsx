@@ -7,8 +7,13 @@ import { useTranslation } from 'react-i18next';
 import invoiceService, { type InvoiceListParams } from '@/api/services/domains/invoiceService';
 import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
-import { AdminDataView, type AdminDataViewItemContext } from '@/components/admin/data-view';
-import { AdminPage, AdminPageHeader } from '@/components/admin/page';
+import {
+  AdminDataView,
+  DataViewToggle,
+  useAdminDataViewMode,
+  type AdminDataViewItemContext,
+} from '@/components/admin/data-view';
+import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +30,7 @@ export default function InvoiceListPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'pt_BR' ? 'pt-BR' : 'en-US';
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
+  const { mode, setMode } = useAdminDataViewMode();
   const router = useRouter();
   const client = useQueryClient();
   const [search, setSearch] = useState('');
@@ -194,24 +200,89 @@ export default function InvoiceListPage() {
   };
 
   return (
-    <AdminPage>
-      <AdminPageHeader
-        title={t('app.invoices.title')}
-        description={t('app.invoices.description')}
-        actions={
-          permissions.canCreate ? (
+    <AdminListPage
+      filters={
+        <div className="flex flex-wrap gap-2">
+          <Input
+            className="min-w-52 flex-1"
+            type="search"
+            aria-label={t('app.invoices.searchAria')}
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPagination((current) => ({ ...current, page: 1 }));
+            }}
+          />
+          <select
+            className={filterClass}
+            aria-label={t('app.common.fields.status')}
+            value={status}
+            onChange={(event) => {
+              setStatus(event.target.value as InvoiceStatus | '');
+              setPagination((current) => ({ ...current, page: 1 }));
+            }}
+          >
+            <option value="">{t('app.common.states.all')}</option>
+            {(['draft', 'sent'] as const).map((value) => (
+              <option key={value} value={value}>
+                {t(`app.common.options.${value}`)}
+              </option>
+            ))}
+          </select>
+          <select
+            className={filterClass}
+            aria-label={t('app.invoices.sortAria')}
+            value={`${sort.sort_by}:${sort.sort_order}`}
+            onChange={(event) => updateSort(event.target.value)}
+          >
+            <option value="issueDate:desc">{t('app.invoices.sortNewest')}</option>
+            <option value="issueDate:asc">{t('app.invoices.sortOldest')}</option>
+            <option value="total:desc">{t('app.invoices.sortHighest')}</option>
+            <option value="total:asc">{t('app.invoices.sortLowest')}</option>
+          </select>
+        </div>
+      }
+      listTitle={t('app.invoices.invoiceList')}
+      listActions={
+        <>
+          <DataViewToggle
+            mode={mode}
+            onChange={setMode}
+            labels={{
+              table: t('app.dataView.table'),
+              grid: t('app.dataView.grid'),
+              list: t('app.dataView.list'),
+            }}
+          />
+          {permissions.canDelete && selected.length ? (
+            <ConfirmDialog
+              title={t('app.invoices.deleteSelectedTitle', { count: selected.length })}
+              confirmLabel={t('app.common.actions.delete')}
+              cancelLabel={t('app.common.actions.cancel')}
+              onConfirm={() => remove.mutate(selected)}
+              trigger={
+                <Button variant="destructive" aria-label={t('app.invoices.deleteSelected')}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t('app.invoices.deleteSelected')}
+                </Button>
+              }
+            />
+          ) : null}
+          {permissions.canCreate ? (
             <Button onClick={() => router.push('/revenue/invoices/new')}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.invoices.new')}
             </Button>
-          ) : undefined
-        }
-      />
+          ) : null}
+        </>
+      }
+    >
       <AdminDataView
         data={invoices}
         getItemId={(invoice) => invoice.id}
         isLoading={query.isLoading}
         error={query.error}
+        showToggle={false}
         selectedIds={selected}
         onSelectedIdsChange={setSelected}
         renderActions={actions}
@@ -223,61 +294,6 @@ export default function InvoiceListPage() {
           empty: t('app.invoices.empty'),
           error: t('app.invoices.loadListError'),
         }}
-        toolbar={
-          <div className="flex flex-wrap gap-2">
-            <Input
-              className="min-w-52 flex-1"
-              type="search"
-              aria-label={t('app.invoices.searchAria')}
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPagination((current) => ({ ...current, page: 1 }));
-              }}
-            />
-            <select
-              className={filterClass}
-              aria-label={t('app.common.fields.status')}
-              value={status}
-              onChange={(event) => {
-                setStatus(event.target.value as InvoiceStatus | '');
-                setPagination((current) => ({ ...current, page: 1 }));
-              }}
-            >
-              <option value="">{t('app.common.states.all')}</option>
-              {(['draft', 'sent'] as const).map((value) => (
-                <option key={value} value={value}>
-                  {t(`app.common.options.${value}`)}
-                </option>
-              ))}
-            </select>
-            <select
-              className={filterClass}
-              aria-label={t('app.invoices.sortAria')}
-              value={`${sort.sort_by}:${sort.sort_order}`}
-              onChange={(event) => updateSort(event.target.value)}
-            >
-              <option value="issueDate:desc">{t('app.invoices.sortNewest')}</option>
-              <option value="issueDate:asc">{t('app.invoices.sortOldest')}</option>
-              <option value="total:desc">{t('app.invoices.sortHighest')}</option>
-              <option value="total:asc">{t('app.invoices.sortLowest')}</option>
-            </select>
-            {permissions.canDelete && selected.length ? (
-              <ConfirmDialog
-                title={t('app.invoices.deleteSelectedTitle', { count: selected.length })}
-                confirmLabel={t('app.common.actions.delete')}
-                cancelLabel={t('app.common.actions.cancel')}
-                onConfirm={() => remove.mutate(selected)}
-                trigger={
-                  <Button variant="destructive" aria-label={t('app.invoices.deleteSelected')}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    {t('app.invoices.deleteSelected')}
-                  </Button>
-                }
-              />
-            ) : null}
-          </div>
-        }
         renderTable={({ data }) => <AdminTable columns={columns} data={data} rowKey="id" />}
         renderGridItem={(invoice, context) => summary(invoice, context)}
         renderListItem={(invoice, context) => summary(invoice, context, true)}
@@ -290,6 +306,6 @@ export default function InvoiceListPage() {
           />
         }
       />
-    </AdminPage>
+    </AdminListPage>
   );
 }

@@ -63,12 +63,7 @@ function totals(
   };
 }
 
-export const handleInvoicesRequest: DomainHandler = ({
-  config,
-  method,
-  pathname,
-  user,
-}) => {
+export const handleInvoicesRequest: DomainHandler = ({ config, method, pathname, user }) => {
   const invoices = getState().domains.invoices;
   if (method === 'GET' && pathname === baseUrl) {
     const params = config.params as Record<string, unknown> | undefined;

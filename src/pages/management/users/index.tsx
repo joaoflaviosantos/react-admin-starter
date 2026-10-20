@@ -1,30 +1,34 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import userService, { SystemUserAPISearchFormFieldType } from '@/api/services/system/userService';
-import { AdminTable } from '@/components/admin/data-table';
-import TableActions from '@/components/admin/table-actions';
-import { StatusBadge } from '@/components/admin/status-badge';
+import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
+import {
+  AdminDataView,
+  DataViewToggle,
+  useAdminDataViewMode,
+  type AdminDataViewItemContext,
+} from '@/components/admin/data-view';
 import { AdminForm, AdminSearchPanel } from '@/components/admin/form';
 import { SearchFieldInput, SearchFieldSelect } from '@/components/admin/form/search-field';
-import { AdminPage } from '@/components/admin/page';
+import { AdminListPage } from '@/components/admin/page';
+import { StatusBadge } from '@/components/admin/status-badge';
+import TableActions from '@/components/admin/table-actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import useDynamicComponentStringHeight from '@/hooks/components/use-dynamic-component-string-height';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { normalizeCrudSearchValues } from '@/lib/crud-search';
 import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta } from '@/router/hooks';
-import { createUserSearchSchema, type UserSearchFormValues } from './schema';
 import { getColorFromName } from '@/utils/colors';
 import { getInitials } from '@/utils/format-string';
-
+import { createUserSearchSchema, type UserSearchFormValues } from './schema';
 import { UserCreateModal, UserCreateModalProps } from './user-create-modal';
 import { UserDeleteConfirmModal } from './user-delete-confirm-modal';
 import { UserDetailModal } from './user-detail-modal';
@@ -45,13 +49,13 @@ const EMPTY_USER_SEARCH: UserSearchFormValues = {
 };
 
 function formatDate(value?: string | null) {
-  if (!value) return '—';
+  if (!value) return '-';
   return new Date(value).toLocaleString();
 }
 
 export default function ManagementSystemUsersPage() {
   const { t } = useTranslation();
-  const tableHeight = useDynamicComponentStringHeight();
+  const { mode, setMode } = useAdminDataViewMode();
   const queryClient = useQueryClient();
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
   const [searchValues, setSearchValues] = useState<SystemUserAPISearchFormFieldType>({});
@@ -129,6 +133,26 @@ export default function ManagementSystemUsersPage() {
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
+  const actions = useCallback(
+    (user: UserRead) => (
+      <TableActions
+        permissionLabel={currentRouteMeta?.label}
+        record={user}
+        isFetching={isFetching}
+        onDetail={(id) => setDetailUserId(id)}
+        onUpdate={(id) => {
+          const recordToEdit = data?.data?.find((item) => item.id === id) ?? null;
+          setEditUser(recordToEdit);
+        }}
+        onDelete={(id) => {
+          const recordToDelete = data?.data?.find((item) => item.id === id) ?? null;
+          setUserToDelete(recordToDelete);
+        }}
+      />
+    ),
+    [currentRouteMeta?.label, data?.data, isFetching],
+  );
+
   const columns: ColumnDef<UserRead>[] = useMemo(
     () => [
       {
@@ -188,31 +212,58 @@ export default function ManagementSystemUsersPage() {
         header: () => (
           <div className="text-center">{t('management.common.tableColumns.action')}</div>
         ),
-        cell: ({ row }) => (
-          <TableActions
-            permissionLabel={currentRouteMeta?.label}
-            record={row.original}
-            isFetching={isFetching}
-            onDetail={(id) => setDetailUserId(id)}
-            onUpdate={(id) => {
-              const recordToEdit = data?.data?.find((item) => item.id === id) ?? null;
-              setEditUser(recordToEdit);
-            }}
-            onDelete={(id) => {
-              const recordToDelete = data?.data?.find((item) => item.id === id) ?? null;
-              setUserToDelete(recordToDelete);
-            }}
-          />
-        ),
+        cell: ({ row }) => actions(row.original),
       },
     ],
-    [t, currentRouteMeta?.label, data?.data, isFetching],
+    [actions, t],
   );
 
+  const summary = (user: UserRead, context: AdminDataViewItemContext, compact = false) => {
+    const avatarColor = getColorFromName(user.name);
+
+    return (
+      <Card className={compact ? 'shadow-none' : undefined}>
+        <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 pb-2">
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar className="h-9 w-9">
+              {user.profile_image_url ? (
+                <AvatarImage src={user.profile_image_url} alt={user.name} />
+              ) : null}
+              <AvatarFallback
+                className="text-[0.7rem] font-medium text-white"
+                style={{ backgroundColor: avatarColor }}
+              >
+                {getInitials(user.name, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <CardTitle className="truncate text-base">{user.name}</CardTitle>
+              <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+            </div>
+          </div>
+          {context.actions}
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-3 text-sm">
+          <Badge variant="secondary">{user.role_label || user.role}</Badge>
+          <span className="text-right">
+            <StatusBadge
+              active={user.is_active ?? false}
+              activeLabel={t('common.active')}
+              inactiveLabel={t('common.inactive')}
+            />
+          </span>
+          <span className="col-span-2 text-xs text-muted-foreground">
+            {t('management.common.tableColumns.lastUpdate')}: {formatDate(user.updated_at)}
+          </span>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
-    <AdminPage className="flex flex-col gap-4">
-      <Card className="shadow-sm">
-        <CardContent className="pt-6">
+    <>
+      <AdminListPage
+        filters={
           <AdminForm form={searchForm} onSubmit={onSearch}>
             <AdminSearchPanel
               isLoading={isFetching}
@@ -240,44 +291,64 @@ export default function ManagementSystemUsersPage() {
               />
             </AdminSearchPanel>
           </AdminForm>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-sm font-semibold">{t('management.users.listTitle')}</CardTitle>
-          <Button
-            disabled={!canCreate || isFetching}
-            title={!canCreate ? t('common.noCreatePermission') : t('common.newText')}
-            onClick={() =>
-              setUserCreateModalProps((prev) => ({
-                ...prev,
-                show: true,
-                title: t('management.users.newModalText'),
-              }))
-            }
-          >
-            {t('common.newText')}
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <AdminTable
-            columns={columns}
-            data={data?.data ?? []}
-            isLoading={isFetching}
-            rowKey="id"
-            scrollHeight={tableHeight}
-            pagination={{
-              pageIndex: data?.page ?? pagination.page,
-              pageSize: data?.items_per_page ?? pagination.pageSize,
-              totalCount: data?.total_count ?? 0,
-              onPaginationChange: (pageIndex, pageSize) => {
+        }
+        listTitle={t('management.users.listTitle')}
+        listActions={
+          <>
+            <DataViewToggle
+              mode={mode}
+              onChange={setMode}
+              labels={{
+                table: t('app.dataView.table'),
+                grid: t('app.dataView.grid'),
+                list: t('app.dataView.list'),
+              }}
+            />
+            <Button
+              disabled={!canCreate || isFetching}
+              title={!canCreate ? t('common.noCreatePermission') : t('common.newText')}
+              onClick={() =>
+                setUserCreateModalProps((prev) => ({
+                  ...prev,
+                  show: true,
+                  title: t('management.users.newModalText'),
+                }))
+              }
+            >
+              {t('common.newText')}
+            </Button>
+          </>
+        }
+      >
+        <AdminDataView
+          data={data?.data ?? []}
+          getItemId={(user) => user.id}
+          isLoading={isFetching}
+          showToggle={false}
+          renderActions={actions}
+          labels={{
+            table: t('app.dataView.table'),
+            grid: t('app.dataView.grid'),
+            list: t('app.dataView.list'),
+            loading: t('app.dataView.loading'),
+            empty: t('common.noData'),
+            error: t('app.dataView.error'),
+          }}
+          renderTable={({ data: rows }) => <AdminTable columns={columns} data={rows} rowKey="id" />}
+          renderGridItem={(user, context) => summary(user, context)}
+          renderListItem={(user, context) => summary(user, context, true)}
+          pagination={
+            <AdminTablePagination
+              pageIndex={data?.page ?? pagination.page}
+              pageSize={data?.items_per_page ?? pagination.pageSize}
+              totalCount={data?.total_count ?? 0}
+              onPaginationChange={(pageIndex, pageSize) => {
                 setPagination({ page: pageIndex, pageSize });
-              },
-            }}
-          />
-        </CardContent>
-      </Card>
+              }}
+            />
+          }
+        />
+      </AdminListPage>
 
       <UserCreateModal {...userModalProps} />
       <UserDetailModal
@@ -297,6 +368,6 @@ export default function ManagementSystemUsersPage() {
           }
         }}
       />
-    </AdminPage>
+    </>
   );
 }

@@ -7,8 +7,13 @@ import { useTranslation } from 'react-i18next';
 import customerService, { type CustomerListParams } from '@/api/services/domains/customerService';
 import ConfirmDialog from '@/components/admin/confirm-dialog';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
-import { AdminDataView, type AdminDataViewItemContext } from '@/components/admin/data-view';
-import { AdminPage, AdminPageHeader } from '@/components/admin/page';
+import {
+  AdminDataView,
+  DataViewToggle,
+  useAdminDataViewMode,
+  type AdminDataViewItemContext,
+} from '@/components/admin/data-view';
+import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +33,7 @@ export default function CustomersPage() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'pt_BR' ? 'pt-BR' : 'en-US';
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
+  const { mode, setMode } = useAdminDataViewMode();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Pick<CustomerListParams, 'status' | 'plan' | 'source'>>({
@@ -186,24 +192,71 @@ export default function CustomersPage() {
   };
 
   return (
-    <AdminPage>
-      <AdminPageHeader
-        title={t('app.customers.title')}
-        description={t('app.customers.description')}
-        actions={
-          permissions.canCreate ? (
+    <AdminListPage
+      filters={
+        <div className="flex flex-wrap gap-2">
+          <Input
+            className="min-w-52 flex-1"
+            type="search"
+            aria-label={t('app.customers.searchAria')}
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPagination((current) => ({ ...current, page: 1 }));
+            }}
+          />
+          {(['status', 'plan', 'source'] as const).map((name) => (
+            <select
+              key={name}
+              aria-label={t(
+                name === 'status' ? 'app.common.fields.status' : `app.customers.${name}`,
+              )}
+              className={filterClass}
+              value={filters[name]}
+              onChange={(event) => updateFilter(name, event.target.value)}
+            >
+              <option value="">{t('app.common.states.all')}</option>
+              {(name === 'status'
+                ? ['trialing', 'active', 'past_due', 'churned']
+                : name === 'plan'
+                  ? ['starter', 'growth', 'scale']
+                  : ['organic', 'paid_search', 'referral', 'partner', 'outbound']
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {option(value)}
+                </option>
+              ))}
+            </select>
+          ))}
+        </div>
+      }
+      listTitle={t('app.customers.listTitle')}
+      listActions={
+        <>
+          <DataViewToggle
+            mode={mode}
+            onChange={setMode}
+            labels={{
+              table: t('app.dataView.table'),
+              grid: t('app.dataView.grid'),
+              list: t('app.dataView.list'),
+            }}
+          />
+          {permissions.canCreate ? (
             <Button onClick={() => setEditing(null)}>
               <Plus className="mr-2 h-4 w-4" />
               {t('app.customers.new')}
             </Button>
-          ) : undefined
-        }
-      />
+          ) : null}
+        </>
+      }
+    >
       <AdminDataView
         data={customers}
         getItemId={(customer) => customer.id}
         isLoading={query.isLoading}
         error={query.error}
+        showToggle={false}
         renderActions={actions}
         labels={{
           table: t('app.dataView.table'),
@@ -213,45 +266,6 @@ export default function CustomersPage() {
           empty: t('app.customers.empty'),
           error: t('app.customers.loadError'),
         }}
-        toolbar={
-          <div className="flex flex-wrap gap-2">
-            <Input
-              className="min-w-52 flex-1"
-              type="search"
-              aria-label={t('app.customers.searchAria')}
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPagination((current) => ({ ...current, page: 1 }));
-              }}
-            />
-            {(['status', 'plan', 'source'] as const).map((name) => (
-              <select
-                key={name}
-                aria-label={t(
-                  name === 'status'
-                    ? 'app.common.fields.status'
-                    : `app.customers.${name}`,
-                )}
-                className={filterClass}
-                value={filters[name]}
-                onChange={(event) => updateFilter(name, event.target.value)}
-              >
-                <option value="">{t('app.common.states.all')}</option>
-                {(name === 'status'
-                  ? ['trialing', 'active', 'past_due', 'churned']
-                  : name === 'plan'
-                    ? ['starter', 'growth', 'scale']
-                    : ['organic', 'paid_search', 'referral', 'partner', 'outbound']
-                ).map((value) => (
-                  <option key={value} value={value}>
-                    {option(value)}
-                  </option>
-                ))}
-              </select>
-            ))}
-          </div>
-        }
         renderTable={({ data }) => <AdminTable columns={columns} data={data} rowKey="id" />}
         renderGridItem={(customer, context) => summary(customer, context)}
         renderListItem={(customer, context) => summary(customer, context, true)}
@@ -272,6 +286,6 @@ export default function CustomersPage() {
         onSubmit={(payload) => save.mutate(payload)}
       />
       <CustomerDetailDialog customer={details} locale={locale} onClose={() => setDetails(null)} />
-    </AdminPage>
+    </AdminListPage>
   );
 }

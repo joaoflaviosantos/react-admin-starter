@@ -65,9 +65,7 @@ export function CustomerFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {t(customer ? 'app.customers.edit' : 'app.customers.new')}
-          </DialogTitle>
+          <DialogTitle>{t(customer ? 'app.customers.edit' : 'app.customers.new')}</DialogTitle>
         </DialogHeader>
         <AdminForm form={form} onSubmit={onSubmit}>
           <DialogBody className="grid max-h-[70vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2">

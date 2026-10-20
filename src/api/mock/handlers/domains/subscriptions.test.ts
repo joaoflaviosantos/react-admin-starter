@@ -90,9 +90,7 @@ describe('Domain Subscriptions mock handler', () => {
       const canceled = request(`/v1/revenue/subscriptions/${id}/cancel`, 'post');
       expect(canceled.data).toMatchObject({ status: 'canceled', cancelAtPeriodEnd: true });
       const auditCount = getState().domains.auditLogs.length;
-      expect(request(`/v1/revenue/subscriptions/${id}/cancel`, 'post').data).toEqual(
-        canceled.data,
-      );
+      expect(request(`/v1/revenue/subscriptions/${id}/cancel`, 'post').data).toEqual(canceled.data);
       expect(getState().domains.auditLogs).toHaveLength(auditCount);
 
       const active = request(`/v1/revenue/subscriptions/${id}/reactivate`, 'post');

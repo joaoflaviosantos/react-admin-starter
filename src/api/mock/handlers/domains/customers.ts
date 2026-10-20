@@ -54,12 +54,7 @@ function normalizeCustomer(value: CustomerInput): CustomerInput {
   };
 }
 
-export const handleCustomersRequest: DomainHandler = ({
-  config,
-  method,
-  pathname,
-  user,
-}) => {
+export const handleCustomersRequest: DomainHandler = ({ config, method, pathname, user }) => {
   const customers = getState().domains.customers;
   if (method === 'GET' && pathname === '/v1/customers') {
     const params = config.params as Record<string, unknown> | undefined;

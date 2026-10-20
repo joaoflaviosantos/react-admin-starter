@@ -7,14 +7,13 @@ import { useSearchParams } from 'react-router-dom';
 
 import dashboardService from '@/api/services/domains/dashboardService';
 import { NativeChart } from '@/components/admin/chart';
-import { AdminPage, AdminPageHeader } from '@/components/admin/page';
+import { AdminPage } from '@/components/admin/page';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { useTheme } from '@/theme/hooks';
-import { useUserInfo } from '@/store/userStore';
 import { ThemeMode } from '#/enum';
 import type { DashboardPeriod, DashboardResponse } from '#/domain';
 
@@ -165,7 +164,6 @@ function dashboardOptions(data: DashboardResponse, t: (key: string) => string, d
 
 export default function OverviewPage() {
   const { t, i18n } = useTranslation();
-  const userInfo = useUserInfo();
   const { themeMode } = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedPeriod = searchParams.get('period');
@@ -196,27 +194,23 @@ export default function OverviewPage() {
 
   return (
     <AdminPage>
-      <AdminPageHeader
-        title={t('app.dashboard.title')}
-        description={`${t('app.dashboard.description')} · ${userInfo.name ?? 'User'}`}
-        actions={
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{t('app.dashboard.periodLabel')}</span>
-            <select
-              className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-              aria-label={t('app.dashboard.periodLabel')}
-              value={period}
-              onChange={(event) => setPeriod(event.target.value as DashboardPeriod)}
-            >
-              {periods.map((value) => (
-                <option key={value} value={value}>
-                  {t(`app.dashboard.period${value}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-        }
-      />
+      <div className="flex justify-end">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>{t('app.dashboard.periodLabel')}</span>
+          <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            aria-label={t('app.dashboard.periodLabel')}
+            value={period}
+            onChange={(event) => setPeriod(event.target.value as DashboardPeriod)}
+          >
+            {periods.map((value) => (
+              <option key={value} value={value}>
+                {t(`app.dashboard.period${value}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       {query.isLoading ? (
         <DashboardLoading />
       ) : query.error || !data ? (

@@ -6,8 +6,13 @@ import { useTranslation } from 'react-i18next';
 
 import auditLogService, { type AuditLogListParams } from '@/api/services/domains/auditLogService';
 import { AdminTable, AdminTablePagination } from '@/components/admin/data-table';
-import { AdminDataView, type AdminDataViewItemContext } from '@/components/admin/data-view';
-import { AdminPage, AdminPageHeader } from '@/components/admin/page';
+import {
+  AdminDataView,
+  DataViewToggle,
+  useAdminDataViewMode,
+  type AdminDataViewItemContext,
+} from '@/components/admin/data-view';
+import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -105,6 +110,7 @@ function AuditDetail({ event, onClose }: { event: AuditLog | null; onClose: () =
 export default function AuditLogsPage() {
   const { t, i18n } = useTranslation();
   useHasRequiredPermission(useMatchRouteMeta()?.label);
+  const { mode, setMode } = useAdminDataViewMode();
   const [filters, setFilters] = useState<AuditLogListParams>({
     search: '',
     actor: '',
@@ -192,17 +198,79 @@ export default function AuditLogsPage() {
     setPagination((current) => ({ ...current, page: 1 }));
   };
   return (
-    <AdminPage>
-      <AdminPageHeader
-        title={t('app.auditLogs.title')}
-        description={t('app.auditLogs.description')}
-      />
-      <p className="mb-4 text-sm text-muted-foreground">{t('app.auditLogs.noActions')}</p>
+    <AdminListPage
+      stats={<p className="text-sm text-muted-foreground">{t('app.auditLogs.noActions')}</p>}
+      filters={
+        <div className="flex flex-wrap gap-2">
+          <Input
+            className="min-w-52 flex-1"
+            type="search"
+            aria-label={t('app.auditLogs.searchAria')}
+            value={filters.search}
+            onChange={(event) => updateFilter('search', event.target.value)}
+          />
+          <Input
+            className="w-36"
+            aria-label={t('app.auditLogs.actorAria')}
+            placeholder={t('app.auditLogs.actor')}
+            value={filters.actor}
+            onChange={(event) => updateFilter('actor', event.target.value)}
+          />
+          <Input
+            className="w-36"
+            aria-label={t('app.auditLogs.actionAria')}
+            placeholder={t('app.auditLogs.action')}
+            value={filters.action}
+            onChange={(event) => updateFilter('action', event.target.value)}
+          />
+          <select
+            className={filterClass}
+            aria-label={t('app.auditLogs.resourceAria')}
+            value={filters.resource}
+            onChange={(event) => updateFilter('resource', event.target.value)}
+          >
+            <option value="">{t('app.common.states.all')}</option>
+            {['customer', 'subscription', 'invoice', 'support_ticket', 'api_key'].map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+          <Input
+            className="w-36"
+            type="date"
+            aria-label={t('app.auditLogs.from')}
+            value={filters.from}
+            onChange={(event) => updateFilter('from', event.target.value)}
+          />
+          <Input
+            className="w-36"
+            type="date"
+            aria-label={t('app.auditLogs.to')}
+            value={filters.to}
+            onChange={(event) => updateFilter('to', event.target.value)}
+          />
+        </div>
+      }
+      listTitle={t('app.auditLogs.listTitle')}
+      listActions={
+        <DataViewToggle
+          mode={mode}
+          onChange={setMode}
+          labels={{
+            table: t('app.dataView.table'),
+            grid: t('app.dataView.grid'),
+            list: t('app.dataView.list'),
+          }}
+        />
+      }
+    >
       <AdminDataView
         data={events}
         getItemId={(event) => event.id}
         isLoading={query.isLoading}
         error={query.error}
+        showToggle={false}
         renderActions={actions}
         labels={{
           table: t('app.dataView.table'),
@@ -212,58 +280,6 @@ export default function AuditLogsPage() {
           empty: t('app.auditLogs.empty'),
           error: t('app.auditLogs.loadError'),
         }}
-        toolbar={
-          <div className="flex flex-wrap gap-2">
-            <Input
-              className="min-w-52 flex-1"
-              type="search"
-              aria-label={t('app.auditLogs.searchAria')}
-              value={filters.search}
-              onChange={(event) => updateFilter('search', event.target.value)}
-            />
-            <Input
-              className="w-36"
-              aria-label={t('app.auditLogs.actorAria')}
-              placeholder={t('app.auditLogs.actor')}
-              value={filters.actor}
-              onChange={(event) => updateFilter('actor', event.target.value)}
-            />
-            <Input
-              className="w-36"
-              aria-label={t('app.auditLogs.actionAria')}
-              placeholder={t('app.auditLogs.action')}
-              value={filters.action}
-              onChange={(event) => updateFilter('action', event.target.value)}
-            />
-            <select
-              className={filterClass}
-              aria-label={t('app.auditLogs.resourceAria')}
-              value={filters.resource}
-              onChange={(event) => updateFilter('resource', event.target.value)}
-            >
-              <option value="">{t('app.common.states.all')}</option>
-              {['customer', 'subscription', 'invoice', 'support_ticket', 'api_key'].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-            <Input
-              className="w-36"
-              type="date"
-              aria-label={t('app.auditLogs.from')}
-              value={filters.from}
-              onChange={(event) => updateFilter('from', event.target.value)}
-            />
-            <Input
-              className="w-36"
-              type="date"
-              aria-label={t('app.auditLogs.to')}
-              value={filters.to}
-              onChange={(event) => updateFilter('to', event.target.value)}
-            />
-          </div>
-        }
         renderTable={({ data }) => <AdminTable columns={columns} data={data} rowKey="id" />}
         renderGridItem={(event, context) => summary(event, context)}
         renderListItem={(event, context) => summary(event, context, true)}
@@ -277,6 +293,6 @@ export default function AuditLogsPage() {
         }
       />
       <AuditDetail event={details} onClose={() => setDetails(null)} />
-    </AdminPage>
+    </AdminListPage>
   );
 }

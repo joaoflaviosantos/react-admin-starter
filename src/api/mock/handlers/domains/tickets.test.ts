@@ -101,9 +101,9 @@ describe('Domain Support Tickets mock handler', () => {
       expect(getState().domains).toEqual(before);
     }
     const before = structuredClone(getState().domains);
-    expect(
-      request('/v1/support/tickets/ticket-1001', 'patch', { status: 'resolved' }).status,
-    ).toBe(422);
+    expect(request('/v1/support/tickets/ticket-1001', 'patch', { status: 'resolved' }).status).toBe(
+      422,
+    );
     expect(getState().domains).toEqual(before);
   });
 
@@ -132,9 +132,7 @@ describe('Domain Support Tickets mock handler', () => {
     const reopened = request('/v1/support/tickets/ticket-1001/reopen', 'post');
     expect(reopened.data).toMatchObject({ status: 'open' });
     const auditCount = getState().domains.auditLogs.length;
-    expect(request('/v1/support/tickets/ticket-1001/reopen', 'post').data).toEqual(
-      reopened.data,
-    );
+    expect(request('/v1/support/tickets/ticket-1001/reopen', 'post').data).toEqual(reopened.data);
     expect(getState().domains.auditLogs).toHaveLength(auditCount);
   });
 
@@ -142,9 +140,7 @@ describe('Domain Support Tickets mock handler', () => {
     expect(request('/v1/support/tickets/ticket-1005', 'delete').data).toEqual({
       deleted: ['ticket-1005'],
     });
-    expect(getState().domains.supportTickets.some((item) => item.id === 'ticket-1005')).toBe(
-      false,
-    );
+    expect(getState().domains.supportTickets.some((item) => item.id === 'ticket-1005')).toBe(false);
 
     for (const [method, url, payload] of [
       ['post', '/v1/support/tickets', validTicket],

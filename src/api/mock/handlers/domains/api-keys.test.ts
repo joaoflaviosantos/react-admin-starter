@@ -69,9 +69,9 @@ describe('API keys mock handler', () => {
     expect(
       request('/v1/platform/api-keys', 'get', undefined, undefined, viewerHeaders).status,
     ).toBe(403);
-    expect(
-      request('/v1/platform/api-keys', 'post', valid, undefined, viewerHeaders).status,
-    ).toBe(403);
+    expect(request('/v1/platform/api-keys', 'post', valid, undefined, viewerHeaders).status).toBe(
+      403,
+    );
     expect(
       request(
         '/v1/platform/api-keys/api-key-production/revoke',
