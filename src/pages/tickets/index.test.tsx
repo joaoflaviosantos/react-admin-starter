@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Customer, SupportTicket } from '#/domain';
@@ -130,22 +131,18 @@ describe('Support tickets page', () => {
     ).toBeVisible();
   });
 
-  it('shows operational counts and passes search, status, priority and SLA filters', async () => {
+  it('passes search, status, priority and SLA filters', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderPage('/support/tickets?view=list');
     await screen.findByText('Payment retry is not reflected');
-    expect(screen.getByTestId('tickets-count-overdue')).toHaveTextContent('1');
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search tickets' }), {
-      target: { value: 'payment' },
-    });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Status' }), {
-      target: { value: 'open' },
-    });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Priority' }), {
-      target: { value: 'urgent' },
-    });
-    fireEvent.change(screen.getByRole('combobox', { name: 'SLA status' }), {
-      target: { value: 'overdue' },
-    });
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'payment');
+    await user.click(screen.getByRole('combobox', { name: 'Status' }));
+    await user.click(await screen.findByRole('option', { name: 'Open' }));
+    await user.click(screen.getByRole('combobox', { name: 'Priority' }));
+    await user.click(await screen.findByRole('option', { name: 'Urgent' }));
+    await user.click(screen.getByRole('combobox', { name: 'SLA status' }));
+    await user.click(await screen.findByRole('option', { name: 'Overdue' }));
+    await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() =>
       expect(mocks.getTickets).toHaveBeenLastCalledWith(
         expect.objectContaining({

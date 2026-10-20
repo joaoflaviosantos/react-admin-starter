@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Archive, Eye, Pencil, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import customerService, { type CustomerListParams } from '@/api/services/domains/customerService';
@@ -13,11 +14,16 @@ import {
   useAdminDataViewMode,
   type AdminDataViewItemContext,
 } from '@/components/admin/data-view';
+import {
+  AdminForm,
+  AdminSearchPanel,
+  SearchFieldInput,
+  SearchFieldSelect,
+} from '@/components/admin/form';
 import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta } from '@/router/hooks';
@@ -26,8 +32,19 @@ import type { Customer, CustomerInput } from '#/domain';
 import { CustomerDetailDialog } from './customer-detail-dialog';
 import { CustomerFormDialog } from './customer-form-dialog';
 
-const filterClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm';
+type CustomerFilters = {
+  search: string;
+  status: NonNullable<CustomerListParams['status']>;
+  plan: NonNullable<CustomerListParams['plan']>;
+  source: NonNullable<CustomerListParams['source']>;
+};
+
+const EMPTY_CUSTOMER_FILTERS: CustomerFilters = {
+  search: '',
+  status: '',
+  plan: '',
+  source: '',
+};
 
 export default function CustomersPage() {
   const { t, i18n } = useTranslation();
@@ -35,21 +52,16 @@ export default function CustomersPage() {
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
   const { mode, setMode } = useAdminDataViewMode();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState<Pick<CustomerListParams, 'status' | 'plan' | 'source'>>({
-    status: '',
-    plan: '',
-    source: '',
-  });
+  const [filters, setFilters] = useState<CustomerFilters>(EMPTY_CUSTOMER_FILTERS);
+  const searchForm = useForm<CustomerFilters>({ defaultValues: EMPTY_CUSTOMER_FILTERS });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
   const [editing, setEditing] = useState<Customer | null | undefined>(undefined);
   const [details, setDetails] = useState<Customer | null>(null);
 
   const query = useQuery({
-    queryKey: ['domains', 'customers', search, filters, pagination],
+    queryKey: ['domains', 'customers', filters, pagination],
     queryFn: () =>
       customerService.getCustomers({
-        search,
         ...filters,
         sort_by: 'healthScore',
         sort_order: 'asc',
@@ -186,49 +198,63 @@ export default function CustomersPage() {
     </Card>
   );
 
-  const updateFilter = (name: 'status' | 'plan' | 'source', value: string) => {
-    setFilters((current) => ({ ...current, [name]: value }));
+  const onSearch = (values: CustomerFilters) => {
+    setFilters(values);
     setPagination((current) => ({ ...current, page: 1 }));
   };
+
+  const onSearchReset = () => {
+    searchForm.reset(EMPTY_CUSTOMER_FILTERS);
+    setFilters(EMPTY_CUSTOMER_FILTERS);
+    setPagination((current) => ({ ...current, page: 1 }));
+  };
+
+  const filterOptions = (values: string[]) =>
+    values.map((value) => ({ value, label: option(value) }));
 
   return (
     <AdminListPage
       filters={
-        <div className="flex flex-wrap gap-2">
-          <Input
-            className="min-w-52 flex-1"
-            type="search"
-            aria-label={t('app.customers.searchAria')}
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPagination((current) => ({ ...current, page: 1 }));
-            }}
-          />
-          {(['status', 'plan', 'source'] as const).map((name) => (
-            <select
-              key={name}
-              aria-label={t(
-                name === 'status' ? 'app.common.fields.status' : `app.customers.${name}`,
-              )}
-              className={filterClass}
-              value={filters[name]}
-              onChange={(event) => updateFilter(name, event.target.value)}
-            >
-              <option value="">{t('app.common.states.all')}</option>
-              {(name === 'status'
-                ? ['trialing', 'active', 'past_due', 'churned']
-                : name === 'plan'
-                  ? ['starter', 'growth', 'scale']
-                  : ['organic', 'paid_search', 'referral', 'partner', 'outbound']
-              ).map((value) => (
-                <option key={value} value={value}>
-                  {option(value)}
-                </option>
-              ))}
-            </select>
-          ))}
-        </div>
+        <AdminForm form={searchForm} onSubmit={onSearch}>
+          <AdminSearchPanel
+            isLoading={query.isLoading}
+            clearDisabled={!Object.values(filters).some(Boolean)}
+            onClear={onSearchReset}
+            className="xl:grid-cols-5"
+          >
+            <SearchFieldInput
+              control={searchForm.control}
+              name="search"
+              label={t('app.common.fields.search')}
+              type="search"
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="status"
+              label={t('app.common.fields.status')}
+              placeholder={t('app.common.states.all')}
+              options={filterOptions(['trialing', 'active', 'past_due', 'churned'])}
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="plan"
+              label={t('app.customers.plan')}
+              placeholder={t('app.common.states.all')}
+              options={filterOptions(['starter', 'growth', 'scale'])}
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="source"
+              label={t('app.customers.source')}
+              placeholder={t('app.common.states.all')}
+              options={filterOptions(['organic', 'paid_search', 'referral', 'partner', 'outbound'])}
+              disabled={query.isLoading}
+            />
+          </AdminSearchPanel>
+        </AdminForm>
       }
       listTitle={t('app.customers.listTitle')}
       listActions={

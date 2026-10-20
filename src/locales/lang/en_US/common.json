@@ -312,6 +312,7 @@
       "fields": {
         "name": "Name",
         "email": "Email",
+        "search": "Search",
         "status": "Status",
         "actions": "Actions",
         "createdAt": "Created at",

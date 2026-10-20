@@ -11,6 +11,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import customerService from '@/api/services/domains/customerService';
@@ -23,11 +24,16 @@ import {
   useAdminDataViewMode,
   type AdminDataViewItemContext,
 } from '@/components/admin/data-view';
+import {
+  AdminForm,
+  AdminSearchPanel,
+  SearchFieldInput,
+  SearchFieldSelect,
+} from '@/components/admin/form';
 import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta } from '@/router/hooks';
@@ -41,8 +47,20 @@ import type {
 import { TicketDetailDialog } from './ticket-detail-dialog';
 import { TicketFormDialog } from './ticket-form-dialog';
 
-const filterClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm';
+type TicketFilters = {
+  search: string;
+  status: NonNullable<TicketListParams['status']>;
+  priority: NonNullable<TicketListParams['priority']>;
+  sla: NonNullable<TicketListParams['sla']>;
+};
+
+const EMPTY_TICKET_FILTERS: TicketFilters = {
+  search: '',
+  status: '',
+  priority: '',
+  sla: '',
+};
+
 const isOverdue = (ticket: SupportTicket) =>
   ticket.status !== 'resolved' && Date.parse(ticket.slaDueAt) < Date.now();
 
@@ -52,21 +70,16 @@ export default function TicketsPage() {
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
   const { mode, setMode } = useAdminDataViewMode();
   const client = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState<Pick<TicketListParams, 'status' | 'priority' | 'sla'>>({
-    status: '',
-    priority: '',
-    sla: '',
-  });
+  const [filters, setFilters] = useState<TicketFilters>(EMPTY_TICKET_FILTERS);
+  const searchForm = useForm<TicketFilters>({ defaultValues: EMPTY_TICKET_FILTERS });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
   const [editing, setEditing] = useState<SupportTicket | null | undefined>(undefined);
   const [details, setDetails] = useState<SupportTicket | null>(null);
 
   const query = useQuery({
-    queryKey: ['domains', 'tickets', search, filters, pagination],
+    queryKey: ['domains', 'tickets', filters, pagination],
     queryFn: () =>
       ticketService.getTickets({
-        search,
         ...filters,
         page: pagination.page,
         items_per_page: pagination.pageSize,
@@ -294,75 +307,63 @@ export default function TicketsPage() {
     </Card>
   );
 
-  const updateFilter = (name: 'status' | 'priority' | 'sla', value: string) => {
-    setFilters((current) => ({ ...current, [name]: value }));
+  const onSearch = (values: TicketFilters) => {
+    setFilters(values);
     setPagination((current) => ({ ...current, page: 1 }));
   };
-  const counts = query.data?.counts;
+
+  const onSearchReset = () => {
+    searchForm.reset(EMPTY_TICKET_FILTERS);
+    setFilters(EMPTY_TICKET_FILTERS);
+    setPagination((current) => ({ ...current, page: 1 }));
+  };
+
+  const filterOptions = (values: string[]) =>
+    values.map((value) => ({ value, label: option(value) }));
 
   return (
     <AdminListPage
-      stats={
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-          {(['all', 'open', 'in_progress', 'waiting', 'resolved', 'overdue'] as const).map(
-            (status) => (
-              <Card key={status}>
-                <CardContent className="p-4">
-                  <p className="text-xs font-medium uppercase text-muted-foreground">
-                    {option(status)}
-                  </p>
-                  <p
-                    className="mt-1 text-2xl font-semibold"
-                    data-testid={`tickets-count-${status}`}
-                  >
-                    {counts?.[status] ?? 0}
-                  </p>
-                </CardContent>
-              </Card>
-            ),
-          )}
-        </div>
-      }
       filters={
-        <div className="flex flex-wrap gap-2">
-          <Input
-            className="min-w-52 flex-1"
-            type="search"
-            aria-label={t('app.tickets.searchAria')}
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPagination((current) => ({ ...current, page: 1 }));
-            }}
-          />
-          {(['status', 'priority', 'sla'] as const).map((name) => (
-            <select
-              key={name}
-              className={filterClass}
-              aria-label={t(
-                name === 'status'
-                  ? 'app.common.fields.status'
-                  : name === 'priority'
-                    ? 'app.tickets.priority'
-                    : 'app.tickets.slaStatus',
-              )}
-              value={filters[name]}
-              onChange={(event) => updateFilter(name, event.target.value)}
-            >
-              <option value="">{t('app.common.states.all')}</option>
-              {(name === 'status'
-                ? ['open', 'in_progress', 'waiting', 'resolved']
-                : name === 'priority'
-                  ? ['low', 'medium', 'high', 'urgent']
-                  : ['overdue', 'on_track']
-              ).map((value) => (
-                <option key={value} value={value}>
-                  {option(value)}
-                </option>
-              ))}
-            </select>
-          ))}
-        </div>
+        <AdminForm form={searchForm} onSubmit={onSearch}>
+          <AdminSearchPanel
+            isLoading={query.isLoading}
+            clearDisabled={!Object.values(filters).some(Boolean)}
+            onClear={onSearchReset}
+            className="xl:grid-cols-5"
+          >
+            <SearchFieldInput
+              control={searchForm.control}
+              name="search"
+              label={t('app.common.fields.search')}
+              type="search"
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="status"
+              label={t('app.common.fields.status')}
+              placeholder={t('app.common.states.all')}
+              options={filterOptions(['open', 'in_progress', 'waiting', 'resolved'])}
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="priority"
+              label={t('app.tickets.priority')}
+              placeholder={t('app.common.states.all')}
+              options={filterOptions(['low', 'medium', 'high', 'urgent'])}
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="sla"
+              label={t('app.tickets.slaStatus')}
+              placeholder={t('app.common.states.all')}
+              options={filterOptions(['overdue', 'on_track'])}
+              disabled={query.isLoading}
+            />
+          </AdminSearchPanel>
+        </AdminForm>
       }
       listTitle={t('app.tickets.listTitle')}
       listActions={

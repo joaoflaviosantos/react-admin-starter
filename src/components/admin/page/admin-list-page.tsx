@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import { AdminPage } from './admin-page';
 
 type AdminListPageProps = {
-  stats?: ReactNode;
   filters?: ReactNode;
   listTitle?: string;
   listActions?: ReactNode;
@@ -15,7 +14,6 @@ type AdminListPageProps = {
 };
 
 export function AdminListPage({
-  stats,
   filters,
   listTitle,
   listActions,
@@ -24,8 +22,6 @@ export function AdminListPage({
 }: AdminListPageProps) {
   return (
     <AdminPage className={cn('flex flex-col gap-4', className)}>
-      {stats}
-
       {filters ? (
         <Card className="shadow-sm">
           <CardContent className="pt-6">{filters}</CardContent>

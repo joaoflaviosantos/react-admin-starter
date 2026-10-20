@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Plus, RotateCcw, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import customerService from '@/api/services/domains/customerService';
@@ -16,11 +17,16 @@ import {
   useAdminDataViewMode,
   type AdminDataViewItemContext,
 } from '@/components/admin/data-view';
+import {
+  AdminForm,
+  AdminSearchPanel,
+  SearchFieldInput,
+  SearchFieldSelect,
+} from '@/components/admin/form';
 import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta } from '@/router/hooks';
@@ -28,8 +34,19 @@ import type { Subscription, SubscriptionInput } from '#/domain';
 
 import { SubscriptionFormDialog } from './subscription-form-dialog';
 
-const filterClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm';
+type SubscriptionFilters = {
+  search: string;
+  status: NonNullable<SubscriptionListParams['status']>;
+  plan: NonNullable<SubscriptionListParams['plan']>;
+  interval: NonNullable<SubscriptionListParams['interval']>;
+};
+
+const EMPTY_SUBSCRIPTION_FILTERS: SubscriptionFilters = {
+  search: '',
+  status: '',
+  plan: '',
+  interval: '',
+};
 
 export default function SubscriptionsPage() {
   const { t, i18n } = useTranslation();
@@ -37,18 +54,15 @@ export default function SubscriptionsPage() {
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
   const { mode, setMode } = useAdminDataViewMode();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState<
-    Pick<SubscriptionListParams, 'status' | 'plan' | 'interval'>
-  >({ status: '', plan: '', interval: '' });
+  const [filters, setFilters] = useState<SubscriptionFilters>(EMPTY_SUBSCRIPTION_FILTERS);
+  const searchForm = useForm<SubscriptionFilters>({ defaultValues: EMPTY_SUBSCRIPTION_FILTERS });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
   const [editing, setEditing] = useState<Subscription | null | undefined>(undefined);
 
   const query = useQuery({
-    queryKey: ['domains', 'subscriptions', search, filters, pagination],
+    queryKey: ['domains', 'subscriptions', filters, pagination],
     queryFn: () =>
       subscriptionService.getSubscriptions({
-        search,
         ...filters,
         page: pagination.page,
         items_per_page: pagination.pageSize,
@@ -219,64 +233,63 @@ export default function SubscriptionsPage() {
     </Card>
   );
 
-  const updateFilter = (name: 'status' | 'plan' | 'interval', value: string) => {
-    setFilters((current) => ({ ...current, [name]: value }));
+  const onSearch = (values: SubscriptionFilters) => {
+    setFilters(values);
     setPagination((current) => ({ ...current, page: 1 }));
   };
-  const counts = query.data?.counts;
+
+  const onSearchReset = () => {
+    searchForm.reset(EMPTY_SUBSCRIPTION_FILTERS);
+    setFilters(EMPTY_SUBSCRIPTION_FILTERS);
+    setPagination((current) => ({ ...current, page: 1 }));
+  };
+
+  const filterOptions = (values: string[]) =>
+    values.map((value) => ({ value, label: option(value) }));
 
   return (
     <AdminListPage
-      stats={
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          {(['all', 'active', 'trialing', 'past_due', 'canceled'] as const).map((status) => (
-            <Card key={status}>
-              <CardContent className="p-4">
-                <p className="text-xs font-medium uppercase text-muted-foreground">
-                  {option(status)}
-                </p>
-                <p className="mt-1 text-2xl font-semibold">{counts?.[status] ?? 0}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      }
       filters={
-        <div className="flex flex-wrap gap-2">
-          <Input
-            className="min-w-52 flex-1"
-            type="search"
-            aria-label={t('app.subscriptions.searchAria')}
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPagination((current) => ({ ...current, page: 1 }));
-            }}
-          />
-          {(['status', 'plan', 'interval'] as const).map((name) => (
-            <select
-              key={name}
-              aria-label={t(
-                name === 'status' ? 'app.common.fields.status' : `app.subscriptions.${name}`,
-              )}
-              className={filterClass}
-              value={filters[name]}
-              onChange={(event) => updateFilter(name, event.target.value)}
-            >
-              <option value="">{t('app.common.states.all')}</option>
-              {(name === 'status'
-                ? ['trialing', 'active', 'past_due', 'canceled']
-                : name === 'plan'
-                  ? ['starter', 'growth', 'scale']
-                  : ['monthly', 'yearly']
-              ).map((value) => (
-                <option key={value} value={value}>
-                  {option(value)}
-                </option>
-              ))}
-            </select>
-          ))}
-        </div>
+        <AdminForm form={searchForm} onSubmit={onSearch}>
+          <AdminSearchPanel
+            isLoading={query.isLoading}
+            clearDisabled={!Object.values(filters).some(Boolean)}
+            onClear={onSearchReset}
+            className="xl:grid-cols-5"
+          >
+            <SearchFieldInput
+              control={searchForm.control}
+              name="search"
+              label={t('app.common.fields.search')}
+              type="search"
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="status"
+              label={t('app.common.fields.status')}
+              placeholder={t('app.common.states.all')}
+              options={filterOptions(['trialing', 'active', 'past_due', 'canceled'])}
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="plan"
+              label={t('app.subscriptions.plan')}
+              placeholder={t('app.common.states.all')}
+              options={filterOptions(['starter', 'growth', 'scale'])}
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="interval"
+              label={t('app.subscriptions.interval')}
+              placeholder={t('app.common.states.all')}
+              options={filterOptions(['monthly', 'yearly'])}
+              disabled={query.isLoading}
+            />
+          </AdminSearchPanel>
+        </AdminForm>
       }
       listTitle={t('app.subscriptions.listTitle')}
       listActions={

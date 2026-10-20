@@ -16,6 +16,12 @@ import {
   useAdminDataViewMode,
   type AdminDataViewItemContext,
 } from '@/components/admin/data-view';
+import {
+  AdminForm,
+  AdminSearchPanel,
+  SearchFieldInput,
+  SearchFieldSelect,
+} from '@/components/admin/form';
 import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,8 +49,16 @@ const scopes: ApiKeyScope[] = [
   'tickets:write',
   'audit:read',
 ];
-const filterClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm';
+type ApiKeyFilters = {
+  search: string;
+  status: NonNullable<ApiKeyListParams['status']>;
+};
+
+const EMPTY_API_KEY_FILTERS: ApiKeyFilters = {
+  search: '',
+  status: '',
+};
+
 const keyScopeSchema = z.enum([
   'customers:read',
   'customers:write',
@@ -213,7 +227,8 @@ export default function ApiKeysPage() {
   const permissions = useHasRequiredPermission(useMatchRouteMeta()?.label);
   const { mode, setMode } = useAdminDataViewMode();
   const client = useQueryClient();
-  const [filters, setFilters] = useState<ApiKeyListParams>({ search: '', status: '' });
+  const [filters, setFilters] = useState<ApiKeyFilters>(EMPTY_API_KEY_FILTERS);
+  const searchForm = useForm<ApiKeyFilters>({ defaultValues: EMPTY_API_KEY_FILTERS });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [secret, setSecret] = useState<string | null>(null);
@@ -330,32 +345,47 @@ export default function ApiKeysPage() {
       </CardContent>
     </Card>
   );
-  const updateFilter = (name: 'search' | 'status', value: string) => {
-    setFilters((current) => ({ ...current, [name]: value }));
+  const onSearch = (values: ApiKeyFilters) => {
+    setFilters(values);
     setPagination((current) => ({ ...current, page: 1 }));
   };
+
+  const onSearchReset = () => {
+    searchForm.reset(EMPTY_API_KEY_FILTERS);
+    setFilters(EMPTY_API_KEY_FILTERS);
+    setPagination((current) => ({ ...current, page: 1 }));
+  };
+
   return (
     <AdminListPage
       filters={
-        <div className="flex flex-wrap gap-2">
-          <Input
-            className="min-w-52 flex-1"
-            type="search"
-            aria-label={t('app.apiKeys.searchAria')}
-            value={filters.search}
-            onChange={(event) => updateFilter('search', event.target.value)}
-          />
-          <select
-            className={filterClass}
-            aria-label={t('app.apiKeys.statusAria')}
-            value={filters.status}
-            onChange={(event) => updateFilter('status', event.target.value)}
+        <AdminForm form={searchForm} onSubmit={onSearch}>
+          <AdminSearchPanel
+            isLoading={query.isLoading}
+            clearDisabled={!Object.values(filters).some(Boolean)}
+            onClear={onSearchReset}
+            className="xl:grid-cols-3"
           >
-            <option value="">{t('app.common.states.all')}</option>
-            <option value="active">{t('app.apiKeys.active')}</option>
-            <option value="revoked">{t('app.apiKeys.revoked')}</option>
-          </select>
-        </div>
+            <SearchFieldInput
+              control={searchForm.control}
+              name="search"
+              label={t('app.common.fields.search')}
+              type="search"
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="status"
+              label={t('app.common.fields.status')}
+              placeholder={t('app.common.states.all')}
+              options={[
+                { value: 'active', label: t('app.apiKeys.active') },
+                { value: 'revoked', label: t('app.apiKeys.revoked') },
+              ]}
+              disabled={query.isLoading}
+            />
+          </AdminSearchPanel>
+        </AdminForm>
       }
       listTitle={t('app.apiKeys.listTitle')}
       listActions={

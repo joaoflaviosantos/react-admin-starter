@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AuditLog } from '#/domain';
@@ -53,12 +54,12 @@ describe('Audit logs page', () => {
   afterEach(cleanup);
 
   it('shows the same event in all three read-only modes and applies filters', async () => {
+    const user = userEvent.setup();
     const view = renderPage('/platform/audit-logs?view=grid&tenant=demo');
     expect(await screen.findByText(event.summary)).toBeInTheDocument();
     expect(view.container.querySelector('[data-view-mode="grid"]')).toBeInTheDocument();
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search audit events' }), {
-      target: { value: 'health' },
-    });
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'health');
+    await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() =>
       expect(mocks.getAuditLogs).toHaveBeenLastCalledWith(
         expect.objectContaining({ search: 'health', page: 1 }),

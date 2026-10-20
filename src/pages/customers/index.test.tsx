@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Customer } from '#/domain';
@@ -94,17 +95,15 @@ describe('Customers page', () => {
   });
 
   it('passes search and domain filters to the shared query while preserving the view parameter', async () => {
+    const user = userEvent.setup();
     renderPage('/customers?view=grid&campaign=fall');
     await screen.findByText('Acme Corp');
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search customers' }), {
-      target: { value: 'acme' },
-    });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Status' }), {
-      target: { value: 'active' },
-    });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Plan' }), {
-      target: { value: 'starter' },
-    });
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'acme');
+    await user.click(screen.getByRole('combobox', { name: 'Status' }));
+    await user.click(await screen.findByRole('option', { name: 'Active' }));
+    await user.click(screen.getByRole('combobox', { name: 'Plan' }));
+    await user.click(await screen.findByRole('option', { name: 'Starter' }));
+    await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() =>
       expect(mocks.getCustomers).toHaveBeenLastCalledWith(
         expect.objectContaining({ search: 'acme', status: 'active', plan: 'starter', page: 1 }),

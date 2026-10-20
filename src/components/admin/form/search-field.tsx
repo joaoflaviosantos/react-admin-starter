@@ -10,6 +10,7 @@ type SearchFieldInputProps<T extends FieldValues> = {
   name: FieldPath<T>;
   label: string;
   placeholder?: string;
+  type?: React.InputHTMLAttributes<HTMLInputElement>['type'];
   disabled?: boolean;
   className?: string;
 };
@@ -19,6 +20,7 @@ export function SearchFieldInput<T extends FieldValues>({
   name,
   label,
   placeholder,
+  type,
   disabled,
   className,
 }: SearchFieldInputProps<T>) {
@@ -31,7 +33,7 @@ export function SearchFieldInput<T extends FieldValues>({
           <FormLabel className="shrink-0 whitespace-nowrap font-normal">{label}</FormLabel>
           <div className="min-w-0 flex-1">
             <FormControl>
-              <Input placeholder={placeholder} disabled={disabled} {...field} />
+              <Input type={type} placeholder={placeholder} disabled={disabled} {...field} />
             </FormControl>
             <FormMessage />
           </div>
@@ -79,7 +81,7 @@ export function SearchFieldSelect<T extends FieldValues>({
               <Select
                 disabled={disabled}
                 onValueChange={field.onChange}
-                value={field.value || undefined}
+                value={field.value || null}
               >
                 <FormControl>
                   <SelectTrigger>

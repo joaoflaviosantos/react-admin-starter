@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Invoice } from '#/domain';
@@ -85,17 +86,15 @@ describe('Invoice list page', () => {
   afterEach(cleanup);
 
   it('passes search, status, sort and pagination to the canonical revenue query', async () => {
+    const user = userEvent.setup();
     renderPage();
     expect(await screen.findByText('INV-1')).toBeInTheDocument();
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search invoices' }), {
-      target: { value: 'Acme' },
-    });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Status' }), {
-      target: { value: 'draft' },
-    });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Sort invoices' }), {
-      target: { value: 'total:asc' },
-    });
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'Acme');
+    await user.click(screen.getByRole('combobox', { name: 'Status' }));
+    await user.click(await screen.findByRole('option', { name: 'draft' }));
+    await user.click(screen.getByRole('combobox', { name: 'Sort invoices' }));
+    await user.click(await screen.findByRole('option', { name: 'Lowest total first' }));
+    await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() =>
       expect(mocks.getInvoices).toHaveBeenLastCalledWith(
         expect.objectContaining({

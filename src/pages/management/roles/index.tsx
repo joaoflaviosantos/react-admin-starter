@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
+import { Eye, Plus } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -17,11 +18,9 @@ import { AdminForm, AdminSearchPanel } from '@/components/admin/form';
 import { SearchFieldInput, SearchFieldSelect } from '@/components/admin/form/search-field';
 import { AdminListPage } from '@/components/admin/page';
 import { StatusBadge } from '@/components/admin/status-badge';
-import TableActions from '@/components/admin/table-actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import useDynamicComponentStringHeight from '@/hooks/components/use-dynamic-component-string-height';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { normalizeCrudSearchValues } from '@/lib/crud-search';
 import { appToast } from '@/lib/toast';
@@ -39,7 +38,6 @@ const EMPTY_ROLE_SEARCH: RoleSearchFormValues = {
 
 export default function ManagementSystemRolesPage() {
   const { t } = useTranslation();
-  const tableHeight = useDynamicComponentStringHeight();
   const { mode, setMode } = useAdminDataViewMode();
   const currentRouteMeta = useMatchRouteMeta();
   const { canCreate } = useHasRequiredPermission(currentRouteMeta?.label);
@@ -67,7 +65,7 @@ export default function ManagementSystemRolesPage() {
     [t],
   );
 
-  const { data, isFetching } = useQuery({
+  const { data, error, isFetching } = useQuery({
     queryKey: ['management-system-roles', pagination.page, pagination.pageSize, searchValues],
     queryFn: () =>
       roleService.getPaginatedRoleList({
@@ -96,165 +94,158 @@ export default function ManagementSystemRolesPage() {
     [data?.data],
   );
 
-  const actions = useCallback(
-    (role: RoleRead) => (
-      <TableActions
-        permissionLabel={currentRouteMeta?.label}
-        record={role}
-        isFetching={isFetching}
-        onDetail={openDetail}
-      />
-    ),
-    [currentRouteMeta?.label, isFetching, openDetail],
+  const actions = (role: RoleRead) => (
+    <div className="flex items-center gap-1">
+      <Button
+        size="icon"
+        variant="ghost"
+        aria-label={t('common.detailText')}
+        onClick={() => openDetail(role.id)}
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+    </div>
   );
 
-  const columns: ColumnDef<RoleRead>[] = useMemo(
-    () => [
-      {
-        accessorKey: 'name',
-        header: t('management.roles.tableColumns.name'),
-        cell: ({ row }) => (
-          <Badge variant="secondary">{row.original.label || row.original.name}</Badge>
-        ),
-      },
-      {
-        accessorKey: 'description',
-        header: t('management.roles.tableColumns.description'),
-      },
-      {
-        accessorKey: 'is_active',
-        header: t('management.common.tableColumns.status'),
-        cell: ({ row }) => (
-          <StatusBadge
-            active={row.original.is_active ?? false}
-            activeLabel={t('common.active')}
-            inactiveLabel={t('common.inactive')}
-          />
-        ),
-      },
-      {
-        id: 'action',
-        header: () => (
-          <div className="text-center">{t('management.common.tableColumns.action')}</div>
-        ),
-        cell: ({ row }) => actions(row.original),
-      },
-    ],
-    [actions, t],
-  );
-
-  const summary = (role: RoleRead, context: AdminDataViewItemContext, compact = false) => (
-    <Card className={compact ? 'shadow-none' : undefined}>
-      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 pb-2">
-        <div className="min-w-0">
-          <CardTitle className="truncate text-base">
-            <Badge variant="secondary">{role.label || role.name}</Badge>
-          </CardTitle>
-        </div>
-        {context.actions}
-      </CardHeader>
-      <CardContent className="space-y-3 text-sm">
-        <p className="text-muted-foreground">{role.description}</p>
+  const columns: ColumnDef<RoleRead>[] = [
+    {
+      accessorKey: 'name',
+      header: t('management.roles.tableColumns.name'),
+      cell: ({ row }) => row.original.label || row.original.name,
+    },
+    {
+      accessorKey: 'description',
+      header: t('management.roles.tableColumns.description'),
+    },
+    {
+      accessorKey: 'is_active',
+      header: t('management.common.tableColumns.status'),
+      cell: ({ row }) => (
         <StatusBadge
-          active={role.is_active ?? false}
+          active={row.original.is_active ?? false}
           activeLabel={t('common.active')}
           inactiveLabel={t('common.inactive')}
         />
+      ),
+    },
+    {
+      id: 'action',
+      header: t('management.common.tableColumns.action'),
+      cell: ({ row }) => actions(row.original),
+    },
+  ];
+
+  const summary = (role: RoleRead, context: AdminDataViewItemContext, compact = false) => (
+    <Card className={compact ? 'shadow-none' : undefined}>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+        <div className="min-w-0">
+          <CardTitle className="truncate text-base">{role.label || role.name}</CardTitle>
+          <p className="truncate text-sm text-muted-foreground">{role.description}</p>
+        </div>
+        {context.actions}
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-3 text-sm">
+        <Badge variant="secondary">{role.name}</Badge>
+        <span className="text-right">
+          <StatusBadge
+            active={role.is_active ?? false}
+            activeLabel={t('common.active')}
+            inactiveLabel={t('common.inactive')}
+          />
+        </span>
       </CardContent>
     </Card>
   );
 
   return (
-    <>
-      <AdminListPage
-        filters={
-          <AdminForm form={searchForm} onSubmit={onSearch}>
-            <AdminSearchPanel
-              isLoading={isFetching}
-              clearDisabled={Object.keys(searchValues).length === 0}
-              onClear={onSearchReset}
-            >
-              <SearchFieldInput
-                control={searchForm.control}
-                name="name"
-                label={t('management.roles.tableColumns.name')}
-                disabled={isFetching}
-              />
-              <SearchFieldInput
-                control={searchForm.control}
-                name="description"
-                label={t('management.roles.tableColumns.description')}
-                disabled={isFetching}
-              />
-              <SearchFieldSelect
-                control={searchForm.control}
-                name="is_active"
-                label={t('management.common.tableColumns.status')}
-                options={statusSearchOptions}
-                disabled={isFetching}
-              />
-            </AdminSearchPanel>
-          </AdminForm>
-        }
-        listTitle={t('management.roles.listTitle')}
-        listActions={
-          <>
-            <DataViewToggle
-              mode={mode}
-              onChange={setMode}
-              labels={{
-                table: t('app.dataView.table'),
-                grid: t('app.dataView.grid'),
-                list: t('app.dataView.list'),
-              }}
+    <AdminListPage
+      filters={
+        <AdminForm form={searchForm} onSubmit={onSearch}>
+          <AdminSearchPanel
+            isLoading={isFetching}
+            clearDisabled={Object.keys(searchValues).length === 0}
+            onClear={onSearchReset}
+          >
+            <SearchFieldInput
+              control={searchForm.control}
+              name="name"
+              label={t('management.roles.tableColumns.name')}
+              disabled={isFetching}
             />
-            <Button
-              disabled={!canCreate || isFetching}
-              title={!canCreate ? t('common.noCreatePermission') : t('common.newText')}
-              onClick={() => appToast.info(t('management.roles.createComingSoon'))}
-            >
-              {t('common.newText')}
-            </Button>
-          </>
-        }
-      >
-        <AdminDataView
-          data={data?.data ?? []}
-          getItemId={(role) => role.id}
-          isLoading={isFetching}
-          showToggle={false}
-          renderActions={actions}
-          labels={{
-            table: t('app.dataView.table'),
-            grid: t('app.dataView.grid'),
-            list: t('app.dataView.list'),
-            loading: t('app.dataView.loading'),
-            empty: t('common.noData'),
-            error: t('app.dataView.error'),
-          }}
-          renderTable={({ data: rows }) => (
-            <AdminTable columns={columns} data={rows} rowKey="id" scrollHeight={tableHeight} />
-          )}
-          renderGridItem={(role, context) => summary(role, context)}
-          renderListItem={(role, context) => summary(role, context, true)}
-          pagination={
-            <AdminTablePagination
-              pageIndex={data?.page ?? pagination.page}
-              pageSize={data?.items_per_page ?? pagination.pageSize}
-              totalCount={data?.total_count ?? 0}
-              onPaginationChange={(pageIndex, pageSize) => {
-                setPagination({ page: pageIndex, pageSize });
-              }}
+            <SearchFieldInput
+              control={searchForm.control}
+              name="description"
+              label={t('management.roles.tableColumns.description')}
+              disabled={isFetching}
             />
-          }
-        />
-      </AdminListPage>
-
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="is_active"
+              label={t('management.common.tableColumns.status')}
+              placeholder={t('app.common.states.all')}
+              options={statusSearchOptions}
+              disabled={isFetching}
+            />
+          </AdminSearchPanel>
+        </AdminForm>
+      }
+      listTitle={t('management.roles.listTitle')}
+      listActions={
+        <>
+          <DataViewToggle
+            mode={mode}
+            onChange={setMode}
+            labels={{
+              table: t('app.dataView.table'),
+              grid: t('app.dataView.grid'),
+              list: t('app.dataView.list'),
+            }}
+          />
+          <Button
+            disabled={!canCreate || isFetching}
+            title={!canCreate ? t('common.noCreatePermission') : t('common.newText')}
+            onClick={() => appToast.info(t('management.roles.createComingSoon'))}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {t('management.roles.newModalText')}
+          </Button>
+        </>
+      }
+    >
+      <AdminDataView
+        data={data?.data ?? []}
+        getItemId={(role) => role.id}
+        isLoading={isFetching}
+        error={error}
+        showToggle={false}
+        renderActions={actions}
+        labels={{
+          table: t('app.dataView.table'),
+          grid: t('app.dataView.grid'),
+          list: t('app.dataView.list'),
+          loading: t('app.dataView.loading'),
+          empty: t('common.noData'),
+          error: t('app.dataView.error'),
+        }}
+        renderTable={({ data: rows }) => <AdminTable columns={columns} data={rows} rowKey="id" />}
+        renderGridItem={(role, context) => summary(role, context)}
+        renderListItem={(role, context) => summary(role, context, true)}
+        pagination={
+          <AdminTablePagination
+            pageIndex={data?.page ?? pagination.page}
+            pageSize={data?.items_per_page ?? pagination.pageSize}
+            totalCount={data?.total_count ?? 0}
+            onPaginationChange={(pageIndex, pageSize) => {
+              setPagination({ page: pageIndex, pageSize });
+            }}
+          />
+        }
+      />
       <RoleDetailModal
         role={selectedRole}
         show={selectedRole !== null}
         onClose={() => setSelectedRole(null)}
       />
-    </>
+    </AdminListPage>
   );
 }

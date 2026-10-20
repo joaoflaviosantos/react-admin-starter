@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import invoiceService, { type InvoiceListParams } from '@/api/services/domains/invoiceService';
@@ -13,18 +14,37 @@ import {
   useAdminDataViewMode,
   type AdminDataViewItemContext,
 } from '@/components/admin/data-view';
+import {
+  AdminForm,
+  AdminSearchPanel,
+  SearchFieldInput,
+  SearchFieldSelect,
+} from '@/components/admin/form';
 import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import { appToast } from '@/lib/toast';
 import { useMatchRouteMeta, useRouter } from '@/router/hooks';
 import type { Invoice, InvoiceStatus } from '#/domain';
 
-const filterClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm';
+type InvoiceFilters = {
+  search: string;
+  status: InvoiceStatus | '';
+  sort: string;
+};
+
+const DEFAULT_SORT: Pick<InvoiceListParams, 'sort_by' | 'sort_order'> = {
+  sort_by: 'issueDate',
+  sort_order: 'desc',
+};
+
+const EMPTY_INVOICE_FILTERS: InvoiceFilters = {
+  search: '',
+  status: '',
+  sort: `${DEFAULT_SORT.sort_by}:${DEFAULT_SORT.sort_order}`,
+};
 
 export default function InvoiceListPage() {
   const { t, i18n } = useTranslation();
@@ -33,20 +53,17 @@ export default function InvoiceListPage() {
   const { mode, setMode } = useAdminDataViewMode();
   const router = useRouter();
   const client = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<InvoiceStatus | ''>('');
-  const [sort, setSort] = useState<Pick<InvoiceListParams, 'sort_by' | 'sort_order'>>({
-    sort_by: 'issueDate',
-    sort_order: 'desc',
-  });
+  const [filters, setFilters] = useState<InvoiceFilters>(EMPTY_INVOICE_FILTERS);
+  const searchForm = useForm<InvoiceFilters>({ defaultValues: EMPTY_INVOICE_FILTERS });
+  const [sort, setSort] = useState(DEFAULT_SORT);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
   const [selected, setSelected] = useState<string[]>([]);
   const query = useQuery({
-    queryKey: ['domains', 'invoices', search, status, sort, pagination],
+    queryKey: ['domains', 'invoices', filters, sort, pagination],
     queryFn: () =>
       invoiceService.getInvoices({
-        search,
-        status,
+        search: filters.search,
+        status: filters.status,
         ...sort,
         page: pagination.page,
         items_per_page: pagination.pageSize,
@@ -190,57 +207,66 @@ export default function InvoiceListPage() {
     </Card>
   );
 
-  const updateSort = (value: string) => {
-    const [sort_by, sort_order] = value.split(':') as [
+  const onSearch = (values: InvoiceFilters) => {
+    const [sort_by, sort_order] = values.sort.split(':') as [
       InvoiceListParams['sort_by'],
       InvoiceListParams['sort_order'],
     ];
+    setFilters(values);
     setSort({ sort_by, sort_order });
     setPagination((current) => ({ ...current, page: 1 }));
   };
 
+  const onSearchReset = () => {
+    searchForm.reset(EMPTY_INVOICE_FILTERS);
+    setFilters(EMPTY_INVOICE_FILTERS);
+    setSort(DEFAULT_SORT);
+    setPagination((current) => ({ ...current, page: 1 }));
+  };
+
+  const sortOptions = [
+    { value: 'issueDate:desc', label: t('app.invoices.sortNewest') },
+    { value: 'issueDate:asc', label: t('app.invoices.sortOldest') },
+    { value: 'total:desc', label: t('app.invoices.sortHighest') },
+    { value: 'total:asc', label: t('app.invoices.sortLowest') },
+  ];
+
   return (
     <AdminListPage
       filters={
-        <div className="flex flex-wrap gap-2">
-          <Input
-            className="min-w-52 flex-1"
-            type="search"
-            aria-label={t('app.invoices.searchAria')}
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPagination((current) => ({ ...current, page: 1 }));
-            }}
-          />
-          <select
-            className={filterClass}
-            aria-label={t('app.common.fields.status')}
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as InvoiceStatus | '');
-              setPagination((current) => ({ ...current, page: 1 }));
-            }}
+        <AdminForm form={searchForm} onSubmit={onSearch}>
+          <AdminSearchPanel
+            isLoading={query.isLoading}
+            clearDisabled={!filters.search && !filters.status}
+            onClear={onSearchReset}
           >
-            <option value="">{t('app.common.states.all')}</option>
-            {(['draft', 'sent'] as const).map((value) => (
-              <option key={value} value={value}>
-                {t(`app.common.options.${value}`)}
-              </option>
-            ))}
-          </select>
-          <select
-            className={filterClass}
-            aria-label={t('app.invoices.sortAria')}
-            value={`${sort.sort_by}:${sort.sort_order}`}
-            onChange={(event) => updateSort(event.target.value)}
-          >
-            <option value="issueDate:desc">{t('app.invoices.sortNewest')}</option>
-            <option value="issueDate:asc">{t('app.invoices.sortOldest')}</option>
-            <option value="total:desc">{t('app.invoices.sortHighest')}</option>
-            <option value="total:asc">{t('app.invoices.sortLowest')}</option>
-          </select>
-        </div>
+            <SearchFieldInput
+              control={searchForm.control}
+              name="search"
+              label={t('app.common.fields.search')}
+              type="search"
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="status"
+              label={t('app.common.fields.status')}
+              placeholder={t('app.common.states.all')}
+              options={[
+                { value: 'draft', label: t('app.common.options.draft') },
+                { value: 'sent', label: t('app.common.options.sent') },
+              ]}
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="sort"
+              label={t('app.invoices.sortAria')}
+              options={sortOptions}
+              disabled={query.isLoading}
+            />
+          </AdminSearchPanel>
+        </AdminForm>
       }
       listTitle={t('app.invoices.invoiceList')}
       listActions={

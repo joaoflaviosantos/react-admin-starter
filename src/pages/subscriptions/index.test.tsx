@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Customer, Subscription } from '#/domain';
@@ -103,11 +104,10 @@ describe('Subscriptions page', () => {
   });
   afterEach(cleanup);
 
-  it('renders localized money, KPI counts and identical lifecycle actions in all three modes', async () => {
+  it('renders localized money and identical lifecycle actions in all three modes', async () => {
     const view = renderPage();
     expect(await screen.findByText('Acme Corp')).toBeInTheDocument();
     expect(screen.getByText('R$129.00')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Edit Acme Corp subscription' })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Cancel Acme Corp subscription' }),
@@ -128,17 +128,16 @@ describe('Subscriptions page', () => {
   });
 
   it('passes plan, status and interval filters and resets pagination', async () => {
+    const user = userEvent.setup();
     renderPage('/revenue/subscriptions?view=list');
     await screen.findByText('Acme Corp');
-    fireEvent.change(screen.getByRole('combobox', { name: 'Plan' }), {
-      target: { value: 'starter' },
-    });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Status' }), {
-      target: { value: 'active' },
-    });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Billing interval' }), {
-      target: { value: 'monthly' },
-    });
+    await user.click(screen.getByRole('combobox', { name: 'Plan' }));
+    await user.click(await screen.findByRole('option', { name: 'Starter' }));
+    await user.click(screen.getByRole('combobox', { name: 'Status' }));
+    await user.click(await screen.findByRole('option', { name: 'Active' }));
+    await user.click(screen.getByRole('combobox', { name: 'Billing interval' }));
+    await user.click(await screen.findByRole('option', { name: 'Monthly' }));
+    await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() =>
       expect(mocks.getSubscriptions).toHaveBeenLastCalledWith(
         expect.objectContaining({

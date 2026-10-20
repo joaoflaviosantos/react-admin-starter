@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import auditLogService, { type AuditLogListParams } from '@/api/services/domains/auditLogService';
@@ -12,6 +13,12 @@ import {
   useAdminDataViewMode,
   type AdminDataViewItemContext,
 } from '@/components/admin/data-view';
+import {
+  AdminForm,
+  AdminSearchPanel,
+  SearchFieldInput,
+  SearchFieldSelect,
+} from '@/components/admin/form';
 import { AdminListPage } from '@/components/admin/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,13 +31,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { useMatchRouteMeta } from '@/router/hooks';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import type { AuditLog } from '#/domain';
 
-const filterClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm';
+type AuditFilters = AuditLogListParams;
+
+const EMPTY_AUDIT_FILTERS: AuditFilters = {
+  search: '',
+  actor: '',
+  action: '',
+  resource: '',
+  from: '',
+  to: '',
+};
 
 function AuditDetail({ event, onClose }: { event: AuditLog | null; onClose: () => void }) {
   const { t, i18n } = useTranslation();
@@ -111,14 +125,8 @@ export default function AuditLogsPage() {
   const { t, i18n } = useTranslation();
   useHasRequiredPermission(useMatchRouteMeta()?.label);
   const { mode, setMode } = useAdminDataViewMode();
-  const [filters, setFilters] = useState<AuditLogListParams>({
-    search: '',
-    actor: '',
-    action: '',
-    resource: '',
-    from: '',
-    to: '',
-  });
+  const [filters, setFilters] = useState<AuditFilters>(EMPTY_AUDIT_FILTERS);
+  const searchForm = useForm<AuditFilters>({ defaultValues: EMPTY_AUDIT_FILTERS });
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
   const [details, setDetails] = useState<AuditLog | null>(null);
   const query = useQuery({
@@ -193,64 +201,71 @@ export default function AuditLogsPage() {
       </CardContent>
     </Card>
   );
-  const updateFilter = (name: keyof AuditLogListParams, value: string) => {
-    setFilters((current) => ({ ...current, [name]: value }));
+  const onSearch = (values: AuditFilters) => {
+    setFilters(values);
     setPagination((current) => ({ ...current, page: 1 }));
   };
+
+  const onSearchReset = () => {
+    searchForm.reset(EMPTY_AUDIT_FILTERS);
+    setFilters(EMPTY_AUDIT_FILTERS);
+    setPagination((current) => ({ ...current, page: 1 }));
+  };
+
   return (
     <AdminListPage
-      stats={<p className="text-sm text-muted-foreground">{t('app.auditLogs.noActions')}</p>}
       filters={
-        <div className="flex flex-wrap gap-2">
-          <Input
-            className="min-w-52 flex-1"
-            type="search"
-            aria-label={t('app.auditLogs.searchAria')}
-            value={filters.search}
-            onChange={(event) => updateFilter('search', event.target.value)}
-          />
-          <Input
-            className="w-36"
-            aria-label={t('app.auditLogs.actorAria')}
-            placeholder={t('app.auditLogs.actor')}
-            value={filters.actor}
-            onChange={(event) => updateFilter('actor', event.target.value)}
-          />
-          <Input
-            className="w-36"
-            aria-label={t('app.auditLogs.actionAria')}
-            placeholder={t('app.auditLogs.action')}
-            value={filters.action}
-            onChange={(event) => updateFilter('action', event.target.value)}
-          />
-          <select
-            className={filterClass}
-            aria-label={t('app.auditLogs.resourceAria')}
-            value={filters.resource}
-            onChange={(event) => updateFilter('resource', event.target.value)}
+        <AdminForm form={searchForm} onSubmit={onSearch}>
+          <AdminSearchPanel
+            isLoading={query.isLoading}
+            clearDisabled={!Object.values(filters).some(Boolean)}
+            onClear={onSearchReset}
           >
-            <option value="">{t('app.common.states.all')}</option>
-            {['customer', 'subscription', 'invoice', 'support_ticket', 'api_key'].map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-          <Input
-            className="w-36"
-            type="date"
-            aria-label={t('app.auditLogs.from')}
-            value={filters.from}
-            onChange={(event) => updateFilter('from', event.target.value)}
-          />
-          <Input
-            className="w-36"
-            type="date"
-            aria-label={t('app.auditLogs.to')}
-            value={filters.to}
-            onChange={(event) => updateFilter('to', event.target.value)}
-          />
-        </div>
+            <SearchFieldInput
+              control={searchForm.control}
+              name="search"
+              label={t('app.common.fields.search')}
+              type="search"
+              disabled={query.isLoading}
+            />
+            <SearchFieldInput
+              control={searchForm.control}
+              name="actor"
+              label={t('app.auditLogs.actor')}
+              disabled={query.isLoading}
+            />
+            <SearchFieldInput
+              control={searchForm.control}
+              name="action"
+              label={t('app.auditLogs.action')}
+              disabled={query.isLoading}
+            />
+            <SearchFieldSelect
+              control={searchForm.control}
+              name="resource"
+              label={t('app.auditLogs.resource')}
+              placeholder={t('app.common.states.all')}
+              options={['customer', 'subscription', 'invoice', 'support_ticket', 'api_key'].map(
+                (value) => ({ value, label: value }),
+              )}
+              disabled={query.isLoading}
+            />
+            <SearchFieldInput
+              control={searchForm.control}
+              name="from"
+              type="date"
+              label={t('app.auditLogs.from')}
+              disabled={query.isLoading}
+            />
+            <SearchFieldInput
+              control={searchForm.control}
+              name="to"
+              type="date"
+              label={t('app.auditLogs.to')}
+              disabled={query.isLoading}
+            />
+          </AdminSearchPanel>
+        </AdminForm>
       }
       listTitle={t('app.auditLogs.listTitle')}
       listActions={
