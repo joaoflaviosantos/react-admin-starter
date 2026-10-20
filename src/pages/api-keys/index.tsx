@@ -364,7 +364,6 @@ export default function ApiKeysPage() {
             isLoading={query.isLoading}
             clearDisabled={!Object.values(filters).some(Boolean)}
             onClear={onSearchReset}
-            className="xl:grid-cols-3"
           >
             <SearchFieldInput
               control={searchForm.control}

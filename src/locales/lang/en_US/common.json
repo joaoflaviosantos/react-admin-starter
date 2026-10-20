@@ -535,7 +535,23 @@
       "viewAria": "View event {{id}}",
       "detailsAria": "Details for {{summary}}",
       "date": "Date",
-      "noActions": "Audit events are read-only."
+      "noActions": "Audit events are read-only.",
+      "actions": {
+        "customer_updated": "Customer updated",
+        "ticket_assigned": "Ticket assigned",
+        "api_key_created": "API key created",
+        "invoice_sent": "Invoice sent",
+        "subscription_updated": "Subscription updated",
+        "api_key_revoked": "API key revoked"
+      },
+      "resourceTypes": {
+        "customer": "Customer",
+        "subscription": "Subscription",
+        "invoice": "Invoice",
+        "ticket": "Ticket",
+        "support_ticket": "Support ticket",
+        "api_key": "API key"
+      }
     },
     "dashboard": {
       "title": "SaaS overview",

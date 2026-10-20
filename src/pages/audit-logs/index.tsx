@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { TFunction } from 'i18next';
 import { Eye } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -35,16 +36,27 @@ import { useMatchRouteMeta } from '@/router/hooks';
 import { useHasRequiredPermission } from '@/hooks/permissions/use-has-required-permission';
 import type { AuditLog } from '#/domain';
 
-type AuditFilters = AuditLogListParams;
+type AuditFilters = Pick<AuditLogListParams, 'search' | 'action' | 'resource'>;
 
 const EMPTY_AUDIT_FILTERS: AuditFilters = {
   search: '',
-  actor: '',
   action: '',
   resource: '',
-  from: '',
-  to: '',
 };
+
+const fallbackLabel = (value: string) => {
+  const label = value.replace(/[._]/g, ' ').trim();
+  return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
+const actionLabel = (action: string, t: TFunction) => {
+  const key = action.replace(/\./g, '_');
+  const label = t(`app.auditLogs.actions.${key}`, { defaultValue: '' });
+  return label || fallbackLabel(action);
+};
+
+const resourceLabel = (resource: string, t: TFunction) =>
+  t(`app.auditLogs.resourceTypes.${resource}`, { defaultValue: fallbackLabel(resource) });
 
 function AuditDetail({ event, onClose }: { event: AuditLog | null; onClose: () => void }) {
   const { t, i18n } = useTranslation();
@@ -78,15 +90,20 @@ function AuditDetail({ event, onClose }: { event: AuditLog | null; onClose: () =
                 {t('app.auditLogs.action')}
               </dt>
               <dd className="mt-1 text-sm">
-                <Badge variant="outline">{event.action}</Badge>
+                <Badge variant="outline" title={event.action}>
+                  {actionLabel(event.action, t)}
+                </Badge>
               </dd>
             </div>
             <div>
               <dt className="text-xs font-medium uppercase text-muted-foreground">
                 {t('app.auditLogs.resource')}
               </dt>
-              <dd className="mt-1 text-sm">
-                {event.resourceType} · {event.resourceId}
+              <dd className="mt-1 min-w-0 text-sm">
+                <div className="truncate">{resourceLabel(event.resourceType, t)}</div>
+                <div className="truncate font-mono text-xs text-muted-foreground">
+                  {event.resourceId}
+                </div>
               </dd>
             </div>
             <div>
@@ -168,12 +185,23 @@ export default function AuditLogsPage() {
     {
       accessorKey: 'action',
       header: t('app.auditLogs.action'),
-      cell: ({ row }) => <Badge variant="outline">{row.original.action}</Badge>,
+      cell: ({ row }) => (
+        <Badge variant="outline" title={row.original.action}>
+          {actionLabel(row.original.action, t)}
+        </Badge>
+      ),
     },
     {
       id: 'resource',
       header: t('app.auditLogs.resource'),
-      cell: ({ row }) => `${row.original.resourceType} · ${row.original.resourceId}`,
+      cell: ({ row }) => (
+        <div className="min-w-0">
+          <div className="truncate">{resourceLabel(row.original.resourceType, t)}</div>
+          <div className="truncate font-mono text-xs text-muted-foreground">
+            {row.original.resourceId}
+          </div>
+        </div>
+      ),
     },
     { accessorKey: 'summary', header: t('app.auditLogs.summary') },
     {
@@ -193,11 +221,14 @@ export default function AuditLogsPage() {
         </div>
         {context.actions}
       </CardHeader>
-      <CardContent className="flex flex-wrap items-center gap-2 text-sm">
-        <Badge variant="outline">{event.action}</Badge>
-        <span>
-          {event.resourceType} · {event.resourceId}
-        </span>
+      <CardContent className="flex flex-wrap items-start gap-2 text-sm">
+        <Badge variant="outline" title={event.action}>
+          {actionLabel(event.action, t)}
+        </Badge>
+        <div className="min-w-0">
+          <div className="truncate">{resourceLabel(event.resourceType, t)}</div>
+          <div className="truncate font-mono text-xs text-muted-foreground">{event.resourceId}</div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -230,12 +261,6 @@ export default function AuditLogsPage() {
             />
             <SearchFieldInput
               control={searchForm.control}
-              name="actor"
-              label={t('app.auditLogs.actor')}
-              disabled={query.isLoading}
-            />
-            <SearchFieldInput
-              control={searchForm.control}
               name="action"
               label={t('app.auditLogs.action')}
               disabled={query.isLoading}
@@ -246,22 +271,8 @@ export default function AuditLogsPage() {
               label={t('app.auditLogs.resource')}
               placeholder={t('app.common.states.all')}
               options={['customer', 'subscription', 'invoice', 'support_ticket', 'api_key'].map(
-                (value) => ({ value, label: value }),
+                (value) => ({ value, label: resourceLabel(value, t) }),
               )}
-              disabled={query.isLoading}
-            />
-            <SearchFieldInput
-              control={searchForm.control}
-              name="from"
-              type="date"
-              label={t('app.auditLogs.from')}
-              disabled={query.isLoading}
-            />
-            <SearchFieldInput
-              control={searchForm.control}
-              name="to"
-              type="date"
-              label={t('app.auditLogs.to')}
               disabled={query.isLoading}
             />
           </AdminSearchPanel>

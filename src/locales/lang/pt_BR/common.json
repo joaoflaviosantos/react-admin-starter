@@ -535,7 +535,23 @@
       "viewAria": "Visualizar evento {{id}}",
       "detailsAria": "Detalhes de {{summary}}",
       "date": "Data",
-      "noActions": "Eventos de auditoria são somente leitura."
+      "noActions": "Eventos de auditoria são somente leitura.",
+      "actions": {
+        "customer_updated": "Cliente atualizado",
+        "ticket_assigned": "Ticket atribuído",
+        "api_key_created": "Chave de API criada",
+        "invoice_sent": "Fatura enviada",
+        "subscription_updated": "Assinatura atualizada",
+        "api_key_revoked": "Chave de API revogada"
+      },
+      "resourceTypes": {
+        "customer": "Cliente",
+        "subscription": "Assinatura",
+        "invoice": "Fatura",
+        "ticket": "Ticket",
+        "support_ticket": "Ticket de suporte",
+        "api_key": "Chave de API"
+      }
     },
     "dashboard": {
       "title": "Visão geral do SaaS",

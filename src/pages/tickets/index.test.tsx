@@ -131,7 +131,7 @@ describe('Support tickets page', () => {
     ).toBeVisible();
   });
 
-  it('passes search, status, priority and SLA filters', async () => {
+  it('passes search, status and priority filters', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderPage('/support/tickets?view=list');
     await screen.findByText('Payment retry is not reflected');
@@ -140,8 +140,6 @@ describe('Support tickets page', () => {
     await user.click(await screen.findByRole('option', { name: 'Open' }));
     await user.click(screen.getByRole('combobox', { name: 'Priority' }));
     await user.click(await screen.findByRole('option', { name: 'Urgent' }));
-    await user.click(screen.getByRole('combobox', { name: 'SLA status' }));
-    await user.click(await screen.findByRole('option', { name: 'Overdue' }));
     await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() =>
       expect(mocks.getTickets).toHaveBeenLastCalledWith(
@@ -149,7 +147,6 @@ describe('Support tickets page', () => {
           search: 'payment',
           status: 'open',
           priority: 'urgent',
-          sla: 'overdue',
           page: 1,
         }),
       ),

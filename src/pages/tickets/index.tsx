@@ -51,14 +51,12 @@ type TicketFilters = {
   search: string;
   status: NonNullable<TicketListParams['status']>;
   priority: NonNullable<TicketListParams['priority']>;
-  sla: NonNullable<TicketListParams['sla']>;
 };
 
 const EMPTY_TICKET_FILTERS: TicketFilters = {
   search: '',
   status: '',
   priority: '',
-  sla: '',
 };
 
 const isOverdue = (ticket: SupportTicket) =>
@@ -329,7 +327,6 @@ export default function TicketsPage() {
             isLoading={query.isLoading}
             clearDisabled={!Object.values(filters).some(Boolean)}
             onClear={onSearchReset}
-            className="xl:grid-cols-5"
           >
             <SearchFieldInput
               control={searchForm.control}
@@ -352,14 +349,6 @@ export default function TicketsPage() {
               label={t('app.tickets.priority')}
               placeholder={t('app.common.states.all')}
               options={filterOptions(['low', 'medium', 'high', 'urgent'])}
-              disabled={query.isLoading}
-            />
-            <SearchFieldSelect
-              control={searchForm.control}
-              name="sla"
-              label={t('app.tickets.slaStatus')}
-              placeholder={t('app.common.states.all')}
-              options={filterOptions(['overdue', 'on_track'])}
               disabled={query.isLoading}
             />
           </AdminSearchPanel>

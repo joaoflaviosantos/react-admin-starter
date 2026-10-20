@@ -127,7 +127,7 @@ describe('Subscriptions page', () => {
     expect(screen.getByRole('button', { name: 'Edit Acme Corp subscription' })).toBeInTheDocument();
   });
 
-  it('passes plan, status and interval filters and resets pagination', async () => {
+  it('passes plan and status filters and resets pagination', async () => {
     const user = userEvent.setup();
     renderPage('/revenue/subscriptions?view=list');
     await screen.findByText('Acme Corp');
@@ -135,15 +135,12 @@ describe('Subscriptions page', () => {
     await user.click(await screen.findByRole('option', { name: 'Starter' }));
     await user.click(screen.getByRole('combobox', { name: 'Status' }));
     await user.click(await screen.findByRole('option', { name: 'Active' }));
-    await user.click(screen.getByRole('combobox', { name: 'Billing interval' }));
-    await user.click(await screen.findByRole('option', { name: 'Monthly' }));
     await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() =>
       expect(mocks.getSubscriptions).toHaveBeenLastCalledWith(
         expect.objectContaining({
           plan: 'starter',
           status: 'active',
-          interval: 'monthly',
           page: 1,
         }),
       ),

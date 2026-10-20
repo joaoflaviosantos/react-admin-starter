@@ -36,14 +36,12 @@ type CustomerFilters = {
   search: string;
   status: NonNullable<CustomerListParams['status']>;
   plan: NonNullable<CustomerListParams['plan']>;
-  source: NonNullable<CustomerListParams['source']>;
 };
 
 const EMPTY_CUSTOMER_FILTERS: CustomerFilters = {
   search: '',
   status: '',
   plan: '',
-  source: '',
 };
 
 export default function CustomersPage() {
@@ -220,7 +218,6 @@ export default function CustomersPage() {
             isLoading={query.isLoading}
             clearDisabled={!Object.values(filters).some(Boolean)}
             onClear={onSearchReset}
-            className="xl:grid-cols-5"
           >
             <SearchFieldInput
               control={searchForm.control}
@@ -243,14 +240,6 @@ export default function CustomersPage() {
               label={t('app.customers.plan')}
               placeholder={t('app.common.states.all')}
               options={filterOptions(['starter', 'growth', 'scale'])}
-              disabled={query.isLoading}
-            />
-            <SearchFieldSelect
-              control={searchForm.control}
-              name="source"
-              label={t('app.customers.source')}
-              placeholder={t('app.common.states.all')}
-              options={filterOptions(['organic', 'paid_search', 'referral', 'partner', 'outbound'])}
               disabled={query.isLoading}
             />
           </AdminSearchPanel>

@@ -38,14 +38,12 @@ type SubscriptionFilters = {
   search: string;
   status: NonNullable<SubscriptionListParams['status']>;
   plan: NonNullable<SubscriptionListParams['plan']>;
-  interval: NonNullable<SubscriptionListParams['interval']>;
 };
 
 const EMPTY_SUBSCRIPTION_FILTERS: SubscriptionFilters = {
   search: '',
   status: '',
   plan: '',
-  interval: '',
 };
 
 export default function SubscriptionsPage() {
@@ -255,7 +253,6 @@ export default function SubscriptionsPage() {
             isLoading={query.isLoading}
             clearDisabled={!Object.values(filters).some(Boolean)}
             onClear={onSearchReset}
-            className="xl:grid-cols-5"
           >
             <SearchFieldInput
               control={searchForm.control}
@@ -278,14 +275,6 @@ export default function SubscriptionsPage() {
               label={t('app.subscriptions.plan')}
               placeholder={t('app.common.states.all')}
               options={filterOptions(['starter', 'growth', 'scale'])}
-              disabled={query.isLoading}
-            />
-            <SearchFieldSelect
-              control={searchForm.control}
-              name="interval"
-              label={t('app.subscriptions.interval')}
-              placeholder={t('app.common.states.all')}
-              options={filterOptions(['monthly', 'yearly'])}
               disabled={query.isLoading}
             />
           </AdminSearchPanel>

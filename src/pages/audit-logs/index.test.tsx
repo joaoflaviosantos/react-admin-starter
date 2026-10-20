@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -57,6 +57,9 @@ describe('Audit logs page', () => {
     const user = userEvent.setup();
     const view = renderPage('/platform/audit-logs?view=grid&tenant=demo');
     expect(await screen.findByText(event.summary)).toBeInTheDocument();
+    expect(screen.getByText('Customer updated')).toBeInTheDocument();
+    expect(screen.getByText('Customer')).toBeInTheDocument();
+    expect(screen.getByText('customer-vertex')).toBeInTheDocument();
     expect(view.container.querySelector('[data-view-mode="grid"]')).toBeInTheDocument();
     await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'health');
     await user.click(screen.getByRole('button', { name: 'Search' }));
@@ -69,14 +72,20 @@ describe('Audit logs page', () => {
     await waitFor(() =>
       expect(view.container.querySelector('[data-view-mode="table"]')).toBeInTheDocument(),
     );
+    const row = screen.getByRole('row', { name: /Updated the health score/ });
+    expect(within(row).getByTitle('customer.updated')).toHaveTextContent('Customer updated');
+    expect(within(row).getByText('customer-vertex')).toBeInTheDocument();
   });
 
   it('opens sanitized event context without any mutation control', async () => {
     renderPage();
     await screen.findByText(event.summary);
     fireEvent.click(screen.getByRole('button', { name: 'View event audit-1001' }));
-    expect(await screen.findByRole('dialog', { name: 'Event details' })).toBeInTheDocument();
-    expect(screen.getByText('203.0.113.10')).toBeInTheDocument();
+    const dialog = await screen.findByRole('dialog', { name: 'Event details' });
+    expect(within(dialog).getByText('Customer updated')).toBeInTheDocument();
+    expect(within(dialog).getByText('Customer')).toBeInTheDocument();
+    expect(within(dialog).getByText('customer-vertex')).toBeInTheDocument();
+    expect(within(dialog).getByText('203.0.113.10')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /delete|edit|revoke/i })).not.toBeInTheDocument();
   });
 });
